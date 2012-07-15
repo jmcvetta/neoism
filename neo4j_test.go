@@ -53,12 +53,21 @@ func TestGetNode(t *testing.T) {
 	props := map[string]string{}
 	node0, _ := db.CreateNode(props)
 	id := node0.Id()
-	log.Println("id:", id)
 	node1, err := db.GetNode(id)
 	if err != nil {
 		t.Error(err)
 	}
 	assert.Equal(t, node0, node1)
+}
+
+func TestGetNonexistNode(t *testing.T) {
+	db := connect(t)
+	props := map[string]string{}
+	node0, _ := db.CreateNode(props)
+	id := node0.Id()
+	id = id + 50000 // Node with this id should (probably??) not yet exist
+	_, err := db.GetNode(id)
+	assert.Equal(t, err, NodeNotFound)
 }
 
 func init() {

@@ -21,7 +21,7 @@ var (
 	BadResponse = errors.New("Bad response from Neo4j server.")
 	NodeNotFound = errors.New("Cannot find node in database.")
 	FeatureUnavailable = errors.New("Feature unavailable")
-	
+	CannotDelete = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
 )
 
 // An errorResponse is returned from the Neo4j server on errors.
@@ -155,6 +155,7 @@ type nodeInfo struct {
 	IncomingTypedRels string      `json:"incoming_typed_relationships"`
 }
 
+// CreateNode creates a Node in the database.
 func (db *Database) CreateNode(props map[string]string) (*Node, error) {
 	n := Node{
 		Db: db,
@@ -177,6 +178,7 @@ func (db *Database) CreateNode(props map[string]string) (*Node, error) {
 	return &n, nil
 }
 
+// GetNode fetches a Node from the database
 func (db *Database) GetNode(id int) (*Node, error) {
 	n := Node{
 		Db: db,
@@ -202,6 +204,26 @@ func (db *Database) GetNode(id int) (*Node, error) {
 	n.Info = &info
 	return &n, nil
 }
+
+// Delete deletes a Node from the database
+func (n *Node) Delete() error {
+	c := restCall{
+		Url:    n.Info.Self,
+		Method: "DELETE",
+	}
+	code, err := n.Db.rest(&c)
+	switch {
+	case err != nil:
+		return err
+	case code == 204:
+		// Successful deletion!
+		return nil
+	case code == 409:
+		return CannotDelete
+	}
+	return BadResponse
+}
+
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
@@ -236,7 +258,6 @@ func (n *Node) Properties() (map[string]string, error) {
 		props = map[string]string{}
 	}
 	return props, nil
-
 }
 
 //
