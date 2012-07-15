@@ -4,18 +4,29 @@
 package neo4j
 
 import (
-	"testing"
 	"log"
+	"testing"
 )
 
-func TestCreateNode(t *testing.T) {
+func TestCreate(t *testing.T) {
+	//
+	// Connect
+	//
 	neo, err := NewDatabase("http://localhost:7474/db/data")
 	if err != nil {
 		t.Fatal(err)
 	}
-	log.Println(neo)
+	t.Log(neo)
+	//
+	// Create
+	//
+	props := map[string]string{"foo": "bar"}
+	node, err := neo.CreateNode(props)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(node)
 }
-
 
 func init() {
 	log.SetFlags(log.Ltime | log.Lshortfile)

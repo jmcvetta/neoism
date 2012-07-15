@@ -43,26 +43,26 @@ type serviceRootInfo struct {
 
 // A node in a Neo4j database
 type Node struct {
-	Id int64
+	Info *nodeInfo
 }
 
 // A nodeInfo is returned from the Neo4j server on successful operations 
 // involving a Node.
 type nodeInfo struct {
-	OutgoingRels      string            `json:"outgoing_relationships"`
-	Data              map[string]string `json:"data"`
-	Traverse          string            `json:"traverse"`
-	AllTypedRels      string            `json:"all_typed_relationships"`
-	Property          string            `json:"property"`
-	Self              string            `json:"self"`
-	Outgoing          string            `json:"outgoing_typed_relationships"`
-	Properties        string            `json:"properties"`
-	IncomingRels      string            `json:"incoming_relationships"`
-	Extensions        map[string]string `json:"extensions"`
-	CreateRel         string            `json:"create_relationship"`
-	PagedTraverse     string            `json:"paged_traverse"`
-	AllRels           string            `json:"all_relationships"`
-	IncomingTypedRels string            `json:"incoming_typed_relationships"`
+	OutgoingRels      string      `json:"outgoing_relationships"`
+	Data              interface{} `json:"data"`
+	Traverse          string      `json:"traverse"`
+	AllTypedRels      string      `json:"all_typed_relationships"`
+	Property          string      `json:"property"`
+	Self              string      `json:"self"`
+	Outgoing          string      `json:"outgoing_typed_relationships"`
+	Properties        string      `json:"properties"`
+	IncomingRels      string      `json:"incoming_relationships"`
+	Extensions        interface{} `json:"extensions"`
+	CreateRel         string      `json:"create_relationship"`
+	PagedTraverse     string      `json:"paged_traverse"`
+	AllRels           string      `json:"all_relationships"`
+	IncomingTypedRels string      `json:"incoming_typed_relationships"`
 }
 
 // An errorResponse is returned from the Neo4j server on errors.
@@ -109,7 +109,7 @@ func (db *Database) rest(r *restCall) error {
 			return err
 		}
 		req.Header.Add("Content-Type", "application/json")
-	} 
+	}
 	req.Header.Add("Accept", "application/json")
 	log.Println("Request:", req)
 	resp, err := db.client.Do(req)
@@ -147,11 +147,10 @@ func NewDatabase(uri string) (db *Database, err error) {
 	if err != nil {
 		return
 	}
-	if info.Version == "" {
+	if db.Info.Version == "" {
 		err = BadResponse
 		return
 	}
-	db.Info = &info
 	return
 }
 
@@ -159,39 +158,22 @@ func NewDatabase(uri string) (db *Database, err error) {
 // Nodes
 //
 
-/*
-func (db *Database) CreateNode(props map[string]string) (n *Node, err error) {
-	fragment := "/node"
-	fragment = strings.Trim(fragment, "/")
-	path := db.url.Path
-	path = strings.TrimRight(path, "/")
-	path = strings.Join([]string{path, fragment}, "/")
-	u := db.url
-	u.Path = path
-	var req *http.Request
-	req, err = http.NewRequest("POST", u.String(), nil)
+func (db *Database) CreateNode(props map[string]string) (*Node, error) {
+	var n Node
+	var info nodeInfo
+	c := restCall{
+		Url:    db.Info.Node,
+		Method: "POST",
+		//		Data: &props,
+		Result: &info,
+	}
+	err := db.rest(&c)
 	if err != nil {
-		return
+		return &n, err
 	}
-	if props != nil {
-		var b []byte
-		req.Header.Add("Content-Type", "application/json")
-		b, err = json.Marshal(props)
-		if err != nil {
-			return
-		}
-		buf := bytes.NewBuffer(b)
-		req, err = http.NewRequest("POST", u.String(), buf)
-		req.Header.Add("Content-Type", "application/json")
-	} else {
-		req, err = http.NewRequest("POST", u.String(), nil)
+	n.Info = &info
+	if n.Info.Self == "" {
+		return &n, BadResponse
 	}
-	req.Header.Add("Accept", "application/json")
-	resp, err := db.client.Do(req)
-	if err != nil {
-		return
-	}
-	err = json.Unmarshal(resp, &n)
-	return
+	return &n, nil
 }
-*/
