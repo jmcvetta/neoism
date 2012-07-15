@@ -23,7 +23,7 @@ func connect(t *testing.T) *Database {
 	return db
 }
 
-func TestCreate(t *testing.T) {
+func TestCreateNode(t *testing.T) {
 	db := connect(t)
 	props := map[string]string{}
 	node, err := db.CreateNode(props)
@@ -37,7 +37,7 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, props, p)
 }
 
-func TestCreateWithProps(t *testing.T) {
+func TestCreateNodeProps(t *testing.T) {
 	db := connect(t)
 	props := map[string]string{"foo": "bar"}
 	node, err := db.CreateNode(props)
@@ -49,6 +49,19 @@ func TestCreateWithProps(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, props, p)
+}
+
+func TestGetNode(t *testing.T) {
+	db := connect(t)
+	props := map[string]string{}
+	node0, _ := db.CreateNode(props)
+	id := node0.Id()
+	log.Println("id:", id)
+	node1, err := db.GetNode(id)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, node0, node1)
 }
 
 func init() {

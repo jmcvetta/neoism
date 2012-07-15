@@ -19,6 +19,8 @@ import (
 
 var (
 	BadResponse = errors.New("Bad response from Neo4j server.")
+	NotFound = errors.New("Not Found")
+	FeatureUnavailable = errors.New("Feature unavailable")
 )
 
 // An errorResponse is returned from the Neo4j server on errors.
@@ -174,6 +176,32 @@ func (db *Database) CreateNode(props map[string]string) (*Node, error) {
 	return &n, nil
 }
 
+func (db *Database) GetNode(id int) (*Node, error) {
+	n := Node{
+		Db: db,
+	}
+	var info nodeInfo
+	parts := []string{db.Info.Node, strconv.Itoa(id)}
+	uri := strings.Join(parts, "/")
+	c := restCall{
+		Url:    uri,
+		Method: "GET",
+		Result: &info,
+	}
+	code, err := db.rest(&c)
+	switch {
+	case code == 404:
+		return &n, NotFound
+	case code != 200:
+		return &n, BadResponse
+	}
+	if err != nil {
+		return &n, err
+	}
+	n.Info = &info
+	return &n, nil
+}
+
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
 	l := len(n.Db.Info.Node)
@@ -188,7 +216,11 @@ func (n *Node) Id() int {
 }
 
 // Properties gets the Node's properties map from the DB.
-func (n *Node) Properties() (props map[string]string, err error) {
+func (n *Node) Properties() (map[string]string, error) {
+	props := make(map[string]string)
+	if n.Info.Properties == "" {
+		return props, FeatureUnavailable
+	}
 	c := restCall{
 		Url:    n.Info.Properties,
 		Method: "GET",
@@ -196,13 +228,13 @@ func (n *Node) Properties() (props map[string]string, err error) {
 	}
 	code, err := n.Db.rest(&c)
 	if err != nil {
-		return
+		return props, err
 	}
 	// Status code 204 indicates no properties on this node
 	if code == 204 {
 		props = map[string]string{}
 	}
-	return
+	return props, nil
 
 }
 
