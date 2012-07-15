@@ -19,8 +19,9 @@ import (
 
 var (
 	BadResponse = errors.New("Bad response from Neo4j server.")
-	NotFound = errors.New("Not Found")
+	NodeNotFound = errors.New("Cannot find node in database.")
 	FeatureUnavailable = errors.New("Feature unavailable")
+	
 )
 
 // An errorResponse is returned from the Neo4j server on errors.
@@ -191,7 +192,7 @@ func (db *Database) GetNode(id int) (*Node, error) {
 	code, err := db.rest(&c)
 	switch {
 	case code == 404:
-		return &n, NotFound
+		return &n, NodeNotFound
 	case code != 200:
 		return &n, BadResponse
 	}
