@@ -1,7 +1,8 @@
 neo4j
 =====
 
-Neo4j client for Golang
+Neo4j client for [Go](http://golang.org).
+
 
 # Documentation
 
