@@ -7,17 +7,26 @@ package neo4j
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"github.com/kr/pretty"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
-	// "strings"
-	"errors"
-	"log"
+	"strconv"
+	"strings"
 )
 
 var (
 	BadResponse = errors.New("Bad response from Neo4j server.")
 )
+
+// An errorResponse is returned from the Neo4j server on errors.
+type errorResponse struct {
+	Message    string   `json:"message"`
+	Exception  string   `json:"exception"`
+	Stacktrace []string `json:"stacktrace"`
+}
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
@@ -41,9 +50,87 @@ type serviceRootInfo struct {
 	Version    string      `json:"neo4j_version"`
 }
 
+type restCall struct {
+	Url    string      // Absolute URL to call
+	Method string      // HTTP method to use 
+	Data   interface{} // Data to JSON-encode and include with call
+	Result interface{} // JSON-encoded data in respose will be unmarshalled into Result
+}
+
+func (db *Database) rest(r *restCall) (status int, err error) {
+	req, err := http.NewRequest(r.Method, r.Url, nil)
+	if err != nil {
+		return 
+	}
+	if r.Data != nil {
+		var b []byte
+		b, err = json.Marshal(r.Data)
+		if err != nil {
+			return 
+		}
+		buf := bytes.NewBuffer(b)
+		req, err = http.NewRequest(r.Method, r.Url, buf)
+		if err != nil {
+			return 
+		}
+		req.Header.Add("Content-Type", "application/json")
+	}
+	req.Header.Add("Accept", "application/json")
+	log.Println(pretty.Sprintf("Request: %# v", req))
+	resp, err := db.client.Do(req)
+	if err != nil {
+		return 
+	}
+	status = resp.StatusCode
+	log.Println(pretty.Sprintf("Response: %# v", resp))
+	// Only try to unmarshal if status is 200 OK or 201 CREATED
+	if status >= 200 && status <= 201 {
+		var data []byte
+		data, err = ioutil.ReadAll(resp.Body)
+		err = json.Unmarshal(data, &r.Result)
+		if err != nil {
+			return 
+		}
+		log.Println(pretty.Sprintf("Result: %# v", r.Result))
+		}
+	return
+}
+
+func NewDatabase(uri string) (db *Database, err error) {
+	var info serviceRootInfo
+	u, err := url.Parse(uri)
+	if err != nil {
+		return
+	}
+	db = &Database{
+		url:    u,
+		client: new(http.Client),
+		Info:   &info,
+	}
+	c := restCall{
+		Url:    u.String(),
+		Method: "GET",
+		Result: &info,
+	}
+	code, err := db.rest(&c)
+	if err != nil || code != 200 {
+		return
+	}
+	if db.Info.Version == "" {
+		err = BadResponse
+		return
+	}
+	return
+}
+
+//
+// Nodes
+//
+
 // A node in a Neo4j database
 type Node struct {
 	Info *nodeInfo
+	Db   *Database
 }
 
 // A nodeInfo is returned from the Neo4j server on successful operations 
@@ -65,12 +152,63 @@ type nodeInfo struct {
 	IncomingTypedRels string      `json:"incoming_typed_relationships"`
 }
 
-// An errorResponse is returned from the Neo4j server on errors.
-type errorResponse struct {
-	Message    string   `json:"message"`
-	Exception  string   `json:"exception"`
-	Stacktrace []string `json:"stacktrace"`
+func (db *Database) CreateNode(props map[string]string) (*Node, error) {
+	n := Node{
+		Db: db,
+	}
+	var info nodeInfo
+	c := restCall{
+		Url:    db.Info.Node,
+		Method: "POST",
+		Data:   &props,
+		Result: &info,
+	}
+	code, err := db.rest(&c)
+	if err != nil || code != 201 {
+		return &n, err
+	}
+	n.Info = &info
+	if n.Info.Self == "" {
+		return &n, BadResponse
+	}
+	return &n, nil
 }
+
+// Id gets the ID number of this Node.
+func (n *Node) Id() int {
+	l := len(n.Db.Info.Node)
+	s := n.Info.Self[l:]
+	s = strings.Trim(s, "/")
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		// Are both n.Info and n.Node valid?
+		panic(err)
+	}
+	return id
+}
+
+// Properties gets the Node's properties map from the DB.
+func (n *Node) Properties() (props map[string]string, err error) {
+	c := restCall{
+		Url:    n.Info.Properties,
+		Method: "GET",
+		Result: &props,
+	}
+	code, err := n.Db.rest(&c)
+	if err != nil {
+		return
+	}
+	// Status code 204 indicates no properties on this node
+	if code == 204 {
+		props = map[string]string{}
+	}
+	return
+
+}
+
+//
+// Relationships
+//
 
 // A relInfo is returned from the Neo4j server on successful operations 
 // involving a Relationship.
@@ -85,95 +223,6 @@ type relInfo struct {
 	End        string            `json:"end"`
 }
 
-type restCall struct {
-	Url    string      // Absolute URL to call
-	Method string      // HTTP method to use 
-	Data   interface{} // Data to JSON-encode and include with call
-	Result interface{} // JSON-encoded data in respose will be unmarshalled into Result
-}
-
-func (db *Database) rest(r *restCall) error {
-	req, err := http.NewRequest(r.Method, r.Url, nil)
-	if err != nil {
-		return err
-	}
-	if r.Data != nil {
-		var b []byte
-		b, err = json.Marshal(r.Data)
-		if err != nil {
-			return err
-		}
-		buf := bytes.NewBuffer(b)
-		req, err = http.NewRequest(r.Method, r.Url, buf)
-		if err != nil {
-			return err
-		}
-		req.Header.Add("Content-Type", "application/json")
-	}
-	req.Header.Add("Accept", "application/json")
-	log.Println("Request:", req)
-	resp, err := db.client.Do(req)
-	if err != nil {
-		return err
-	}
-	log.Println("Response:", resp)
-	data, err := ioutil.ReadAll(resp.Body)
-	err = json.Unmarshal(data, &r.Result)
-	if err != nil {
-		return err
-	}
-	log.Println("Result:", r.Result)
-	log.Printf("type(Result): %T", r.Result)
-	return nil
-}
-
-func NewDatabase(uri string) (db *Database, err error) {
-	var info serviceRootInfo
-	u, err := url.Parse(uri)
-	if err != nil {
-		return
-	}
-	db = &Database{
-		url:    u,
-		client: new(http.Client),
-		Info:   &info,
-	}
-	c := restCall{
-		Url:    u.String(),
-		Method: "GET",
-		Result: &info,
-	}
-	err = db.rest(&c)
-	if err != nil {
-		return
-	}
-	if db.Info.Version == "" {
-		err = BadResponse
-		return
-	}
-	return
-}
-
-//
-// Nodes
-//
-
-func (db *Database) CreateNode(props map[string]string) (*Node, error) {
-	var n Node
-	var info nodeInfo
-	c := restCall{
-		Url:    db.Info.Node,
-		Method: "POST",
-		//		Data: &props,
-		Result: &info,
-	}
-	err := db.rest(&c)
-	if err != nil {
-		return &n, err
-	}
-	n.Info = &info
-	if n.Info.Self == "" {
-		return &n, BadResponse
-	}
-	return &n, nil
+// A relationship in a Neo4j database
+type Relationship struct {
 }

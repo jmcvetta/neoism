@@ -9,26 +9,46 @@ package neo4j
 import (
 	"log"
 	"testing"
+	"github.com/bmizerany/assert"
 )
 
-func TestCreate(t *testing.T) {
+func connect(t *testing.T) *Database {
 	//
 	// Connect
 	//
-	neo, err := NewDatabase("http://localhost:7474/db/data")
+	db, err := NewDatabase("http://localhost:7474/db/data")
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(neo)
-	//
-	// Create
-	//
+	return db
+}
+
+func TestCreate(t *testing.T) {
+	db := connect(t)
+	props := map[string]string{}
+	node, err := db.CreateNode(props)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := node.Properties()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, props, p)
+}
+
+func TestCreateWithProps(t *testing.T) {
+	db := connect(t)
 	props := map[string]string{"foo": "bar"}
-	node, err := neo.CreateNode(props)
+	node, err := db.CreateNode(props)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(node)
+	p, err := node.Properties()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, props, p)
 }
 
 func init() {
