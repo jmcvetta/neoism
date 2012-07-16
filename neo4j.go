@@ -19,7 +19,7 @@ import (
 
 var (
 	BadResponse        = errors.New("Bad response from Neo4j server.")
-	NodeNotFound       = errors.New("Cannot find node in database.")
+	NotFound           = errors.New("Cannot find in database.")
 	FeatureUnavailable = errors.New("Feature unavailable")
 	CannotDelete       = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
 )
@@ -210,7 +210,7 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	code, err := db.rest(&c)
 	switch {
 	case code == 404:
-		return &n, NodeNotFound
+		return &n, NotFound
 	case code != 200 || info.Self == "":
 		return &n, BadResponse
 	}
@@ -457,8 +457,17 @@ func (r *Relationship) GetProperty(key string) (string, error) {
 	if err != nil {
 		return val, err
 	}
-	if code == 200 {
+	switch code {
+	case 200:
 		return val, nil
+	case 404:
+		return val, NotFound
 	}
 	return val, BadResponse
 }
+
+/*
+// SetProperty sets the value for the named property
+func (r *Relationship) SetProperty(key, value string) error {
+}
+*/

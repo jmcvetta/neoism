@@ -74,7 +74,7 @@ func TestGetNonexistNode(t *testing.T) {
 	id := node0.Id()
 	id = id + 50000 // Node with this id should (probably??) not yet exist
 	_, err := db.GetNode(id)
-	assert.Equal(t, err, NodeNotFound)
+	assert.Equal(t, err, NotFound)
 }
 
 func TestDeleteNode(t *testing.T) {
@@ -88,7 +88,7 @@ func TestDeleteNode(t *testing.T) {
 		return
 	}
 	_, err = db.GetNode(id)
-	assert.Equal(t, err, NodeNotFound)
+	assert.Equal(t, err, NotFound)
 }
 
 func TestCreateRel(t *testing.T) {
@@ -161,9 +161,11 @@ func TestGetRelProperty(t *testing.T) {
 	node0, _ := db.CreateNode(empty)
 	node1, _ := db.CreateNode(empty)
 	rel, _ := node0.Relate("knows", node1.Id(), p0)
-	val, err := rel.GetProperty("spam")
+	val0, err := rel.GetProperty("spam")
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, val, p0["spam"])
+	assert.Equal(t, val0, p0["spam"])
+	_, err = rel.GetProperty("foobar")
+	assert.Equal(t, NotFound, err)
 }
