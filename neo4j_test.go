@@ -195,3 +195,19 @@ func TestSetRelProperty(t *testing.T) {
 	}
 	assert.Equal(t, val, "eggs")
 }
+
+func TestGetAllRels(t *testing.T) {
+	db := connect(t)
+	empty := Properties{}
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	node2, _ := db.CreateNode(empty)
+	rel0, _ := node0.Relate("knows", node1.Id(), jCash)
+	rel1, _ := node0.Relate("knows", node2.Id(), hWilliams)
+	rs, err := node0.AllRelationships()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, *rel0, rs[rel0.Id()])
+	assert.Equal(t, *rel1, rs[rel1.Id()])
+}

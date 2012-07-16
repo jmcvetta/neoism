@@ -275,6 +275,33 @@ func (n *Node) Properties() (Properties, error) {
 	return props, nil
 }
 
+// Relationships gets all Relationships for this Node, returning them as a map
+// keyed on Relationship ID.
+func (n *Node) AllRelationships() (map[int]Relationship, error) {
+	m := map[int]Relationship{}
+	s := []relInfo{}
+	c := restCall{
+		Url:    n.Info.AllRels,
+		Method: "GET",
+		Result: &s,
+	}
+	code, err := n.Db.rest(&c)
+	if err != nil {
+		return m, err
+	}
+	for _, info := range s {
+		rel := Relationship{
+			Info: &info,
+		}
+		println(rel.Id(), rel.Info.Self)
+		m[rel.Id()] = rel
+	}
+	if code == 200 {
+		return m, nil // Success!
+	}
+	return m, BadResponse
+}
+
 //
 // Relationships
 //
