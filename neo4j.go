@@ -336,7 +336,7 @@ func (r *Relationship) Type() string {
 }
 
 // GetRelationship fetches a Relationship from the DB by id.
-func (db *Database) GetRel(id int) (*Relationship, error) {
+func (db *Database) GetRelationship(id int) (*Relationship, error) {
 	var info relInfo
 	rel := Relationship{
 		Db:   db,
