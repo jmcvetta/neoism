@@ -153,3 +153,17 @@ func TestSetRelProps(t *testing.T) {
 	props, _ = rel.Properties()
 	assert.Equal(t, p1, props)
 }
+
+func TestGetRelProperty(t *testing.T) {
+	db := connect(t)
+	empty := Properties{}
+	p0 := Properties{"spam": "eggs"}
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	rel, _ := node0.Relate("knows", node1.Id(), p0)
+	val, err := rel.GetProperty("spam")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, val, p0["spam"])
+}

@@ -442,3 +442,23 @@ func (r *Relationship) SetProperties(p Properties) error {
 	}
 	return BadResponse
 }
+
+// GetProperty retrieves the value for the named property
+func (r *Relationship) GetProperty(key string) (string, error) {
+	var val string
+	parts := []string{r.Info.Properties, key}
+	u := strings.Join(parts, "/")
+	c := restCall{
+		Url:    u,
+		Method: "GET",
+		Result: &val,
+	}
+	code, err := r.Db.rest(&c)
+	if err != nil {
+		return val, err
+	}
+	if code == 200 {
+		return val, nil
+	}
+	return val, BadResponse
+}
