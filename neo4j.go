@@ -424,3 +424,21 @@ func (r *Relationship) Delete() error {
 	}
 	return BadResponse
 }
+
+// SetProperties sets all properties on a Relationship, overwriting any
+// existing properties.
+func (r *Relationship) SetProperties(p Properties) error {
+	c := restCall{
+		Url:     r.Info.Properties,
+		Method:  "PUT",
+		Content: &p,
+	}
+	code, err := r.Db.rest(&c)
+	if err != nil {
+		return err
+	}
+	if code == 204 {
+		return nil // Success!
+	}
+	return BadResponse
+}

@@ -131,5 +131,25 @@ func TestGetRelationship(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, rel0, rel1)
-	// assert.Equal(t, rel0.Id(), rel1.Id())
+}
+
+func TestSetRelProps(t *testing.T) {
+	db := connect(t)
+	empty := Properties{}
+	p0 := Properties{"gee-dub-boosh": "stupid"}
+	p1 := Properties{"gee-dub-boosh": "crazy"}
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	rel, _ := node0.Relate("knows", node1.Id(), p0)
+	props, err := rel.Properties()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, p0, props)
+	err = rel.SetProperties(p1)
+	if err != nil {
+		t.Error(err)
+	}
+	props, _ = rel.Properties()
+	assert.Equal(t, p1, props)
 }
