@@ -96,10 +96,6 @@ func TestCreateRel(t *testing.T) {
 	props := Properties{}
 	node0, _ := db.CreateNode(props)
 	node1, _ := db.CreateNode(props)
-	log.Println("node0", node0)
-	log.Println("node0.Info", node0.Info)
-	log.Println("node1", node1)
-	log.Println("node1.Info", node1.Info)
 	rel, err := node0.Relate("knows", node1.Id(), props)
 	if err != nil {
 		t.Error(err)
