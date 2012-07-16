@@ -364,14 +364,13 @@ func (r *Relationship) Properties() (Properties, error) {
 		return props, err
 	}
 	/*
-	// Status code 204 indicates no properties on this Relationship
-	if code == 204 {
-		props = map[string]string{}
-	}
+		// Status code 204 indicates no properties on this Relationship
+		if code == 204 {
+			props = map[string]string{}
+		}
 	*/
 	return props, nil
 }
-
 
 // GetRelationship fetches a Relationship from the DB by id.
 func (db *Database) GetRelationship(id int) (*Relationship, error) {
@@ -395,9 +394,8 @@ func (db *Database) GetRelationship(id int) (*Relationship, error) {
 
 // Id gets the ID number of this Relationship
 func (r *Relationship) Id() int {
-	l := len(r.Db.Info.Node)
-	s := r.Info.Self[l:]
-	s = strings.Trim(s, "/")
+	parts := strings.Split(r.Info.Self, "/")
+	s := parts[len(parts)-1]
 	id, err := strconv.Atoi(s)
 	if err != nil {
 		// Are both r.Info and r.Node valid?
@@ -419,10 +417,10 @@ func (r *Relationship) Delete() error {
 	case code == 204:
 		// Successful deletion!
 		return nil
-	/*
-	case code == 409:
-		return CannotDelete
-	*/
+		/*
+			case code == 409:
+				return CannotDelete
+		*/
 	}
 	return BadResponse
 }

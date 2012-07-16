@@ -116,13 +116,13 @@ func TestCreateRel(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, relProps,newRelProps)
+	assert.Equal(t, relProps, newRelProps)
 }
 
 func TestGetRelationship(t *testing.T) {
 	db := connect(t)
 	props := Properties{}
-	relProps := Properties{"cash" : "johnny"}
+	relProps := Properties{"cash": "johnny"}
 	node0, _ := db.CreateNode(props)
 	node1, _ := db.CreateNode(props)
 	rel0, _ := node0.Relate("knows", node1.Id(), relProps)
@@ -133,4 +133,3 @@ func TestGetRelationship(t *testing.T) {
 	assert.Equal(t, rel0, rel1)
 	// assert.Equal(t, rel0.Id(), rel1.Id())
 }
-
