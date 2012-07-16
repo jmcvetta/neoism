@@ -9,6 +9,12 @@ import (
 	"testing"
 )
 
+// Buckets of properties for convenient testing
+var (
+	jCash     = Properties{"cash": "johnny"}
+	hWilliams = Properties{"williams": "hank"}
+)
+
 func init() {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 }
@@ -119,13 +125,22 @@ func TestCreateRel(t *testing.T) {
 	assert.Equal(t, relProps, newRelProps)
 }
 
+func createRelationship(t *testing.T, p Properties) *Relationship {
+	db := connect(t)
+	empty := Properties{}
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	rel, err := node0.Relate("knows", node1.Id(), p)
+	if err != nil {
+		t.Error(err)
+	}
+	return rel
+}
+
 func TestGetRelationship(t *testing.T) {
 	db := connect(t)
-	props := Properties{}
-	relProps := Properties{"cash": "johnny"}
-	node0, _ := db.CreateNode(props)
-	node1, _ := db.CreateNode(props)
-	rel0, _ := node0.Relate("knows", node1.Id(), relProps)
+	jCash := Properties{"cash": "johnny"}
+	rel0 := createRelationship(t, jCash)
 	rel1, err := db.GetRelationship(rel0.Id())
 	if err != nil {
 		t.Error(err)
@@ -134,38 +149,38 @@ func TestGetRelationship(t *testing.T) {
 }
 
 func TestSetRelProps(t *testing.T) {
-	db := connect(t)
-	empty := Properties{}
-	p0 := Properties{"gee-dub-boosh": "stupid"}
-	p1 := Properties{"gee-dub-boosh": "crazy"}
-	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
-	rel, _ := node0.Relate("knows", node1.Id(), p0)
+	rel := createRelationship(t, jCash)
 	props, err := rel.Properties()
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, p0, props)
-	err = rel.SetProperties(p1)
+	assert.Equal(t, jCash, props)
+	err = rel.SetProperties(hWilliams)
 	if err != nil {
 		t.Error(err)
 	}
 	props, _ = rel.Properties()
-	assert.Equal(t, p1, props)
+	assert.Equal(t, hWilliams, props)
 }
 
 func TestGetRelProperty(t *testing.T) {
+	rel := createRelationship(t, jCash)
+	val0, err := rel.GetProperty("cash")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, val0, jCash["cash"])
+	_, err = rel.GetProperty("foobar")
+	assert.Equal(t, NotFound, err)
+}
+
+/*
+func TestSetRelProperty(t *testing.T) {
 	db := connect(t)
 	empty := Properties{}
 	p0 := Properties{"spam": "eggs"}
 	node0, _ := db.CreateNode(empty)
 	node1, _ := db.CreateNode(empty)
 	rel, _ := node0.Relate("knows", node1.Id(), p0)
-	val0, err := rel.GetProperty("spam")
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, val0, p0["spam"])
-	_, err = rel.GetProperty("foobar")
-	assert.Equal(t, NotFound, err)
 }
+*/
