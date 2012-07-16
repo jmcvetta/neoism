@@ -56,7 +56,7 @@ type serviceRootInfo struct {
 type restCall struct {
 	Url    string      // Absolute URL to call
 	Method string      // HTTP method to use 
-	Data   interface{} // Data to JSON-encode and include with call
+	Content   interface{} // Data to JSON-encode and include with call
 	Result interface{} // JSON-encoded data in respose will be unmarshalled into Result
 }
 
@@ -65,10 +65,10 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 	if err != nil {
 		return
 	}
-	if r.Data != nil {
-		log.Println(pretty.Sprintf("Data: %# v", r.Data))
+	if r.Content != nil {
+		log.Println(pretty.Sprintf("Content: %# v", r.Content))
 		var b []byte
-		b, err = json.Marshal(r.Data)
+		b, err = json.Marshal(r.Content)
 		if err != nil {
 			return
 		}
@@ -165,7 +165,7 @@ func (db *Database) CreateNode(props map[string]string) (*Node, error) {
 	c := restCall{
 		Url:    db.Info.Node,
 		Method: "POST",
-		Data:   &props,
+		Content:   &props,
 		Result: &info,
 	}
 	code, err := db.rest(&c)
@@ -304,7 +304,7 @@ func (n *Node) Relate(relType string, destId int) (*Relationship, error) {
 	c := restCall{
 		Url:    srcUri,
 		Method: "POST",
-		Data:   data,
+		Content:   data,
 		Result: &info,
 	}
 	code, err := n.Db.rest(&c)
