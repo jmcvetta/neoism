@@ -100,6 +100,15 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 	return
 }
 
+// Joins URL fragments
+func join(fragments ...string) string {
+	parts := []string{}
+	for _, v := range fragments {
+		v = strings.Trim(v, "/")
+		parts = append(parts, v)
+	}
+	return strings.Join(parts, "/")
+}
 func NewDatabase(uri string) (db *Database, err error) {
 	var info serviceRootInfo
 	u, err := url.Parse(uri)
@@ -299,9 +308,12 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	}
 	srcUri := join(n.Info.Self, "relationships")
 	destUri := join(n.Db.Info.Node, strconv.Itoa(destId))
-	content := map[string]string{
+	content := map[string]interface{}{
 		"to":   destUri,
 		"type": relType,
+	}
+	if p != nil {
+		content["data"] = &p
 	}
 	c := restCall{
 		Url:     srcUri,
@@ -334,6 +346,32 @@ func (r *Relationship) End() (*Node, error) {
 func (r *Relationship) Type() string {
 	return r.Info.Type
 }
+
+// Properties gets the Relationship's properties map from the DB.
+func (r *Relationship) Properties() (Properties, error) {
+	props := Properties{}
+	if r.Info.Properties == "" {
+		return props, FeatureUnavailable
+	}
+	c := restCall{
+		Url:    r.Info.Properties,
+		Method: "GET",
+		Result: &props,
+	}
+	// code, err := r.Db.rest(&c)
+	_, err := r.Db.rest(&c)
+	if err != nil {
+		return props, err
+	}
+	/*
+	// Status code 204 indicates no properties on this Relationship
+	if code == 204 {
+		props = map[string]string{}
+	}
+	*/
+	return props, nil
+}
+
 
 // GetRelationship fetches a Relationship from the DB by id.
 func (db *Database) GetRelationship(id int) (*Relationship, error) {
@@ -368,12 +406,23 @@ func (r *Relationship) Id() int {
 	return id
 }
 
-// Joins URL fragments
-func join(fragments ...string) string {
-	parts := []string{}
-	for _, v := range fragments {
-		v = strings.Trim(v, "/")
-		parts = append(parts, v)
+// Delete deletes a Relationship from the database
+func (r *Relationship) Delete() error {
+	c := restCall{
+		Url:    r.Info.Self,
+		Method: "DELETE",
 	}
-	return strings.Join(parts, "/")
+	code, err := r.Db.rest(&c)
+	switch {
+	case err != nil:
+		return err
+	case code == 204:
+		// Successful deletion!
+		return nil
+	/*
+	case code == 409:
+		return CannotDelete
+	*/
+	}
+	return BadResponse
 }

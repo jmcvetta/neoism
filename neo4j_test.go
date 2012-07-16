@@ -94,9 +94,10 @@ func TestDeleteNode(t *testing.T) {
 func TestCreateRel(t *testing.T) {
 	db := connect(t)
 	props := Properties{}
+	relProps := Properties{"this one goes to": "11"}
 	node0, _ := db.CreateNode(props)
 	node1, _ := db.CreateNode(props)
-	rel, err := node0.Relate("knows", node1.Id(), props)
+	rel, err := node0.Relate("knows", node1.Id(), relProps)
 	if err != nil {
 		t.Error(err)
 		return
@@ -111,8 +112,25 @@ func TestCreateRel(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, node1, end)
+	newRelProps, err := rel.Properties()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, relProps,newRelProps)
 }
 
 func TestGetRelationship(t *testing.T) {
-	// TODO: Write get relationship test
+	db := connect(t)
+	props := Properties{}
+	relProps := Properties{"cash" : "johnny"}
+	node0, _ := db.CreateNode(props)
+	node1, _ := db.CreateNode(props)
+	rel0, _ := node0.Relate("knows", node1.Id(), relProps)
+	rel1, err := db.GetRelationship(rel0.Id())
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, rel0, rel1)
+	// assert.Equal(t, rel0.Id(), rel1.Id())
 }
+
