@@ -18,10 +18,10 @@ import (
 )
 
 var (
-	BadResponse = errors.New("Bad response from Neo4j server.")
-	NodeNotFound = errors.New("Cannot find node in database.")
+	BadResponse        = errors.New("Bad response from Neo4j server.")
+	NodeNotFound       = errors.New("Cannot find node in database.")
 	FeatureUnavailable = errors.New("Feature unavailable")
-	CannotDelete = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
+	CannotDelete       = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
 )
 
 // An errorResponse is returned from the Neo4j server on errors.
@@ -63,18 +63,19 @@ type restCall struct {
 func (db *Database) rest(r *restCall) (status int, err error) {
 	req, err := http.NewRequest(r.Method, r.Url, nil)
 	if err != nil {
-		return 
+		return
 	}
 	if r.Data != nil {
+		log.Println(pretty.Sprintf("Data: %# v", r.Data))
 		var b []byte
 		b, err = json.Marshal(r.Data)
 		if err != nil {
-			return 
+			return
 		}
 		buf := bytes.NewBuffer(b)
 		req, err = http.NewRequest(r.Method, r.Url, buf)
 		if err != nil {
-			return 
+			return
 		}
 		req.Header.Add("Content-Type", "application/json")
 	}
@@ -82,7 +83,7 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 	log.Println(pretty.Sprintf("Request: %# v", req))
 	resp, err := db.client.Do(req)
 	if err != nil {
-		return 
+		return
 	}
 	status = resp.StatusCode
 	log.Println(pretty.Sprintf("Response: %# v", resp))
@@ -92,10 +93,10 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 		data, err = ioutil.ReadAll(resp.Body)
 		err = json.Unmarshal(data, &r.Result)
 		if err != nil {
-			return 
+			return
 		}
 		log.Println(pretty.Sprintf("Result: %# v", r.Result))
-		}
+	}
 	return
 }
 
@@ -180,12 +181,16 @@ func (db *Database) CreateNode(props map[string]string) (*Node, error) {
 
 // GetNode fetches a Node from the database
 func (db *Database) GetNode(id int) (*Node, error) {
+	uri := join(db.Info.Node, strconv.Itoa(id))
+	return db.getNodeByUri(uri)
+}
+
+// GetNode fetches a Node from the database based on its uri
+func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	n := Node{
 		Db: db,
 	}
 	var info nodeInfo
-	parts := []string{db.Info.Node, strconv.Itoa(id)}
-	uri := strings.Join(parts, "/")
 	c := restCall{
 		Url:    uri,
 		Method: "GET",
@@ -195,7 +200,7 @@ func (db *Database) GetNode(id int) (*Node, error) {
 	switch {
 	case code == 404:
 		return &n, NodeNotFound
-	case code != 200:
+	case code != 200 || info.Self == "":
 		return &n, BadResponse
 	}
 	if err != nil {
@@ -223,7 +228,6 @@ func (n *Node) Delete() error {
 	}
 	return BadResponse
 }
-
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
@@ -279,4 +283,95 @@ type relInfo struct {
 
 // A relationship in a Neo4j database
 type Relationship struct {
+	Info *relInfo
+	Db   *Database
+}
+
+// Relate creates a relationship of relType from this Node to the node 
+// identified by destId.
+func (n *Node) Relate(relType string, destId int) (*Relationship, error) {
+	var info relInfo
+	rel := Relationship{
+		Db:   n.Db,
+		Info: &info,
+	}
+	srcUri := join(n.Info.Self, "relationships")
+	destUri := join(n.Db.Info.Node, strconv.Itoa(destId))
+	data := map[string]string{
+		"to":   destUri,
+		"type": relType,
+	}
+	c := restCall{
+		Url:    srcUri,
+		Method: "POST",
+		Data:   data,
+		Result: &info,
+	}
+	code, err := n.Db.rest(&c)
+	if err != nil {
+		return &rel, err
+	}
+	if code != 201 {
+		return &rel, BadResponse
+	}
+	return &rel, nil
+}
+
+// Start gets the starting Node of this Relationship.
+func (r *Relationship) Start() (*Node, error) {
+	log.Println("INFO", r.Info)
+	return r.Db.getNodeByUri(r.Info.Start)
+}
+
+// End gets the ending Node of this Relationship.
+func (r *Relationship) End() (*Node, error) {
+	return r.Db.getNodeByUri(r.Info.End)
+}
+
+// Type gets the type of this relationship
+func (r *Relationship) Type() string {
+	return r.Info.Type
+}
+
+// GetRelationship fetches a Relationship from the DB by id.
+func (db *Database) GetRel(id int) (*Relationship, error) {
+	var info relInfo
+	rel := Relationship{
+		Db:   db,
+		Info: &info,
+	}
+	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
+	c := restCall{
+		Url:    uri,
+		Method: "GET",
+		Result: &info,
+	}
+	code, err := db.rest(&c)
+	if code != 200 {
+		err = BadResponse
+	}
+	return &rel, err
+}
+
+// Id gets the ID number of this Relationship
+func (r *Relationship) Id() int {
+	l := len(r.Db.Info.Node)
+	s := r.Info.Self[l:]
+	s = strings.Trim(s, "/")
+	id, err := strconv.Atoi(s)
+	if err != nil {
+		// Are both r.Info and r.Node valid?
+		panic(err)
+	}
+	return id
+}
+
+// Joins URL fragments
+func join(fragments ...string) string {
+	parts := []string{}
+	for _, v := range fragments {
+		v = strings.Trim(v, "/")
+		parts = append(parts, v)
+	}
+	return strings.Join(parts, "/")
 }
