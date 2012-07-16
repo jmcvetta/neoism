@@ -8,9 +8,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/kr/pretty"
+	// "github.com/kr/pretty"
 	"io/ioutil"
-	"log"
+	// "log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -54,10 +54,10 @@ type serviceRootInfo struct {
 }
 
 type restCall struct {
-	Url    string      // Absolute URL to call
-	Method string      // HTTP method to use 
-	Content   interface{} // Data to JSON-encode and include with call
-	Result interface{} // JSON-encoded data in respose will be unmarshalled into Result
+	Url     string      // Absolute URL to call
+	Method  string      // HTTP method to use 
+	Content interface{} // Data to JSON-encode and include with call
+	Result  interface{} // JSON-encoded data in respose will be unmarshalled into Result
 }
 
 func (db *Database) rest(r *restCall) (status int, err error) {
@@ -66,7 +66,7 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 		return
 	}
 	if r.Content != nil {
-		log.Println(pretty.Sprintf("Content: %# v", r.Content))
+		// log.Println(pretty.Sprintf("Content: %# v", r.Content))
 		var b []byte
 		b, err = json.Marshal(r.Content)
 		if err != nil {
@@ -80,13 +80,13 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 		req.Header.Add("Content-Type", "application/json")
 	}
 	req.Header.Add("Accept", "application/json")
-	log.Println(pretty.Sprintf("Request: %# v", req))
+	// log.Println(pretty.Sprintf("Request: %# v", req))
 	resp, err := db.client.Do(req)
 	if err != nil {
 		return
 	}
 	status = resp.StatusCode
-	log.Println(pretty.Sprintf("Response: %# v", resp))
+	// log.Println(pretty.Sprintf("Response: %# v", resp))
 	// Only try to unmarshal if status is 200 OK or 201 CREATED
 	if status >= 200 && status <= 201 {
 		var data []byte
@@ -95,7 +95,7 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 		if err != nil {
 			return
 		}
-		log.Println(pretty.Sprintf("Result: %# v", r.Result))
+		// log.Println(pretty.Sprintf("Result: %# v", r.Result))
 	}
 	return
 }
@@ -137,6 +137,8 @@ type Node struct {
 	Db   *Database
 }
 
+type Properties map[string]string
+
 // A nodeInfo is returned from the Neo4j server on successful operations 
 // involving a Node.
 type nodeInfo struct {
@@ -157,16 +159,16 @@ type nodeInfo struct {
 }
 
 // CreateNode creates a Node in the database.
-func (db *Database) CreateNode(props map[string]string) (*Node, error) {
+func (db *Database) CreateNode(p Properties) (*Node, error) {
 	n := Node{
 		Db: db,
 	}
 	var info nodeInfo
 	c := restCall{
-		Url:    db.Info.Node,
-		Method: "POST",
-		Content:   &props,
-		Result: &info,
+		Url:     db.Info.Node,
+		Method:  "POST",
+		Content: &p,
+		Result:  &info,
 	}
 	code, err := db.rest(&c)
 	if err != nil || code != 201 {
@@ -243,7 +245,7 @@ func (n *Node) Id() int {
 }
 
 // Properties gets the Node's properties map from the DB.
-func (n *Node) Properties() (map[string]string, error) {
+func (n *Node) Properties() (Properties, error) {
 	props := make(map[string]string)
 	if n.Info.Properties == "" {
 		return props, FeatureUnavailable
@@ -287,9 +289,9 @@ type Relationship struct {
 	Db   *Database
 }
 
-// Relate creates a relationship of relType from this Node to the node 
-// identified by destId.
-func (n *Node) Relate(relType string, destId int) (*Relationship, error) {
+// Relate creates a relationship of relType, with specified properties, 
+// from this Node to the node identified by destId.
+func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
 	var info relInfo
 	rel := Relationship{
 		Db:   n.Db,
@@ -297,15 +299,15 @@ func (n *Node) Relate(relType string, destId int) (*Relationship, error) {
 	}
 	srcUri := join(n.Info.Self, "relationships")
 	destUri := join(n.Db.Info.Node, strconv.Itoa(destId))
-	data := map[string]string{
+	content := map[string]string{
 		"to":   destUri,
 		"type": relType,
 	}
 	c := restCall{
-		Url:    srcUri,
-		Method: "POST",
-		Content:   data,
-		Result: &info,
+		Url:     srcUri,
+		Method:  "POST",
+		Content: content,
+		Result:  &info,
 	}
 	code, err := n.Db.rest(&c)
 	if err != nil {
@@ -319,7 +321,7 @@ func (n *Node) Relate(relType string, destId int) (*Relationship, error) {
 
 // Start gets the starting Node of this Relationship.
 func (r *Relationship) Start() (*Node, error) {
-	log.Println("INFO", r.Info)
+	// log.Println("INFO", r.Info)
 	return r.Db.getNodeByUri(r.Info.Start)
 }
 

@@ -26,7 +26,7 @@ func connect(t *testing.T) *Database {
 
 func TestCreateNode(t *testing.T) {
 	db := connect(t)
-	props := map[string]string{}
+	props := Properties{}
 	node, err := db.CreateNode(props)
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +41,7 @@ func TestCreateNode(t *testing.T) {
 
 func TestCreateNodeProps(t *testing.T) {
 	db := connect(t)
-	props := map[string]string{"foo": "bar"}
+	props := Properties{"foo": "bar"}
 	node, err := db.CreateNode(props)
 	if err != nil {
 		t.Fatal(err)
@@ -93,14 +93,14 @@ func TestDeleteNode(t *testing.T) {
 
 func TestCreateRel(t *testing.T) {
 	db := connect(t)
-	props := map[string]string{}
+	props := Properties{}
 	node0, _ := db.CreateNode(props)
 	node1, _ := db.CreateNode(props)
 	log.Println("node0", node0)
 	log.Println("node0.Info", node0.Info)
 	log.Println("node1", node1)
 	log.Println("node1.Info", node1.Info)
-	rel, err := node0.Relate("knows", node1.Id())
+	rel, err := node0.Relate("knows", node1.Id(), props)
 	if err != nil {
 		t.Error(err)
 		return
