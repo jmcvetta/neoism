@@ -466,8 +466,21 @@ func (r *Relationship) GetProperty(key string) (string, error) {
 	return val, BadResponse
 }
 
-/*
 // SetProperty sets the value for the named property
 func (r *Relationship) SetProperty(key, value string) error {
+	parts := []string{r.Info.Properties, key}
+	u := strings.Join(parts, "/")
+	c := restCall{
+		Url:     u,
+		Method:  "PUT",
+		Content: &value,
+	}
+	code, err := r.Db.rest(&c)
+	if err != nil {
+		return err
+	}
+	if code == 204 {
+		return nil // Success!
+	}
+	return BadResponse
 }
-*/

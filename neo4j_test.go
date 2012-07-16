@@ -174,13 +174,24 @@ func TestGetRelProperty(t *testing.T) {
 	assert.Equal(t, NotFound, err)
 }
 
-/*
 func TestSetRelProperty(t *testing.T) {
-	db := connect(t)
-	empty := Properties{}
-	p0 := Properties{"spam": "eggs"}
-	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
-	rel, _ := node0.Relate("knows", node1.Id(), p0)
+	rel := createRelationship(t, jCash)
+	err := rel.SetProperty("cash", "money")
+	if err != nil {
+		t.Error(err)
+	}
+	val, err := rel.GetProperty("cash")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, val, "money")
+	err = rel.SetProperty("spam", "eggs")
+	if err != nil {
+		t.Error(err)
+	}
+	val, err = rel.GetProperty("spam")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, val, "eggs")
 }
-*/
