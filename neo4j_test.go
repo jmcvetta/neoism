@@ -202,6 +202,7 @@ func TestGetAllRels(t *testing.T) {
 	node0, _ := db.CreateNode(empty)
 	node1, _ := db.CreateNode(empty)
 	node2, _ := db.CreateNode(empty)
+	node3, _ := db.CreateNode(empty)
 	r0, _ := node0.Relate("knows", node1.Id(), kirk)
 	r1, _ := node0.Relate("knows", node2.Id(), spock)
 	rs, err := node0.AllRelationships()
@@ -215,6 +216,13 @@ func TestGetAllRels(t *testing.T) {
 			t.Errorf("Relationship ID %v not found in AllRelationships()", v.Id())
 		}
 	}
+	// node3 has no relationships
+	rs, err = node3.AllRelationships()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 0, len(rs))
+
 }
 
 func TestGetOutRels(t *testing.T) {
