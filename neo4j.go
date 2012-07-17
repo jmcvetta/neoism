@@ -221,6 +221,26 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	return &n, nil
 }
 
+// GetRelationship fetches a Relationship from the DB by id.
+func (db *Database) GetRelationship(id int) (*Relationship, error) {
+	var info relInfo
+	rel := Relationship{
+		Db:   db,
+		Info: &info,
+	}
+	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
+	c := restCall{
+		Url:    uri,
+		Method: "GET",
+		Result: &info,
+	}
+	code, err := db.rest(&c)
+	if code != 200 {
+		err = BadResponse
+	}
+	return &rel, err
+}
+
 // RelationshipTypes gets all existing relationship types from the DB
 func (db *Database) RelationshipTypes() ([]string, error) {
 	ts := []string{}
@@ -347,25 +367,6 @@ func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 	return n.getRelationships(n.Info.OutgoingRels, types...)
 }
 
-// A relInfo is returned from the Neo4j server on successful operations 
-// involving a Relationship.
-type relInfo struct {
-	Start      string            `json:"start"`
-	Data       map[string]string `json:"data"`
-	Self       string            `json:"self"`
-	Property   string            `json:"property"`
-	Properties string            `json:"properties"`
-	Type       string            `json:"type"`
-	Extensions map[string]string `json:"extensions"`
-	End        string            `json:"end"`
-}
-
-// A relationship in a Neo4j database
-type Relationship struct {
-	Info *relInfo
-	Db   *Database
-}
-
 // Relate creates a relationship of relType, with specified properties, 
 // from this Node to the node identified by destId.
 func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
@@ -397,6 +398,25 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 		return &rel, BadResponse
 	}
 	return &rel, nil
+}
+
+// A relInfo is returned from the Neo4j server on successful operations 
+// involving a Relationship.
+type relInfo struct {
+	Start      string            `json:"start"`
+	Data       map[string]string `json:"data"`
+	Self       string            `json:"self"`
+	Property   string            `json:"property"`
+	Properties string            `json:"properties"`
+	Type       string            `json:"type"`
+	Extensions map[string]string `json:"extensions"`
+	End        string            `json:"end"`
+}
+
+// A relationship in a Neo4j database
+type Relationship struct {
+	Info *relInfo
+	Db   *Database
 }
 
 // Start gets the starting Node of this Relationship.
@@ -438,26 +458,6 @@ func (r *Relationship) Properties() (Properties, error) {
 		}
 	*/
 	return props, nil
-}
-
-// GetRelationship fetches a Relationship from the DB by id.
-func (db *Database) GetRelationship(id int) (*Relationship, error) {
-	var info relInfo
-	rel := Relationship{
-		Db:   db,
-		Info: &info,
-	}
-	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
-	c := restCall{
-		Url:    uri,
-		Method: "GET",
-		Result: &info,
-	}
-	code, err := db.rest(&c)
-	if code != 200 {
-		err = BadResponse
-	}
-	return &rel, err
 }
 
 // Id gets the ID number of this Relationship
