@@ -275,16 +275,16 @@ func (n *Node) Properties() (Properties, error) {
 	return props, nil
 }
 
-// Relationships gets all Relationships for this Node, returning them as a map
-// keyed on Relationship ID.
-func (n *Node) AllRelationships() (map[int]Relationship, error) {
+// getRelationships makes an api call to the supplied uri and returns a map 
+// keying relationship IDs to Relationship objects.
+func (n *Node) getRelationships(uri string) (map[int]Relationship, error) {
 	m := map[int]Relationship{}
-	if n.Info.AllRels == "" {
+	if uri == "" {
 		return m, FeatureUnavailable
 	}
 	s := []relInfo{}
 	c := restCall{
-		Url:    n.Info.AllRels,
+		Url:    uri,
 		Method: "GET",
 		Result: &s,
 	}
@@ -306,8 +306,24 @@ func (n *Node) AllRelationships() (map[int]Relationship, error) {
 }
 
 //
-// Relationships
+// NOTE:  Are these method names too long?  Better to do AllRels() etc?
 //
+
+// AllRelationships gets all Relationships for this Node, returning them as a map
+// keyed on Relationship ID.
+func (n *Node) AllRelationships() (map[int]Relationship, error) {
+	return n.getRelationships(n.Info.AllRels)
+}
+
+// IncomingRelationships gets all incoming Relationships for this Node.
+func (n *Node) IncomingRelationships() (map[int]Relationship, error) {
+	return n.getRelationships(n.Info.IncomingRels)
+}
+
+// OutgoingRelationships gets all incoming Relationships for this Node.
+func (n *Node) OutgoingRelationships() (map[int]Relationship, error) {
+	return n.getRelationships(n.Info.OutgoingRels)
+}
 
 // A relInfo is returned from the Neo4j server on successful operations 
 // involving a Relationship.

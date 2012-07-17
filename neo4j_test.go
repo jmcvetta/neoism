@@ -216,3 +216,55 @@ func TestGetAllRels(t *testing.T) {
 		}
 	}
 }
+
+func TestGetOutRels(t *testing.T) {
+	db := connect(t)
+	empty := Properties{}
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	node2, _ := db.CreateNode(empty)
+	r0, _ := node0.Relate("knows", node1.Id(), kirk)
+	r1, _ := node0.Relate("knows", node2.Id(), spock)
+	rs, err := node0.OutgoingRelationships()
+	if err != nil {
+		t.Error(err)
+	}
+	rels := []*Relationship{r0, r1}
+	for _, v := range rels {
+		_, ok := rs[v.Id()]
+		if !ok {
+			t.Errorf("Relationship ID %v not found in OutgoingRelationships()", v.Id())
+		}
+	}
+	// node1 has no outgoing relationships
+	rs, err = node1.OutgoingRelationships()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 0, len(rs))
+}
+
+func TestGetInRels(t *testing.T) {
+	db := connect(t)
+	empty := Properties{}
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	r0, _ := node0.Relate("knows", node1.Id(), empty)
+	// node0 has no incoming relationships
+	rs, err := node0.IncomingRelationships()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 0, len(rs))
+	// node1 has 1 incoming relationship, from node0
+	rs, err = node1.IncomingRelationships()
+	if err != nil {
+		t.Error(err)
+	}
+	log.Println(rs)
+	assert.Equal(t, 1, len(rs))
+	_, ok := rs[r0.Id()]
+	if !ok {
+		t.Errorf("Relationship ID %v not found in OutgoingRelationships()", r0.Id())
+	}
+}
