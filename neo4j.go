@@ -400,6 +400,48 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	return &rel, nil
 }
 
+// SetProperty sets the named property on the Node
+func (n *Node) SetProperty(key, value string) error {
+	parts := []string{n.Info.Properties, key}
+	u := strings.Join(parts, "/")
+	c := restCall{
+		Url:     u,
+		Method:  "PUT",
+		Content: &value,
+	}
+	code, err := n.Db.rest(&c)
+	if err != nil {
+		return err
+	}
+	if code == 204 {
+		return nil // Success!
+	}
+	return BadResponse
+}
+
+// GetProperty retrieves the value for the named property
+func (n *Node) GetProperty(key string) (string, error) {
+	var val string
+	parts := []string{n.Info.Properties, key}
+	u := strings.Join(parts, "/")
+	c := restCall{
+		Url:    u,
+		Method: "GET",
+		Result: &val,
+	}
+	code, err := n.Db.rest(&c)
+	if err != nil {
+		return val, err
+	}
+	switch code {
+	case 200:
+		return val, nil
+	case 404:
+		return val, NotFound
+	}
+	return val, BadResponse
+}
+
 // A relInfo is returned from the Neo4j server on successful operations 
 // involving a Relationship.
 type relInfo struct {

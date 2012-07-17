@@ -148,7 +148,7 @@ func TestGetRelationship(t *testing.T) {
 	assert.Equal(t, rel0, rel1)
 }
 
-func TestSetRelProps(t *testing.T) {
+func TestRelSetProps(t *testing.T) {
 	rel := createRelationship(t, kirk)
 	props, err := rel.Properties()
 	if err != nil {
@@ -163,7 +163,7 @@ func TestSetRelProps(t *testing.T) {
 	assert.Equal(t, spock, props)
 }
 
-func TestGetRelProperty(t *testing.T) {
+func TestRelGetProperty(t *testing.T) {
 	rel := createRelationship(t, kirk)
 	val0, err := rel.GetProperty("name")
 	if err != nil {
@@ -174,7 +174,7 @@ func TestGetRelProperty(t *testing.T) {
 	assert.Equal(t, NotFound, err)
 }
 
-func TestSetRelProperty(t *testing.T) {
+func TestRelSetProperty(t *testing.T) {
 	rel := createRelationship(t, kirk)
 	err := rel.SetProperty("name", "mccoy")
 	if err != nil {
@@ -319,4 +319,15 @@ func TestRelTypes(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, knownTypes, rts)
+}
+
+func TestNodeSetGetProperty(t *testing.T) {
+	db := connect(t)
+	node0, _ := db.CreateNode(empty)
+	node0.SetProperty("spam", "eggs")
+	s, err := node0.GetProperty("spam")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, "eggs", s)
 }
