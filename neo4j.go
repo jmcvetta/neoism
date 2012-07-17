@@ -136,35 +136,45 @@ func NewDatabase(uri string) (db *Database, err error) {
 	return
 }
 
-//
-// Nodes
-//
-
 // A node in a Neo4j database
 type Node struct {
-	Info *nodeInfo
+	Info *neoInfo
 	Db   *Database
 }
 
+// Properties is a bag of key/value pairs that can describe Nodes
+// and Relationships.
 type Properties map[string]string
 
-// A nodeInfo is returned from the Neo4j server on successful operations 
-// involving a Node.
-type nodeInfo struct {
-	OutgoingRels      string      `json:"outgoing_relationships"`
-	Data              interface{} `json:"data"`
-	Traverse          string      `json:"traverse"`
-	AllTypedRels      string      `json:"all_typed_relationships"`
-	Property          string      `json:"property"`
-	Self              string      `json:"self"`
-	Outgoing          string      `json:"outgoing_typed_relationships"`
-	Properties        string      `json:"properties"`
-	IncomingRels      string      `json:"incoming_relationships"`
-	Extensions        interface{} `json:"extensions"`
-	CreateRel         string      `json:"create_relationship"`
-	PagedTraverse     string      `json:"paged_traverse"`
-	AllRels           string      `json:"all_relationships"`
-	IncomingTypedRels string      `json:"incoming_typed_relationships"`
+// A neoInfo is returned from the Neo4j server on successful operations 
+// involving a Node or a Relationship
+type neoInfo struct {
+	//
+	// Always filled
+	//
+	Property   string      `json:"property"`
+	Properties string      `json:"properties"`
+	Self       string      `json:"self"`
+	Data       interface{} `json:"data"`
+	Extensions interface{} `json:"extensions"`
+	//
+	// Filled only for Node operations
+	//
+	OutgoingRels      string `json:"outgoing_relationships"`
+	Traverse          string `json:"traverse"`
+	AllTypedRels      string `json:"all_typed_relationships"`
+	Outgoing          string `json:"outgoing_typed_relationships"`
+	IncomingRels      string `json:"incoming_relationships"`
+	CreateRel         string `json:"create_relationship"`
+	PagedTraverse     string `json:"paged_traverse"`
+	AllRels           string `json:"all_relationships"`
+	IncomingTypedRels string `json:"incoming_typed_relationships"`
+	//
+	// Filled only for Relationship operations
+	//
+	Start string `json:"start"`
+	Type  string `json:"type"`
+	End   string `json:"end"`
 }
 
 // CreateNode creates a Node in the database.
@@ -172,7 +182,7 @@ func (db *Database) CreateNode(p Properties) (*Node, error) {
 	n := Node{
 		Db: db,
 	}
-	var info nodeInfo
+	var info neoInfo
 	c := restCall{
 		Url:     db.Info.Node,
 		Method:  "POST",
@@ -201,7 +211,7 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	n := Node{
 		Db: db,
 	}
-	var info nodeInfo
+	var info neoInfo
 	c := restCall{
 		Url:    uri,
 		Method: "GET",
@@ -223,7 +233,7 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 
 // GetRelationship fetches a Relationship from the DB by id.
 func (db *Database) GetRelationship(id int) (*Relationship, error) {
-	var info relInfo
+	var info neoInfo
 	rel := Relationship{
 		Db:   db,
 		Info: &info,
@@ -262,13 +272,72 @@ func (db *Database) RelationshipTypes() ([]string, error) {
 	return ts, BadResponse
 }
 
-// Delete deletes a Node from the database
-func (n *Node) Delete() error {
+////////////////////////////////////////////////////////////////////////////////
+//
+// These operations can be performed on both Nodes and Relationships using 
+// the same procedure with different URLs supplied in the neoInfo argument.
+//
+////////////////////////////////////////////////////////////////////////////////
+
+func (db *Database) SetProperty(info *neoInfo, key string, value string) error {
+	uri := info.Properties
+	if uri == "" {
+		return FeatureUnavailable
+	}
+	parts := []string{uri, key}
+	uri = strings.Join(parts, "/")
 	c := restCall{
-		Url:    n.Info.Self,
+		Url:     uri,
+		Method:  "PUT",
+		Content: &value,
+	}
+	code, err := db.rest(&c)
+	if err != nil {
+		return err
+	}
+	if code == 204 {
+		return nil // Success!
+	}
+	return BadResponse
+}
+
+// GetProperty retrieves the value for the named property
+func (db *Database) GetProperty(info *neoInfo, key string) (string, error) {
+	var val string
+	uri := info.Properties
+	if uri == "" {
+		return val, FeatureUnavailable
+	}
+	parts := []string{uri, key}
+	uri = strings.Join(parts, "/")
+	c := restCall{
+		Url:    uri,
+		Method: "GET",
+		Result: &val,
+	}
+	code, err := db.rest(&c)
+	if err != nil {
+		return val, err
+	}
+	switch code {
+	case 200:
+		return val, nil
+	case 404:
+		return val, NotFound
+	}
+	return val, BadResponse
+}
+
+func (db *Database) Delete(info *neoInfo) error {
+	uri := info.Self
+	if uri == "" {
+		return FeatureUnavailable
+	}
+	c := restCall{
+		Url:    uri,
 		Method: "DELETE",
 	}
-	code, err := n.Db.rest(&c)
+	code, err := db.rest(&c)
 	switch {
 	case err != nil:
 		return err
@@ -279,6 +348,60 @@ func (n *Node) Delete() error {
 		return CannotDelete
 	}
 	return BadResponse
+}
+
+func (db *Database) Properties(info *neoInfo) (Properties, error) {
+	props := make(map[string]string)
+	uri := info.Properties
+	if uri == "" {
+		return props, FeatureUnavailable
+	}
+	c := restCall{
+		Url:    uri,
+		Method: "GET",
+		Result: &props,
+	}
+	code, err := db.rest(&c)
+	if err != nil {
+		return props, err
+	}
+	// Status code 204 indicates no properties on this node
+	if code == 204 {
+		props = map[string]string{}
+	}
+	return props, nil
+}
+
+func (db *Database) SetProperties(info *neoInfo, p Properties) error {
+	uri := info.Properties
+	if uri == "" {
+		return FeatureUnavailable
+	}
+	c := restCall{
+		Url:     uri,
+		Method:  "PUT",
+		Content: &p,
+	}
+	code, err := db.rest(&c)
+	if err != nil {
+		return err
+	}
+	if code == 204 {
+		return nil // Success!
+	}
+	return BadResponse
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Node
+//
+////////////////////////////////////////////////////////////////////////////////
+
+// Delete deletes a Node from the database
+func (n *Node) Delete() error {
+	return n.Db.Delete(n.Info)
 }
 
 // Id gets the ID number of this Node.
@@ -296,24 +419,7 @@ func (n *Node) Id() int {
 
 // Properties gets the Node's properties map from the DB.
 func (n *Node) Properties() (Properties, error) {
-	props := make(map[string]string)
-	if n.Info.Properties == "" {
-		return props, FeatureUnavailable
-	}
-	c := restCall{
-		Url:    n.Info.Properties,
-		Method: "GET",
-		Result: &props,
-	}
-	code, err := n.Db.rest(&c)
-	if err != nil {
-		return props, err
-	}
-	// Status code 204 indicates no properties on this node
-	if code == 204 {
-		props = map[string]string{}
-	}
-	return props, nil
+	return n.Db.Properties(n.Info)
 }
 
 // getRelationships makes an api call to the supplied uri and returns a map 
@@ -328,7 +434,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		parts := []string{uri, fragment}
 		uri = strings.Join(parts, "/")
 	}
-	s := []relInfo{}
+	s := []neoInfo{}
 	c := restCall{
 		Url:    uri,
 		Method: "GET",
@@ -370,7 +476,7 @@ func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 // Relate creates a relationship of relType, with specified properties, 
 // from this Node to the node identified by destId.
 func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
-	var info relInfo
+	var info neoInfo
 	rel := Relationship{
 		Db:   n.Db,
 		Info: &info,
@@ -402,62 +508,17 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 
 // SetProperty sets the named property on the Node
 func (n *Node) SetProperty(key, value string) error {
-	parts := []string{n.Info.Properties, key}
-	u := strings.Join(parts, "/")
-	c := restCall{
-		Url:     u,
-		Method:  "PUT",
-		Content: &value,
-	}
-	code, err := n.Db.rest(&c)
-	if err != nil {
-		return err
-	}
-	if code == 204 {
-		return nil // Success!
-	}
-	return BadResponse
+	return n.Db.SetProperty(n.Info, key, value)
 }
 
 // GetProperty retrieves the value for the named property
 func (n *Node) GetProperty(key string) (string, error) {
-	var val string
-	parts := []string{n.Info.Properties, key}
-	u := strings.Join(parts, "/")
-	c := restCall{
-		Url:    u,
-		Method: "GET",
-		Result: &val,
-	}
-	code, err := n.Db.rest(&c)
-	if err != nil {
-		return val, err
-	}
-	switch code {
-	case 200:
-		return val, nil
-	case 404:
-		return val, NotFound
-	}
-	return val, BadResponse
-}
-
-// A relInfo is returned from the Neo4j server on successful operations 
-// involving a Relationship.
-type relInfo struct {
-	Start      string            `json:"start"`
-	Data       map[string]string `json:"data"`
-	Self       string            `json:"self"`
-	Property   string            `json:"property"`
-	Properties string            `json:"properties"`
-	Type       string            `json:"type"`
-	Extensions map[string]string `json:"extensions"`
-	End        string            `json:"end"`
+	return n.Db.GetProperty(n.Info, key)
 }
 
 // A relationship in a Neo4j database
 type Relationship struct {
-	Info *relInfo
+	Info *neoInfo
 	Db   *Database
 }
 
@@ -479,27 +540,7 @@ func (r *Relationship) Type() string {
 
 // Properties gets the Relationship's properties map from the DB.
 func (r *Relationship) Properties() (Properties, error) {
-	props := Properties{}
-	if r.Info.Properties == "" {
-		return props, FeatureUnavailable
-	}
-	c := restCall{
-		Url:    r.Info.Properties,
-		Method: "GET",
-		Result: &props,
-	}
-	// code, err := r.Db.rest(&c)
-	_, err := r.Db.rest(&c)
-	if err != nil {
-		return props, err
-	}
-	/*
-		// Status code 204 indicates no properties on this Relationship
-		if code == 204 {
-			props = map[string]string{}
-		}
-	*/
-	return props, nil
+	return r.Db.Properties(r.Info)
 }
 
 // Id gets the ID number of this Relationship
@@ -516,81 +557,21 @@ func (r *Relationship) Id() int {
 
 // Delete deletes a Relationship from the database
 func (r *Relationship) Delete() error {
-	c := restCall{
-		Url:    r.Info.Self,
-		Method: "DELETE",
-	}
-	code, err := r.Db.rest(&c)
-	switch {
-	case err != nil:
-		return err
-	case code == 204:
-		// Successful deletion!
-		return nil
-		/*
-			case code == 409:
-				return CannotDelete
-		*/
-	}
-	return BadResponse
+	return r.Db.Delete(r.Info)
 }
 
 // SetProperties sets all properties on a Relationship, overwriting any
 // existing properties.
 func (r *Relationship) SetProperties(p Properties) error {
-	c := restCall{
-		Url:     r.Info.Properties,
-		Method:  "PUT",
-		Content: &p,
-	}
-	code, err := r.Db.rest(&c)
-	if err != nil {
-		return err
-	}
-	if code == 204 {
-		return nil // Success!
-	}
-	return BadResponse
+	return r.Db.SetProperties(r.Info, p)
 }
 
 // GetProperty retrieves the value for the named property
 func (r *Relationship) GetProperty(key string) (string, error) {
-	var val string
-	parts := []string{r.Info.Properties, key}
-	u := strings.Join(parts, "/")
-	c := restCall{
-		Url:    u,
-		Method: "GET",
-		Result: &val,
-	}
-	code, err := r.Db.rest(&c)
-	if err != nil {
-		return val, err
-	}
-	switch code {
-	case 200:
-		return val, nil
-	case 404:
-		return val, NotFound
-	}
-	return val, BadResponse
+	return r.Db.GetProperty(r.Info, key)
 }
 
 // SetProperty sets the value for the named property
 func (r *Relationship) SetProperty(key, value string) error {
-	parts := []string{r.Info.Properties, key}
-	u := strings.Join(parts, "/")
-	c := restCall{
-		Url:     u,
-		Method:  "PUT",
-		Content: &value,
-	}
-	code, err := r.Db.rest(&c)
-	if err != nil {
-		return err
-	}
-	if code == 204 {
-		return nil // Success!
-	}
-	return BadResponse
+	return r.Db.SetProperty(r.Info, key, value)
 }
