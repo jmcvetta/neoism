@@ -273,14 +273,6 @@ type neoInfo struct {
 	End   string `json:"end"`
 }
 
-func (e *neoEntity) Info() *neoInfo {
-	return e.info
-}
-
-func (e *neoEntity) Db() *Database {
-	return e.db
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 // These operations can be performed on both Nodes and Relationships using 
@@ -463,8 +455,8 @@ type Node struct {
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
-	l := len(n.Db().Info.Node)
-	s := n.Info().Self[l:]
+	l := len(n.db.Info.Node)
+	s := n.info.Self[l:]
 	s = strings.Trim(s, "/")
 	id, err := strconv.Atoi(s)
 	if err != nil {
@@ -492,13 +484,13 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		Method: "GET",
 		Result: &s,
 	}
-	code, err := n.Db().rest(&c)
+	code, err := n.db.rest(&c)
 	if err != nil {
 		return m, err
 	}
 	for _, info := range s {
 		rel := Relationship{neoEntity{
-			db:   n.Db(),
+			db:   n.db,
 			info: &info,
 		}}
 		m[rel.Id()] = rel
@@ -512,17 +504,17 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 // Relationships gets all Relationships for this Node, optionally filtered by 
 // type, returning them as a map keyed on Relationship ID.
 func (n *Node) Relationships(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.Info().AllRels, types...)
+	return n.getRelationships(n.info.AllRels, types...)
 }
 
 // Incoming gets all incoming Relationships for this Node.
 func (n *Node) Incoming(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.Info().IncomingRels, types...)
+	return n.getRelationships(n.info.IncomingRels, types...)
 }
 
 // Outgoing gets all outgoing Relationships for this Node.
 func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.Info().OutgoingRels, types...)
+	return n.getRelationships(n.info.OutgoingRels, types...)
 }
 
 // Relate creates a relationship of relType, with specified properties, 
@@ -530,11 +522,11 @@ func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
 	var info neoInfo
 	rel := Relationship{neoEntity{
-		db:   n.Db(),
+		db:   n.db,
 		info: &info,
 	}}
-	srcUri := join(n.Info().Self, "relationships")
-	destUri := join(n.Db().Info.Node, strconv.Itoa(destId))
+	srcUri := join(n.info.Self, "relationships")
+	destUri := join(n.db.Info.Node, strconv.Itoa(destId))
 	content := map[string]interface{}{
 		"to":   destUri,
 		"type": relType,
@@ -548,7 +540,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 		Content: content,
 		Result:  &info,
 	}
-	code, err := n.Db().rest(&c)
+	code, err := n.db.rest(&c)
 	if err != nil {
 		return &rel, err
 	}
@@ -565,7 +557,7 @@ type Relationship struct {
 
 // Id gets the ID number of this Relationship
 func (r *Relationship) Id() int {
-	parts := strings.Split(r.Info().Self, "/")
+	parts := strings.Split(r.info.Self, "/")
 	s := parts[len(parts)-1]
 	id, err := strconv.Atoi(s)
 	if err != nil {
@@ -578,15 +570,15 @@ func (r *Relationship) Id() int {
 // Start gets the starting Node of this Relationship.
 func (r *Relationship) Start() (*Node, error) {
 	// log.Println("INFO", r.Info)
-	return r.Db().getNodeByUri(r.Info().Start)
+	return r.db.getNodeByUri(r.info.Start)
 }
 
 // End gets the ending Node of this Relationship.
 func (r *Relationship) End() (*Node, error) {
-	return r.Db().getNodeByUri(r.Info().End)
+	return r.db.getNodeByUri(r.info.End)
 }
 
 // Type gets the type of this relationship
 func (r *Relationship) Type() string {
-	return r.Info().Type
+	return r.info.Type
 }
