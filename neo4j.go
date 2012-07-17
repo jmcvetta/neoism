@@ -277,10 +277,15 @@ func (n *Node) Properties() (Properties, error) {
 
 // getRelationships makes an api call to the supplied uri and returns a map 
 // keying relationship IDs to Relationship objects.
-func (n *Node) getRelationships(uri string) (map[int]Relationship, error) {
+func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationship, error) {
 	m := map[int]Relationship{}
 	if uri == "" {
 		return m, FeatureUnavailable
+	}
+	if types != nil {
+		fragment := strings.Join(types, "&")
+		parts := []string{uri, fragment}
+		uri = strings.Join(parts, "/")
 	}
 	s := []relInfo{}
 	c := restCall{
@@ -311,18 +316,18 @@ func (n *Node) getRelationships(uri string) (map[int]Relationship, error) {
 
 // AllRelationships gets all Relationships for this Node, returning them as a map
 // keyed on Relationship ID.
-func (n *Node) AllRelationships() (map[int]Relationship, error) {
-	return n.getRelationships(n.Info.AllRels)
+func (n *Node) AllRelationships(types ...string) (map[int]Relationship, error) {
+	return n.getRelationships(n.Info.AllRels, types...)
 }
 
 // IncomingRelationships gets all incoming Relationships for this Node.
-func (n *Node) IncomingRelationships() (map[int]Relationship, error) {
-	return n.getRelationships(n.Info.IncomingRels)
+func (n *Node) IncomingRelationships(types ...string) (map[int]Relationship, error) {
+	return n.getRelationships(n.Info.IncomingRels, types...)
 }
 
-// OutgoingRelationships gets all incoming Relationships for this Node.
-func (n *Node) OutgoingRelationships() (map[int]Relationship, error) {
-	return n.getRelationships(n.Info.OutgoingRels)
+// OutgoingRelationships gets all outgoing Relationships for this Node.
+func (n *Node) OutgoingRelationships(types ...string) (map[int]Relationship, error) {
+	return n.getRelationships(n.Info.OutgoingRels, types...)
 }
 
 // A relInfo is returned from the Neo4j server on successful operations 

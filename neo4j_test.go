@@ -261,10 +261,41 @@ func TestGetInRels(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	log.Println(rs)
 	assert.Equal(t, 1, len(rs))
 	_, ok := rs[r0.Id()]
 	if !ok {
 		t.Errorf("Relationship ID %v not found in OutgoingRelationships()", r0.Id())
 	}
+}
+
+func TestTypedRels(t *testing.T) {
+	db := connect(t)
+	empty := Properties{}
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	node2, _ := db.CreateNode(empty)
+	r0, _ := node0.Relate("knows", node1.Id(), kirk)
+	node0.Relate("likes", node2.Id(), spock) // No need to capture the rel object, it won't be used
+	// One "knows" relationship
+	rs, err := node0.AllRelationships("knows")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 1, len(rs))
+	_, ok := rs[r0.Id()]
+	if !ok {
+		t.Errorf("Relationship ID %v not found in OutgoingRelationships()", r0.Id())
+	}
+	// Two "knows" or "likes" relationships
+	rs, err = node0.AllRelationships("knows", "likes")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 2, len(rs))
+	// Zero "employs" relationships
+	rs, err = node0.AllRelationships("employs")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 0, len(rs))
 }
