@@ -288,6 +288,7 @@ func (e *neoEntity) Db() *Database {
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+// SetProperty sets the single property key to value.
 func (e *neoEntity) SetProperty(key string, value string) error {
 	uri := e.info.Properties
 	if uri == "" {
@@ -310,6 +311,7 @@ func (e *neoEntity) SetProperty(key string, value string) error {
 	return BadResponse
 }
 
+// GetProperty fetches the value of property key.
 func (e *neoEntity) GetProperty(key string) (string, error) {
 	var val string
 	uri := e.info.Properties
@@ -336,6 +338,7 @@ func (e *neoEntity) GetProperty(key string) (string, error) {
 	return val, BadResponse
 }
 
+// DeleteProperty deletes property key
 func (e *neoEntity) DeleteProperty(key string) error {
 	uri := e.info.Properties
 	if uri == "" {
@@ -360,6 +363,7 @@ func (e *neoEntity) DeleteProperty(key string) error {
 	return BadResponse
 }
 
+// Delete removes the object from the DB.
 func (e *neoEntity) Delete() error {
 	uri := e.info.Self
 	if uri == "" {
@@ -382,6 +386,7 @@ func (e *neoEntity) Delete() error {
 	return BadResponse
 }
 
+// Properties fetches all properties
 func (e *neoEntity) Properties() (Properties, error) {
 	props := make(map[string]string)
 	uri := e.info.Properties
@@ -404,6 +409,7 @@ func (e *neoEntity) Properties() (Properties, error) {
 	return props, nil
 }
 
+// SetProperties updates all properties, overwriting any existing properties.
 func (e *neoEntity) SetProperties(p Properties) error {
 	uri := e.info.Properties
 	if uri == "" {
@@ -424,6 +430,7 @@ func (e *neoEntity) SetProperties(p Properties) error {
 	return BadResponse
 }
 
+// DeleteProperties deletes all properties.
 func (e *neoEntity) DeleteProperties() error {
 	uri := e.info.Properties
 	if uri == "" {
