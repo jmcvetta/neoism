@@ -205,7 +205,7 @@ func TestGetAllRels(t *testing.T) {
 	node3, _ := db.CreateNode(empty)
 	r0, _ := node0.Relate("knows", node1.Id(), kirk)
 	r1, _ := node0.Relate("knows", node2.Id(), spock)
-	rs, err := node0.AllRelationships()
+	rs, err := node0.Relationships()
 	if err != nil {
 		t.Error(err)
 	}
@@ -213,11 +213,11 @@ func TestGetAllRels(t *testing.T) {
 	for _, v := range rels {
 		_, ok := rs[v.Id()]
 		if !ok {
-			t.Errorf("Relationship ID %v not found in AllRelationships()", v.Id())
+			t.Errorf("Relationship ID %v not found in Relationships()", v.Id())
 		}
 	}
 	// node3 has no relationships
-	rs, err = node3.AllRelationships()
+	rs, err = node3.Relationships()
 	if err != nil {
 		t.Error(err)
 	}
@@ -233,7 +233,7 @@ func TestGetOutRels(t *testing.T) {
 	node2, _ := db.CreateNode(empty)
 	r0, _ := node0.Relate("knows", node1.Id(), kirk)
 	r1, _ := node0.Relate("knows", node2.Id(), spock)
-	rs, err := node0.OutgoingRelationships()
+	rs, err := node0.Outgoing()
 	if err != nil {
 		t.Error(err)
 	}
@@ -245,7 +245,7 @@ func TestGetOutRels(t *testing.T) {
 		}
 	}
 	// node1 has no outgoing relationships
-	rs, err = node1.OutgoingRelationships()
+	rs, err = node1.Outgoing()
 	if err != nil {
 		t.Error(err)
 	}
@@ -259,13 +259,13 @@ func TestGetInRels(t *testing.T) {
 	node1, _ := db.CreateNode(empty)
 	r0, _ := node0.Relate("knows", node1.Id(), empty)
 	// node0 has no incoming relationships
-	rs, err := node0.IncomingRelationships()
+	rs, err := node0.Incoming()
 	if err != nil {
 		t.Error(err)
 	}
 	assert.Equal(t, 0, len(rs))
 	// node1 has 1 incoming relationship, from node0
-	rs, err = node1.IncomingRelationships()
+	rs, err = node1.Incoming()
 	if err != nil {
 		t.Error(err)
 	}
@@ -285,7 +285,7 @@ func TestTypedRels(t *testing.T) {
 	r0, _ := node0.Relate("knows", node1.Id(), kirk)
 	node0.Relate("likes", node2.Id(), spock) // No need to capture the rel object, it won't be used
 	// One "knows" relationship
-	rs, err := node0.AllRelationships("knows")
+	rs, err := node0.Relationships("knows")
 	if err != nil {
 		t.Error(err)
 	}
@@ -295,13 +295,13 @@ func TestTypedRels(t *testing.T) {
 		t.Errorf("Relationship ID %v not found in OutgoingRelationships()", r0.Id())
 	}
 	// Two "knows" or "likes" relationships
-	rs, err = node0.AllRelationships("knows", "likes")
+	rs, err = node0.Relationships("knows", "likes")
 	if err != nil {
 		t.Error(err)
 	}
 	assert.Equal(t, 2, len(rs))
 	// Zero "employs" relationships
-	rs, err = node0.AllRelationships("employs")
+	rs, err = node0.Relationships("employs")
 	if err != nil {
 		t.Error(err)
 	}

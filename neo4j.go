@@ -331,23 +331,19 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 	return m, BadResponse
 }
 
-//
-// NOTE:  Are these method names too long?  Better to do AllRels() etc?
-//
-
-// AllRelationships gets all Relationships for this Node, returning them as a map
-// keyed on Relationship ID.
-func (n *Node) AllRelationships(types ...string) (map[int]Relationship, error) {
+// Relationships gets all Relationships for this Node, optionally filtered by 
+// type, returning them as a map keyed on Relationship ID.
+func (n *Node) Relationships(types ...string) (map[int]Relationship, error) {
 	return n.getRelationships(n.Info.AllRels, types...)
 }
 
-// IncomingRelationships gets all incoming Relationships for this Node.
-func (n *Node) IncomingRelationships(types ...string) (map[int]Relationship, error) {
+// Incoming gets all incoming Relationships for this Node.
+func (n *Node) Incoming(types ...string) (map[int]Relationship, error) {
 	return n.getRelationships(n.Info.IncomingRels, types...)
 }
 
-// OutgoingRelationships gets all outgoing Relationships for this Node.
-func (n *Node) OutgoingRelationships(types ...string) (map[int]Relationship, error) {
+// Outgoing gets all outgoing Relationships for this Node.
+func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 	return n.getRelationships(n.Info.OutgoingRels, types...)
 }
 
