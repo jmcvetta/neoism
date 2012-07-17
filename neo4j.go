@@ -35,7 +35,7 @@ type errorResponse struct {
 type Database struct {
 	url    *url.URL // Root URL for REST API
 	client *http.Client
-	Info   *serviceRootInfo
+	info   *serviceRootInfo
 }
 
 // A serviceRootInfo is returned from the Neo4j server on successful operations 
@@ -118,7 +118,7 @@ func NewDatabase(uri string) (db *Database, err error) {
 	db = &Database{
 		url:    u,
 		client: new(http.Client),
-		Info:   &info,
+		info:   &info,
 	}
 	c := restCall{
 		Url:    u.String(),
@@ -129,7 +129,7 @@ func NewDatabase(uri string) (db *Database, err error) {
 	if err != nil || code != 200 {
 		return
 	}
-	if db.Info.Version == "" {
+	if db.info.Version == "" {
 		err = BadResponse
 		return
 	}
@@ -144,7 +144,7 @@ func (db *Database) CreateNode(p Properties) (*Node, error) {
 		info: &info,
 	}}
 	c := restCall{
-		Url:     db.Info.Node,
+		Url:     db.info.Node,
 		Method:  "POST",
 		Content: &p,
 		Result:  &info,
@@ -161,7 +161,7 @@ func (db *Database) CreateNode(p Properties) (*Node, error) {
 
 // GetNode fetches a Node from the database
 func (db *Database) GetNode(id int) (*Node, error) {
-	uri := join(db.Info.Node, strconv.Itoa(id))
+	uri := join(db.info.Node, strconv.Itoa(id))
 	return db.getNodeByUri(uri)
 }
 
@@ -214,11 +214,11 @@ func (db *Database) GetRelationship(id int) (*Relationship, error) {
 // RelationshipTypes gets all existing relationship types from the DB
 func (db *Database) RelationshipTypes() ([]string, error) {
 	ts := []string{}
-	if db.Info.RelTypes == "" {
+	if db.info.RelTypes == "" {
 		return ts, FeatureUnavailable
 	}
 	c := restCall{
-		Url:    db.Info.RelTypes,
+		Url:    db.info.RelTypes,
 		Method: "GET",
 		Result: &ts,
 	}
@@ -455,7 +455,7 @@ type Node struct {
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
-	l := len(n.db.Info.Node)
+	l := len(n.db.info.Node)
 	s := n.info.Self[l:]
 	s = strings.Trim(s, "/")
 	id, err := strconv.Atoi(s)
@@ -526,7 +526,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 		info: &info,
 	}}
 	srcUri := join(n.info.Self, "relationships")
-	destUri := join(n.db.Info.Node, strconv.Itoa(destId))
+	destUri := join(n.db.info.Node, strconv.Itoa(destId))
 	content := map[string]interface{}{
 		"to":   destUri,
 		"type": relType,
