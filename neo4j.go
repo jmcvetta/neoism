@@ -221,6 +221,27 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	return &n, nil
 }
 
+// RelationshipTypes gets all existing relationship types from the DB
+func (db *Database) RelationshipTypes() ([]string, error) {
+	ts := []string{}
+	if db.Info.RelTypes == "" {
+		return ts, FeatureUnavailable
+	}
+	c := restCall{
+		Url:    db.Info.RelTypes,
+		Method: "GET",
+		Result: &ts,
+	}
+	code, err := db.rest(&c)
+	if err != nil {
+		return ts, err
+	}
+	if code == 200 {
+		return ts, nil // Success!
+	}
+	return ts, BadResponse
+}
+
 // Delete deletes a Node from the database
 func (n *Node) Delete() error {
 	c := restCall{

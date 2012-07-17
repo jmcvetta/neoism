@@ -307,3 +307,16 @@ func TestTypedRels(t *testing.T) {
 	}
 	assert.Equal(t, 0, len(rs))
 }
+
+func TestRelTypes(t *testing.T) {
+	// This test assumes only those types of relationship created by this test 
+	// suite exist in the database.  If the test suite is run on a non-empty 
+	// db, there is a good chance this test will fail because of that.
+	knownTypes := []string{"knows", "likes"}
+	db := connect(t)
+	rts, err := db.RelationshipTypes()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, knownTypes, rts)
+}
