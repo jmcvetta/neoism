@@ -7,9 +7,9 @@ Neo4j client for [Go](http://golang.org).
 # Documentation
 
 See [GoPkgDoc](http://go.pkgdoc.org/github.com/jmcvetta/neo4j) for automatic
-documentation.  There is currently an [open
-bug](https://github.com/garyburd/gopkgdoc/issues/25) in GoPkgDoc causing it not
-to display certain exported methods.  Use `go doc` for the time being.
+documentation.  There is currently a
+[bug](https://github.com/garyburd/gopkgdoc/issues/25) in GoPkgDoc causing it
+not to display certain exported methods.  Use `go doc` for the time being.
 
 
 # Note
