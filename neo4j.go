@@ -279,6 +279,9 @@ func (n *Node) Properties() (Properties, error) {
 // keyed on Relationship ID.
 func (n *Node) AllRelationships() (map[int]Relationship, error) {
 	m := map[int]Relationship{}
+	if n.Info.AllRels == "" {
+		return m, FeatureUnavailable
+	}
 	s := []relInfo{}
 	c := restCall{
 		Url:    n.Info.AllRels,
@@ -291,9 +294,9 @@ func (n *Node) AllRelationships() (map[int]Relationship, error) {
 	}
 	for _, info := range s {
 		rel := Relationship{
+			Db:   n.Db,
 			Info: &info,
 		}
-		println(rel.Id(), rel.Info.Self)
 		m[rel.Id()] = rel
 	}
 	if code == 200 {

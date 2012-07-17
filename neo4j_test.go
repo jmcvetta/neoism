@@ -11,8 +11,9 @@ import (
 
 // Buckets of properties for convenient testing
 var (
-	jCash     = Properties{"cash": "johnny"}
-	hWilliams = Properties{"williams": "hank"}
+	empty = Properties{}
+	kirk  = Properties{"name": "kirk"}
+	spock = Properties{"name": "spock"}
 )
 
 func init() {
@@ -139,8 +140,7 @@ func createRelationship(t *testing.T, p Properties) *Relationship {
 
 func TestGetRelationship(t *testing.T) {
 	db := connect(t)
-	jCash := Properties{"cash": "johnny"}
-	rel0 := createRelationship(t, jCash)
+	rel0 := createRelationship(t, empty)
 	rel1, err := db.GetRelationship(rel0.Id())
 	if err != nil {
 		t.Error(err)
@@ -149,42 +149,42 @@ func TestGetRelationship(t *testing.T) {
 }
 
 func TestSetRelProps(t *testing.T) {
-	rel := createRelationship(t, jCash)
+	rel := createRelationship(t, kirk)
 	props, err := rel.Properties()
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, jCash, props)
-	err = rel.SetProperties(hWilliams)
+	assert.Equal(t, kirk, props)
+	err = rel.SetProperties(spock)
 	if err != nil {
 		t.Error(err)
 	}
 	props, _ = rel.Properties()
-	assert.Equal(t, hWilliams, props)
+	assert.Equal(t, spock, props)
 }
 
 func TestGetRelProperty(t *testing.T) {
-	rel := createRelationship(t, jCash)
-	val0, err := rel.GetProperty("cash")
+	rel := createRelationship(t, kirk)
+	val0, err := rel.GetProperty("name")
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, val0, jCash["cash"])
+	assert.Equal(t, val0, kirk["name"])
 	_, err = rel.GetProperty("foobar")
 	assert.Equal(t, NotFound, err)
 }
 
 func TestSetRelProperty(t *testing.T) {
-	rel := createRelationship(t, jCash)
-	err := rel.SetProperty("cash", "money")
+	rel := createRelationship(t, kirk)
+	err := rel.SetProperty("name", "mccoy")
 	if err != nil {
 		t.Error(err)
 	}
-	val, err := rel.GetProperty("cash")
+	val, err := rel.GetProperty("name")
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, val, "money")
+	assert.Equal(t, val, "mccoy")
 	err = rel.SetProperty("spam", "eggs")
 	if err != nil {
 		t.Error(err)
@@ -202,12 +202,17 @@ func TestGetAllRels(t *testing.T) {
 	node0, _ := db.CreateNode(empty)
 	node1, _ := db.CreateNode(empty)
 	node2, _ := db.CreateNode(empty)
-	rel0, _ := node0.Relate("knows", node1.Id(), jCash)
-	rel1, _ := node0.Relate("knows", node2.Id(), hWilliams)
+	r0, _ := node0.Relate("knows", node1.Id(), kirk)
+	r1, _ := node0.Relate("knows", node2.Id(), spock)
 	rs, err := node0.AllRelationships()
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, *rel0, rs[rel0.Id()])
-	assert.Equal(t, *rel1, rs[rel1.Id()])
+	rels := []*Relationship{r0, r1}
+	for _, v := range rels {
+		_, ok := rs[v.Id()]
+		if !ok {
+			t.Errorf("Relationship ID %v not found in AllRelationships()", v.Id())
+		}
+	}
 }
