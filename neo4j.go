@@ -109,7 +109,7 @@ func join(fragments ...string) string {
 	}
 	return strings.Join(parts, "/")
 }
-func NewDatabase(uri string) (db *Database, err error) {
+func Connect(uri string) (db *Database, err error) {
 	var info serviceRootInfo
 	u, err := url.Parse(uri)
 	if err != nil {

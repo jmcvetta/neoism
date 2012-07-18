@@ -12,8 +12,8 @@ documentation.
 
 # Note
 
-This driver is *very* incomplete.  It may or may not ever be finished - for the
-time being it's just a toy for my amusement.
+This driver is a work in progress.  It is currently incomplete, and not ready
+for production use.
 
 
 # License
