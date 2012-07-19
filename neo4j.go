@@ -436,8 +436,11 @@ func (e *neoEntity) DeleteProperties() error {
 	if err != nil {
 		return err
 	}
-	if code == 204 {
+	switch code {
+	case 204:
 		return nil // Success!
+	case 404:
+		return NotFound
 	}
 	return BadResponse
 }
