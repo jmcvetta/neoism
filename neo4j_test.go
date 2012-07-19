@@ -31,71 +31,156 @@ func connect(t *testing.T) *Database {
 	return db
 }
 
-func TestCreateNode(t *testing.T) {
+// Tests API described in Neo4j Manual section 19.3. Nodes
+func TestNode(t *testing.T) {
 	db := connect(t)
-	props := Properties{}
-	node, err := db.CreateNode(props)
+	//
+	// 19.3.1. Create Node
+	//
+	node0, err := db.CreateNode(empty)
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := node.Properties()
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	assert.Equal(t, props, p)
-}
-
-func TestCreateNodeProps(t *testing.T) {
-	db := connect(t)
-	props := Properties{"foo": "bar"}
-	node, err := db.CreateNode(props)
+	//
+	// 19.3.2. Create Node with properties
+	//
+	node1, err := db.CreateNode(kirk)
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := node.Properties()
+	//
+	// 19.3.3. Get node
+	//
+	check, err := db.GetNode(node0.Id())
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	assert.Equal(t, props, p)
+	assert.Equal(t, node0.Id(), check.Id())
+	// Make sure we can also get a node created w/ properties
+	_, err = db.GetNode(node1.Id())
+	if err != nil {
+		t.Fatal(err)
+	}
+	//
+	// 19.3.4. Get non-existent node
+	//
+	badId := node1.Id() + 1000000 // Probably does not exist yet
+	_, err = db.GetNode(badId)
+	assert.Equal(t, NotFound, err)
+	//
+	// 19.3.5. Delete node
+	//
+	n0Id := node0.Id()
+	err = node0.Delete()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = db.GetNode(n0Id) // Make sure it's really gone
+	assert.Equal(t, NotFound, err)
+	//
+	// 19.3.6. Nodes with relationships can not be deleted
+	//
+	node2, err := db.CreateNode(empty)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = node1.Relate("knows", node2.Id(), empty)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = node1.Delete()
+	assert.Equal(t, CannotDelete, err)
 }
 
-func TestGetNode(t *testing.T) {
+// Tests API described in Neo4j Manual section 19.4. Relationships
+func TestRelationships(t *testing.T) {
+	//
+	// 19.4.2. Create relationship
+	//
+	// This section must precede 19.4.1. in order to have an object in the DB for us to Get
 	db := connect(t)
-	props := map[string]string{}
-	node0, _ := db.CreateNode(props)
-	id := node0.Id()
-	node1, err := db.GetNode(id)
+	node0, _ := db.CreateNode(empty)
+	node1, _ := db.CreateNode(empty)
+	rel0, err := node0.Relate("knows", node1.Id(), empty)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	assert.Equal(t, node0, node1)
-}
-
-func TestGetNonexistNode(t *testing.T) {
-	db := connect(t)
-	props := map[string]string{}
-	node0, _ := db.CreateNode(props)
-	id := node0.Id()
-	id = id + 50000 // Node with this id should (probably??) not yet exist
-	_, err := db.GetNode(id)
-	assert.Equal(t, err, NotFound)
-}
-
-func TestDeleteNode(t *testing.T) {
-	db := connect(t)
-	props := map[string]string{}
-	node, _ := db.CreateNode(props)
-	id := node.Id()
-	err := node.Delete()
+	start, err := rel0.Start()
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	_, err = db.GetNode(id)
-	assert.Equal(t, err, NotFound)
+	assert.Equal(t, node0.Id(), start.Id())
+	end, err := rel0.End()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, node1, end)
+	//
+	// 19.4.1. Get Relationship by ID
+	//
+	clone, err := db.GetRelationship(rel0.Id())
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, rel0, clone)
+	//
+	// 19.4.3. Create a relationship with properties
+	//
+	rel1, err := node0.Relate("knows", node1.Id(), kirk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	props, _ := rel1.Properties()
+	assert.Equal(t, kirk, props)
+	//
+	// 19.4.4. Delete relationship
+	//
+	r0Id := rel0.Id()
+	err = rel0.Delete()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Make sure it's gone:
+	_, err = db.GetRelationship(r0Id)
+	log.Println(err)
+	assert.Equal(t, NotFound, err)
+	//
+	// 19.4.6. Set all properties on a relationship
+	//
+	rel2, err := node0.Relate("knows", node1.Id(), empty)
+	err = rel2.SetProperties(kirk)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//
+	// 19.4.5. Get all properties on a relationship
+	//
+	props, err = rel2.Properties()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, kirk, props)
+	//
+	// 19.4.7. Get single property on a relationship
+	//
+	s, err := rel1.GetProperty("name")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "kirk", s)
+	//
+	// 19.4.8. Set single property on a relationship
+	//
+	rel3, err := node0.Relate("knows", node1.Id(), empty)
+	err = rel3.SetProperty("name", "kirk")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, _ = rel3.GetProperty("name")
+	assert.Equal(t, "kirk", s)
+	//
+	// 19.4.9. Get all relationships
+	//
 }
 
 func TestCreateRel(t *testing.T) {
@@ -109,16 +194,6 @@ func TestCreateRel(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	start, err := rel.Start()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, node0.Id(), start.Id())
-	end, err := rel.End()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, node1, end)
 	newRelProps, err := rel.Properties()
 	if err != nil {
 		t.Error(err)
@@ -136,16 +211,6 @@ func createRelationship(t *testing.T, p Properties) *Relationship {
 		t.Error(err)
 	}
 	return rel
-}
-
-func TestGetRelationship(t *testing.T) {
-	db := connect(t)
-	rel0 := createRelationship(t, empty)
-	rel1, err := db.GetRelationship(rel0.Id())
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, rel0, rel1)
 }
 
 func TestRelSetProps(t *testing.T) {
