@@ -10,6 +10,7 @@ package neo4j
 import (
 	"github.com/bmizerany/assert"
 	"log"
+	"sort"
 	"testing"
 )
 
@@ -28,7 +29,7 @@ func connect(t *testing.T) *Database {
 	//
 	// Connect
 	//
-	db, err := Connect("http://localhost:7474/db/data")
+	db, err := Connect("http://localhost:7474/db/dataXXXXX")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -255,171 +256,74 @@ func TestRelationships(t *testing.T) {
 	assert.Equal(t, 0, len(rs))
 }
 
-func TestCreateRel(t *testing.T) {
+// Tests API described in Neo4j Manual section 19.5. Relationship types
+func TestRelationshipTypes(t *testing.T) {
 	db := connect(t)
-	props := Properties{}
-	relProps := Properties{"this one goes to": "11"}
-	node0, _ := db.CreateNode(props)
-	node1, _ := db.CreateNode(props)
-	rel, err := node0.Relate("knows", node1.Id(), relProps)
+	//
+	// 19.5.1. Get relationship types
+	//
+	reltypes, err := db.RelationshipTypes()
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	newRelProps, err := rel.Properties()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, relProps, newRelProps)
+	expected := []string{"likes", "knows"}
+	sort.Sort(sort.StringSlice(expected))
+	assert.Equal(t, expected, reltypes)
 }
 
-func createRelationship(t *testing.T, p Properties) *Relationship {
+// Tests API described in Neo4j Manual section 19.6. Node properties
+func TestNodeProperties(t *testing.T) {
 	db := connect(t)
-	empty := Properties{}
+	//
+	// 19.6.1. Set property on node
+	//
 	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
-	rel, err := node0.Relate("knows", node1.Id(), p)
+	err := node0.SetProperty("name", "mccoy")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	return rel
-}
-
-func TestRelSetProps(t *testing.T) {
-	rel := createRelationship(t, kirk)
-	props, err := rel.Properties()
+	//
+	// 19.6.2. Update node properties
+	//
+	err = node0.SetProperties(spock)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	assert.Equal(t, kirk, props)
-	err = rel.SetProperties(spock)
+	//
+	// 19.6.3. Get properties for node
+	//
+	props, err := node0.Properties()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	props, _ = rel.Properties()
 	assert.Equal(t, spock, props)
-}
-
-func TestRelGetProperty(t *testing.T) {
-	rel := createRelationship(t, kirk)
-	val0, err := rel.GetProperty("name")
+	//
+	// 19.6.4. Property values can not be null
+	//
+	// 19.6.5. Property values can not be nested
+	//
+	// These sections cannot be tested, because this library only accepts valid 
+	// strings (the nil string, "", is still a valid string) as argument when 
+	// setting properties.  It is not possible to write code that constructs an 
+	// invalid request of this sort and still compiles.
+	//
+	// 19.6.6. Delete all properties from node
+	//
+	err = node0.DeleteProperties()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	assert.Equal(t, val0, kirk["name"])
-	_, err = rel.GetProperty("foobar")
-	assert.Equal(t, NotFound, err)
-}
-
-func TestRelSetProperty(t *testing.T) {
-	rel := createRelationship(t, kirk)
-	err := rel.SetProperty("name", "mccoy")
+	props, _ = node0.Properties()
+	assert.Equal(t, empty, props)
+	//
+	// 19.6.7. Delete a named property from a node
+	//
+	node0.SetProperties(spock)
+	node0.SetProperty("foo", "bar")
+	node0.DeleteProperty("foo")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	val, err := rel.GetProperty("name")
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, val, "mccoy")
-	err = rel.SetProperty("spam", "eggs")
-	if err != nil {
-		t.Error(err)
-	}
-	val, err = rel.GetProperty("spam")
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, val, "eggs")
-}
-
-func TestGetAllRels(t *testing.T) {
-	db := connect(t)
-	empty := Properties{}
-	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
-	node2, _ := db.CreateNode(empty)
-	node3, _ := db.CreateNode(empty)
-	r0, _ := node0.Relate("knows", node1.Id(), kirk)
-	r1, _ := node0.Relate("knows", node2.Id(), spock)
-	rs, err := node0.Relationships()
-	if err != nil {
-		t.Error(err)
-	}
-	rels := []*Relationship{r0, r1}
-	for _, v := range rels {
-		_, ok := rs[v.Id()]
-		if !ok {
-			t.Errorf("Relationship ID %v not found in Relationships()", v.Id())
-		}
-	}
-	// node3 has no relationships
-	rs, err = node3.Relationships()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, 0, len(rs))
-
-}
-
-func TestGetOutRels(t *testing.T) {
-	db := connect(t)
-	empty := Properties{}
-	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
-	node2, _ := db.CreateNode(empty)
-	r0, _ := node0.Relate("knows", node1.Id(), kirk)
-	r1, _ := node0.Relate("knows", node2.Id(), spock)
-	rs, err := node0.Outgoing()
-	if err != nil {
-		t.Error(err)
-	}
-	rels := []*Relationship{r0, r1}
-	for _, v := range rels {
-		_, ok := rs[v.Id()]
-		if !ok {
-			t.Errorf("Relationship ID %v not found in OutgoingRelationships()", v.Id())
-		}
-	}
-	// node1 has no outgoing relationships
-	rs, err = node1.Outgoing()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, 0, len(rs))
-}
-
-func TestGetInRels(t *testing.T) {
-	db := connect(t)
-	empty := Properties{}
-	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
-	r0, _ := node0.Relate("knows", node1.Id(), empty)
-	// node0 has no incoming relationships
-	rs, err := node0.Incoming()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, 0, len(rs))
-	// node1 has 1 incoming relationship, from node0
-	rs, err = node1.Incoming()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, 1, len(rs))
-	_, ok := rs[r0.Id()]
-	if !ok {
-		t.Errorf("Relationship ID %v not found in OutgoingRelationships()", r0.Id())
-	}
-}
-
-func TestNodeSetGetProperty(t *testing.T) {
-	db := connect(t)
-	node0, _ := db.CreateNode(empty)
-	node0.SetProperty("spam", "eggs")
-	s, err := node0.GetProperty("spam")
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, "eggs", s)
+	props, _ = node0.Properties()
+	assert.Equal(t, spock, props)
 }
