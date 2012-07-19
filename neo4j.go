@@ -205,8 +205,13 @@ func (db *Database) GetRelationship(id int) (*Relationship, error) {
 		Result: &info,
 	}
 	code, err := db.rest(&c)
-	if code != 200 {
+	switch code {
+	default:
 		err = BadResponse
+	case 200:
+		err = nil // Success!
+	case 404:
+		err = NotFound
 	}
 	return &rel, err
 }
