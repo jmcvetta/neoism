@@ -10,7 +10,7 @@ import (
 	"errors"
 	// "github.com/kr/pretty"
 	"io/ioutil"
-	// "log"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	InvalidDatabase    = errors.New("Invalid database.  Check URI.")
 	BadResponse        = errors.New("Bad response from Neo4j server.")
 	NotFound           = errors.New("Cannot find in database.")
 	FeatureUnavailable = errors.New("Feature unavailable")
@@ -39,9 +40,16 @@ type Database struct {
 	info   *serviceRootInfo
 }
 
-// A serviceRootInfo is returned from the Neo4j server on successful operations 
-// involving a Node.
+// A neoError is populated by api calls when there is an error.
+type neoError struct {
+	Mesage     string   `json:"message"`
+	Exception  string   `json:"exception"`
+	StackTrace []string `json:"stacktrace"`
+}
+
+// A serviceRootInfo describes services available on the Neo4j server
 type serviceRootInfo struct {
+	neoError
 	Extensions interface{} `json:"extensions"`
 	Node       string      `json:"node"`
 	RefNode    string      `json:"reference_node"`
@@ -87,16 +95,33 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 		return
 	}
 	status = resp.StatusCode
-	// log.Println(pretty.Sprintf("Response: %# v", resp))
-	// Only try to unmarshal if status is 200 OK or 201 CREATED
-	if status >= 200 && status <= 201 {
-		var data []byte
-		data, err = ioutil.ReadAll(resp.Body)
-		err = json.Unmarshal(data, &r.Result)
-		if err != nil {
-			return
+	/*
+		// log.Println(pretty.Sprintf("Response: %# v", resp))
+		// Only try to unmarshal if status is 200 OK or 201 CREATED
+		if status >= 200 && status <= 201 {
+			var data []byte
+			data, err = ioutil.ReadAll(resp.Body)
+			err = json.Unmarshal(data, &r.Result)
+			if err != nil {
+				return
+			}
+			// log.Println(pretty.Sprintf("Result: %# v", r.Result))
 		}
-		// log.Println(pretty.Sprintf("Result: %# v", r.Result))
+		return
+	*/
+	var data []byte
+	data, err = ioutil.ReadAll(resp.Body)
+	// Ignore unmarshall errors - worst case is, r.Result will be nil
+	json.Unmarshal(data, &r.Result)
+	if status < 200 || status >= 300 {
+		res := &r.Result
+		info, ok := (*res).(neoInfo)
+		if ok {
+			log.Println("Got error response code:", status)
+			log.Println(info.Mesage)
+			log.Println(info.Exception)
+			log.Println(info.StackTrace)
+		}
 	}
 	return
 }
@@ -110,12 +135,17 @@ func join(fragments ...string) string {
 	}
 	return strings.Join(parts, "/")
 }
-func Connect(uri string) (db *Database, err error) {
+func Connect(uri string) (*Database, error) {
 	var info serviceRootInfo
+	db := &Database{
+		client: new(http.Client),
+		info:   &info,
+	}
 	u, err := url.Parse(uri)
 	if err != nil {
-		return
+		return db, err
 	}
+	db.url = u
 	db = &Database{
 		url:    u,
 		client: new(http.Client),
@@ -127,14 +157,22 @@ func Connect(uri string) (db *Database, err error) {
 		Result: &info,
 	}
 	code, err := db.rest(&c)
-	if err != nil || code != 200 {
-		return
+	if err != nil {
+		log.Println(info.Mesage)
+		log.Println(info.Exception)
+		log.Println(info.StackTrace)
+		return db, err
 	}
-	if db.info.Version == "" {
-		err = BadResponse
-		return
+	switch {
+	case code == 200 && db.info.Version != "":
+		return db, nil // Success!
+	case code == 404:
+		return db, InvalidDatabase
 	}
-	return
+	log.Println(info.Mesage)
+	log.Println(info.Exception)
+	log.Println(info.StackTrace)
+	return db, BadResponse
 }
 
 // CreateNode creates a Node in the database.
@@ -252,8 +290,9 @@ type neoEntity struct {
 // A neoInfo is returned from the Neo4j server on successful operations 
 // involving a Node or a Relationship
 type neoInfo struct {
+	neoError
 	//
-	// Always filled
+	// Always filled on success
 	//
 	Property   string      `json:"property"`
 	Properties string      `json:"properties"`
@@ -279,13 +318,6 @@ type neoInfo struct {
 	Type  string `json:"type"`
 	End   string `json:"end"`
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// These operations can be performed on both Nodes and Relationships using 
-// the same procedure with different URLs supplied in the neoInfo argument.
-//
-////////////////////////////////////////////////////////////////////////////////
 
 // SetProperty sets the single property key to value.
 func (e *neoEntity) SetProperty(key string, value string) error {
@@ -470,7 +502,6 @@ func (n *Node) Id() int {
 	s = strings.Trim(s, "/")
 	id, err := strconv.Atoi(s)
 	if err != nil {
-		// Are both n.Info and n.Node valid?
 		panic(err)
 	}
 	return id

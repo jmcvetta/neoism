@@ -29,7 +29,7 @@ func connect(t *testing.T) *Database {
 	//
 	// Connect
 	//
-	db, err := Connect("http://localhost:7474/db/dataXXXXX")
+	db, err := Connect("http://localhost:7474/db/data")
 	if err != nil {
 		t.Fatal(err)
 	}
