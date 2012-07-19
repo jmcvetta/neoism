@@ -1,6 +1,10 @@
 // Copyright (c) 2012 Jason McVetta.  This is Free Software, released under the 
 // terms of the GPL v3.  See http://www.gnu.org/copyleft/gpl.html for details.
 
+//
+// The Neo4j Manual section numbers quoted herein refer to the manual for 
+// milestone release 1.8.M06.  http://docs.neo4j.org/chunked/milestone/
+
 package neo4j
 
 import (
@@ -142,7 +146,6 @@ func TestRelationships(t *testing.T) {
 	}
 	// Make sure it's gone:
 	_, err = db.GetRelationship(r0Id)
-	log.Println(err)
 	assert.Equal(t, NotFound, err)
 	//
 	// 19.4.6. Set all properties on a relationship
@@ -171,7 +174,7 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.8. Set single property on a relationship
 	//
-	rel3, err := node0.Relate("knows", node1.Id(), empty)
+	rel3, err := node0.Relate("likes", node1.Id(), empty)
 	err = rel3.SetProperty("name", "kirk")
 	if err != nil {
 		t.Fatal(err)
@@ -181,6 +184,75 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.9. Get all relationships
 	//
+	rs, err := node0.Relationships()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, v := range []*Relationship{rel1, rel2, rel3} {
+		_, ok := rs[v.Id()]
+		if !ok {
+			t.Errorf("Relationship ID %v not found in Relationships()", v.Id())
+		}
+	}
+	//
+	// 19.4.10. Get incoming relationships
+	//
+	rel4, _ := node1.Relate("knows", node0.Id(), empty) // Attach an incoming rel
+	rs, err = node0.Incoming()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, ok := rs[rel4.Id()]
+	if !ok {
+		t.Errorf("Relationship ID %v not found in Relationships()", rel4.Id())
+	}
+	assert.Equal(t, 1, len(rs))
+	//
+	// 19.4.11. Get outgoing relationships
+	//
+	rs, err = node1.Outgoing()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, ok = rs[rel4.Id()]
+	if !ok {
+		t.Errorf("Relationship ID %v not found in Relationships()", rel4.Id())
+	}
+	assert.Equal(t, 1, len(rs))
+	//
+	// 19.4.12. Get typed relationships
+	//
+	// One "likes" relationship
+	rs, err = node0.Relationships("likes")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 1, len(rs))
+	_, ok = rs[rel3.Id()]
+	if !ok {
+		t.Errorf("Relationship ID %v not found in Outgoing()", rel3.Id())
+	}
+	// Three "knows" plus one "likes" equals four relationships
+	rs, err = node0.Relationships("knows", "likes")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 4, len(rs))
+	// Zero "employs" relationships
+	rs, err = node0.Relationships("employs")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equal(t, 0, len(rs))
+	//
+	// 19.4.13. Get relationships on a node without relationships
+	//
+	node3, _ := db.CreateNode(empty)
+	rs, err = node3.Relationships()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 0, len(rs))
 }
 
 func TestCreateRel(t *testing.T) {
@@ -339,51 +411,6 @@ func TestGetInRels(t *testing.T) {
 	if !ok {
 		t.Errorf("Relationship ID %v not found in OutgoingRelationships()", r0.Id())
 	}
-}
-
-func TestTypedRels(t *testing.T) {
-	db := connect(t)
-	empty := Properties{}
-	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
-	node2, _ := db.CreateNode(empty)
-	r0, _ := node0.Relate("knows", node1.Id(), kirk)
-	node0.Relate("likes", node2.Id(), spock) // No need to capture the rel object, it won't be used
-	// One "knows" relationship
-	rs, err := node0.Relationships("knows")
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, 1, len(rs))
-	_, ok := rs[r0.Id()]
-	if !ok {
-		t.Errorf("Relationship ID %v not found in OutgoingRelationships()", r0.Id())
-	}
-	// Two "knows" or "likes" relationships
-	rs, err = node0.Relationships("knows", "likes")
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, 2, len(rs))
-	// Zero "employs" relationships
-	rs, err = node0.Relationships("employs")
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, 0, len(rs))
-}
-
-func TestRelTypes(t *testing.T) {
-	// This test assumes only those types of relationship created by this test 
-	// suite exist in the database.  If the test suite is run on a non-empty 
-	// db, there is a good chance this test will fail because of that.
-	knownTypes := []string{"knows", "likes"}
-	db := connect(t)
-	rts, err := db.RelationshipTypes()
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, knownTypes, rts)
 }
 
 func TestNodeSetGetProperty(t *testing.T) {
