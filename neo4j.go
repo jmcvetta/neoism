@@ -13,6 +13,7 @@ import (
 	// "log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -218,23 +219,24 @@ func (db *Database) GetRelationship(id int) (*Relationship, error) {
 
 // RelationshipTypes gets all existing relationship types from the DB
 func (db *Database) RelationshipTypes() ([]string, error) {
-	ts := []string{}
+	reltypes := []string{}
 	if db.info.RelTypes == "" {
-		return ts, FeatureUnavailable
+		return reltypes, FeatureUnavailable
 	}
 	c := restCall{
 		Url:    db.info.RelTypes,
 		Method: "GET",
-		Result: &ts,
+		Result: &reltypes,
 	}
 	code, err := db.rest(&c)
 	if err != nil {
-		return ts, err
+		return reltypes, err
 	}
 	if code == 200 {
-		return ts, nil // Success!
+		return reltypes, nil // Success!
 	}
-	return ts, BadResponse
+	sort.Sort(sort.StringSlice(reltypes))
+	return reltypes, BadResponse
 }
 
 // Properties is a bag of key/value pairs that can describe Nodes
