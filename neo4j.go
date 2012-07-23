@@ -26,13 +26,6 @@ var (
 	CannotDelete       = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
 )
 
-// An errorResponse is returned from the Neo4j server on errors.
-type errorResponse struct {
-	Message    string   `json:"message"`
-	Exception  string   `json:"exception"`
-	Stacktrace []string `json:"stacktrace"`
-}
-
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
 	url    *url.URL // Root URL for REST API
@@ -484,11 +477,11 @@ func (e *neoEntity) DeleteProperties() error {
 	return BadResponse
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// Node
-//
-////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+ *
+ * Node
+ *
+ ******************************************************************************/
 
 // A node in a Neo4j database
 type Node struct {
@@ -590,6 +583,12 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	}
 	return &rel, nil
 }
+
+/*******************************************************************************
+ *
+ * Relationship
+ *
+ ******************************************************************************/
 
 // A relationship in a Neo4j database
 type Relationship struct {
