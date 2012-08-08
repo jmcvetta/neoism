@@ -327,3 +327,26 @@ func TestNodeProperties(t *testing.T) {
 	props, _ = node0.Properties()
 	assert.Equal(t, spock, props)
 }
+
+// 19.8.1. Create node index
+func TestCreateNodeIndex(t *testing.T) {
+	db := connect(t)
+	_, err := db.CreateIndex("foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// 19.8.2. Create node index with configuration
+func TestCreateNodeIndexWithConfiguration(t *testing.T) {
+	db := connect(t)
+	conf := IndexConfig{
+		Name: "fulltext",
+		Type: "fulltext",
+		Provider: "lucene",
+	}
+	_, err := db.CreateIndexFromConf(conf)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

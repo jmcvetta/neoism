@@ -88,27 +88,14 @@ func (db *Database) rest(r *restCall) (status int, err error) {
 		return
 	}
 	status = resp.StatusCode
-	/*
-		// log.Println(pretty.Sprintf("Response: %# v", resp))
-		// Only try to unmarshal if status is 200 OK or 201 CREATED
-		if status >= 200 && status <= 201 {
-			var data []byte
-			data, err = ioutil.ReadAll(resp.Body)
-			err = json.Unmarshal(data, &r.Result)
-			if err != nil {
-				return
-			}
-			// log.Println(pretty.Sprintf("Result: %# v", r.Result))
-		}
-		return
-	*/
 	var data []byte
 	data, err = ioutil.ReadAll(resp.Body)
 	// Ignore unmarshall errors - worst case is, r.Result will be nil
 	json.Unmarshal(data, &r.Result)
 	if status < 200 || status >= 300 {
 		res := &r.Result
-		info, ok := (*res).(neoInfo)
+		// log.Println(*res)
+		info, ok := (*res).(neoError)
 		if ok {
 			log.Println("Got error response code:", status)
 			log.Println(info.Mesage)
@@ -170,8 +157,8 @@ func Connect(uri string) (*Database, error) {
 
 // CreateNode creates a Node in the database.
 func (db *Database) CreateNode(p Properties) (*Node, error) {
-	var info neoInfo
-	n := Node{neoEntity{
+	var info nrInfo
+	n := Node{nrBase{
 		db:   db,
 		info: &info,
 	}}
@@ -199,8 +186,8 @@ func (db *Database) GetNode(id int) (*Node, error) {
 
 // GetNode fetches a Node from the database based on its uri
 func (db *Database) getNodeByUri(uri string) (*Node, error) {
-	var info neoInfo
-	n := Node{neoEntity{
+	var info nrInfo
+	n := Node{nrBase{
 		db:   db,
 		info: &info,
 	}}
@@ -225,8 +212,8 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 
 // GetRelationship fetches a Relationship from the DB by id.
 func (db *Database) GetRelationship(id int) (*Relationship, error) {
-	var info neoInfo
-	rel := Relationship{neoEntity{
+	var info nrInfo
+	rel := Relationship{nrBase{
 		db:   db,
 		info: &info,
 	}}
@@ -270,19 +257,53 @@ func (db *Database) RelationshipTypes() ([]string, error) {
 	return reltypes, BadResponse
 }
 
+// CreateIndex creates a new Index, with the name supplied, in the db.
+func (db *Database) CreateIndex(name string) (*Index, error) {
+	conf := IndexConfig{
+		Name: name,
+	}
+	return db.CreateIndexFromConf(conf)
+}
+
+// CreateIndexFromConf creates a new Index based on an IndexConfig object
+func (db *Database) CreateIndexFromConf(conf IndexConfig) (*Index, error) {
+	var info indexInfo
+	i := Index{
+		db:   db,
+		info: &info,
+	}
+	c := restCall{
+		Url:     db.info.NodeIndex,
+		Method:  "POST",
+		Content: &conf,
+		Result:  &info,
+	}
+	code, err := db.rest(&c)
+	if err != nil {
+		return &i, err
+	}
+	if code != 201 {
+		log.Printf("Unexpected response from server:")
+		log.Printf("    Response code:", code)
+		log.Printf("    Result:", info)
+		return &i, BadResponse
+	}
+	return &i, nil
+}
+
 // Properties is a bag of key/value pairs that can describe Nodes
 // and Relationships.
 type Properties map[string]string
 
-// neoEntity is the base type for Nodes and Relationships
-type neoEntity struct {
-	info *neoInfo
+// nrBase is the base type for Nodes and Relationships.
+type nrBase struct {
 	db   *Database
+	info *nrInfo
 }
 
-// A neoInfo is returned from the Neo4j server on successful operations 
-// involving a Node or a Relationship
-type neoInfo struct {
+// A nrInfo is returned from the Neo4j server on successful operations 
+// involving a Node or a Relationship.
+type nrInfo struct {
 	neoError
 	//
 	// Always filled on success
@@ -313,7 +334,7 @@ type neoInfo struct {
 }
 
 // SetProperty sets the single property key to value.
-func (e *neoEntity) SetProperty(key string, value string) error {
+func (e *nrBase) SetProperty(key string, value string) error {
 	uri := e.info.Properties
 	if uri == "" {
 		return FeatureUnavailable
@@ -336,7 +357,7 @@ func (e *neoEntity) SetProperty(key string, value string) error {
 }
 
 // GetProperty fetches the value of property key.
-func (e *neoEntity) GetProperty(key string) (string, error) {
+func (e *nrBase) GetProperty(key string) (string, error) {
 	var val string
 	uri := e.info.Properties
 	if uri == "" {
@@ -363,7 +384,7 @@ func (e *neoEntity) GetProperty(key string) (string, error) {
 }
 
 // DeleteProperty deletes property key
-func (e *neoEntity) DeleteProperty(key string) error {
+func (e *nrBase) DeleteProperty(key string) error {
 	uri := e.info.Properties
 	if uri == "" {
 		return FeatureUnavailable
@@ -388,7 +409,7 @@ func (e *neoEntity) DeleteProperty(key string) error {
 }
 
 // Delete removes the object from the DB.
-func (e *neoEntity) Delete() error {
+func (e *nrBase) Delete() error {
 	uri := e.info.Self
 	if uri == "" {
 		return FeatureUnavailable
@@ -411,7 +432,7 @@ func (e *neoEntity) Delete() error {
 }
 
 // Properties fetches all properties
-func (e *neoEntity) Properties() (Properties, error) {
+func (e *nrBase) Properties() (Properties, error) {
 	props := make(map[string]string)
 	uri := e.info.Properties
 	if uri == "" {
@@ -434,7 +455,7 @@ func (e *neoEntity) Properties() (Properties, error) {
 }
 
 // SetProperties updates all properties, overwriting any existing properties.
-func (e *neoEntity) SetProperties(p Properties) error {
+func (e *nrBase) SetProperties(p Properties) error {
 	uri := e.info.Properties
 	if uri == "" {
 		return FeatureUnavailable
@@ -455,7 +476,7 @@ func (e *neoEntity) SetProperties(p Properties) error {
 }
 
 // DeleteProperties deletes all properties.
-func (e *neoEntity) DeleteProperties() error {
+func (e *nrBase) DeleteProperties() error {
 	uri := e.info.Properties
 	if uri == "" {
 		return FeatureUnavailable
@@ -485,7 +506,7 @@ func (e *neoEntity) DeleteProperties() error {
 
 // A node in a Neo4j database
 type Node struct {
-	neoEntity
+	nrBase
 }
 
 // Id gets the ID number of this Node.
@@ -512,7 +533,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		parts := []string{uri, fragment}
 		uri = strings.Join(parts, "/")
 	}
-	s := []neoInfo{}
+	s := []nrInfo{}
 	c := restCall{
 		Url:    uri,
 		Method: "GET",
@@ -523,7 +544,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		return m, err
 	}
 	for _, info := range s {
-		rel := Relationship{neoEntity{
+		rel := Relationship{nrBase{
 			db:   n.db,
 			info: &info,
 		}}
@@ -554,8 +575,8 @@ func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 // Relate creates a relationship of relType, with specified properties, 
 // from this Node to the node identified by destId.
 func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
-	var info neoInfo
-	rel := Relationship{neoEntity{
+	var info nrInfo
+	rel := Relationship{nrBase{
 		db:   n.db,
 		info: &info,
 	}}
@@ -592,7 +613,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 
 // A relationship in a Neo4j database
 type Relationship struct {
-	neoEntity
+	nrBase
 }
 
 // Id gets the ID number of this Relationship
@@ -621,4 +642,29 @@ func (r *Relationship) End() (*Node, error) {
 // Type gets the type of this relationship
 func (r *Relationship) Type() string {
 	return r.info.Type
+}
+
+/*******************************************************************************
+ *
+ * Index
+ *
+ ******************************************************************************/
+
+type IndexConfig struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Provider string `json:"provider"`
+}
+
+// An indexInfo is returned from the Neo4j server on operations involving an Index.
+type indexInfo struct {
+	neoError
+	Template string `json:"template"`
+	Type     string `json:"type"`
+	Provider string `json:"provider"`
+}
+
+type Index struct {
+	db   *Database
+	info *indexInfo
 }
