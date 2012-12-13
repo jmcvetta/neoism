@@ -3,7 +3,7 @@
 
 //
 // The Neo4j Manual section numbers quoted herein refer to the manual for 
-// milestone release 1.8.M06.  http://docs.neo4j.org/chunked/milestone/
+// milestone release 1.8.  http://docs.neo4j.org/chunked/1.8/
 
 package neo4j
 
@@ -341,8 +341,8 @@ func TestCreateNodeIndex(t *testing.T) {
 func TestCreateNodeIndexWithConfiguration(t *testing.T) {
 	db := connect(t)
 	conf := IndexConfig{
-		Name: "fulltext",
-		Type: "fulltext",
+		Name:     "fulltext",
+		Type:     "fulltext",
 		Provider: "lucene",
 	}
 	_, err := db.CreateIndexFromConf(conf)

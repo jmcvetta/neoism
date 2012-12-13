@@ -8,8 +8,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	// "github.com/kr/pretty"
 	"io/ioutil"
+	// "github.com/kr/pretty"
+	"github.com/jmcvetta/restclient"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,6 +31,7 @@ var (
 type Database struct {
 	url    *url.URL // Root URL for REST API
 	client *http.Client
+	rc     *restclient.Client
 	info   *serviceRootInfo
 }
 
@@ -119,6 +121,7 @@ func Connect(uri string) (*Database, error) {
 	var info serviceRootInfo
 	db := &Database{
 		client: new(http.Client),
+		rc:     restclient.New(),
 		info:   &info,
 	}
 	u, err := url.Parse(uri)
@@ -126,17 +129,13 @@ func Connect(uri string) (*Database, error) {
 		return db, err
 	}
 	db.url = u
-	db = &Database{
-		url:    u,
-		client: new(http.Client),
-		info:   &info,
-	}
-	c := restCall{
+	r := restclient.RestRequest{
 		Url:    u.String(),
-		Method: "GET",
+		Method: restclient.GET,
 		Result: &info,
+		Error:  new(neoError),
 	}
-	code, err := db.rest(&c)
+	status, err := db.rc.Do(&r)
 	if err != nil {
 		log.Println(info.Mesage)
 		log.Println(info.Exception)
@@ -144,9 +143,9 @@ func Connect(uri string) (*Database, error) {
 		return db, err
 	}
 	switch {
-	case code == 200 && db.info.Version != "":
+	case status == 200 && db.info.Version != "":
 		return db, nil // Success!
-	case code == 404:
+	case status == 404:
 		return db, InvalidDatabase
 	}
 	log.Println(info.Mesage)
