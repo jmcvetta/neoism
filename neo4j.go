@@ -5,11 +5,7 @@
 package neo4j
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io/ioutil"
-	// "github.com/kr/pretty"
 	"github.com/jmcvetta/restclient"
 	"log"
 	"net/http"
@@ -55,57 +51,6 @@ type serviceRootInfo struct {
 	Batch      string      `json:"batch"`
 	Cypher     string      `json:"cypher"`
 	Version    string      `json:"neo4j_version"`
-}
-
-type restCall struct {
-	Url     string      // Absolute URL to call
-	Method  string      // HTTP method to use 
-	Content interface{} // Data to JSON-encode and include with call
-	Result  interface{} // JSON-encoded data in respose will be unmarshalled into Result
-}
-
-func (db *Database) rest(r *restCall) (status int, err error) {
-	req, err := http.NewRequest(r.Method, r.Url, nil)
-	if err != nil {
-		return
-	}
-	if r.Content != nil {
-		// log.Println(pretty.Sprintf("Content: %# v", r.Content))
-		var b []byte
-		b, err = json.Marshal(r.Content)
-		if err != nil {
-			return
-		}
-		buf := bytes.NewBuffer(b)
-		req, err = http.NewRequest(r.Method, r.Url, buf)
-		if err != nil {
-			return
-		}
-		req.Header.Add("Content-Type", "application/json")
-	}
-	req.Header.Add("Accept", "application/json")
-	// log.Println(pretty.Sprintf("Request: %# v", req))
-	resp, err := db.client.Do(req)
-	if err != nil {
-		return
-	}
-	status = resp.StatusCode
-	var data []byte
-	data, err = ioutil.ReadAll(resp.Body)
-	// Ignore unmarshall errors - worst case is, r.Result will be nil
-	json.Unmarshal(data, &r.Result)
-	if status < 200 || status >= 300 {
-		res := &r.Result
-		// log.Println(*res)
-		info, ok := (*res).(neoError)
-		if ok {
-			log.Println("Got error response code:", status)
-			log.Println(info.Mesage)
-			log.Println(info.Exception)
-			log.Println(info.StackTrace)
-		}
-	}
-	return
 }
 
 // Joins URL fragments
@@ -161,14 +106,15 @@ func (db *Database) CreateNode(p Properties) (*Node, error) {
 		db:   db,
 		info: &info,
 	}}
-	c := restCall{
-		Url:     db.info.Node,
-		Method:  "POST",
-		Content: &p,
-		Result:  &info,
+	c := restclient.RestRequest{
+		Url:    db.info.Node,
+		Method: restclient.POST,
+		Data:   &p,
+		Result: &info,
+		Error:  new(neoError),
 	}
-	code, err := db.rest(&c)
-	if err != nil || code != 201 {
+	status, err := db.rc.Do(&c)
+	if err != nil || status != 201 {
 		return &n, err
 	}
 	if info.Self == "" {
@@ -190,16 +136,17 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 		db:   db,
 		info: &info,
 	}}
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
-		Method: "GET",
+		Method: restclient.GET,
 		Result: &info,
+		Error:  new(neoError),
 	}
-	code, err := db.rest(&c)
+	status, err := db.rc.Do(&c)
 	switch {
-	case code == 404:
+	case status == 404:
 		return &n, NotFound
-	case code != 200 || info.Self == "":
+	case status != 200 || info.Self == "":
 		return &n, BadResponse
 	}
 	if err != nil {
@@ -217,13 +164,14 @@ func (db *Database) GetRelationship(id int) (*Relationship, error) {
 		info: &info,
 	}}
 	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
-		Method: "GET",
+		Method: restclient.GET,
 		Result: &info,
+		Error:  new(neoError),
 	}
-	code, err := db.rest(&c)
-	switch code {
+	status, err := db.rc.Do(&c)
+	switch status {
 	default:
 		err = BadResponse
 	case 200:
@@ -240,16 +188,17 @@ func (db *Database) RelationshipTypes() ([]string, error) {
 	if db.info.RelTypes == "" {
 		return reltypes, FeatureUnavailable
 	}
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    db.info.RelTypes,
-		Method: "GET",
+		Method: restclient.GET,
 		Result: &reltypes,
+		Error:  new(neoError),
 	}
-	code, err := db.rest(&c)
+	status, err := db.rc.Do(&c)
 	if err != nil {
 		return reltypes, err
 	}
-	if code == 200 {
+	if status == 200 {
 		return reltypes, nil // Success!
 	}
 	sort.Sort(sort.StringSlice(reltypes))
@@ -271,19 +220,20 @@ func (db *Database) CreateIndexFromConf(conf IndexConfig) (*Index, error) {
 		db:   db,
 		info: &info,
 	}
-	c := restCall{
-		Url:     db.info.NodeIndex,
-		Method:  "POST",
-		Content: &conf,
-		Result:  &info,
+	c := restclient.RestRequest{
+		Url:    db.info.NodeIndex,
+		Method: restclient.POST,
+		Data:   &conf,
+		Result: &info,
+		Error:  new(neoError),
 	}
-	code, err := db.rest(&c)
+	status, err := db.rc.Do(&c)
 	if err != nil {
 		return &i, err
 	}
-	if code != 201 {
+	if status != 201 {
 		log.Printf("Unexpected response from server:")
-		log.Printf("    Response code:", code)
+		log.Printf("    Response code:", status)
 		log.Printf("    Result:", info)
 		return &i, BadResponse
 	}
@@ -340,16 +290,17 @@ func (e *nrBase) SetProperty(key string, value string) error {
 	}
 	parts := []string{uri, key}
 	uri = strings.Join(parts, "/")
-	c := restCall{
-		Url:     uri,
-		Method:  "PUT",
-		Content: &value,
+	c := restclient.RestRequest{
+		Url:    uri,
+		Method: restclient.PUT,
+		Data:   &value,
+		Error:  new(neoError),
 	}
-	code, err := e.db.rest(&c)
+	status, err := e.db.rc.Do(&c)
 	if err != nil {
 		return err
 	}
-	if code == 204 {
+	if status == 204 {
 		return nil // Success!
 	}
 	return BadResponse
@@ -364,16 +315,17 @@ func (e *nrBase) GetProperty(key string) (string, error) {
 	}
 	parts := []string{uri, key}
 	uri = strings.Join(parts, "/")
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
 		Method: "GET",
 		Result: &val,
+		Error:  new(neoError),
 	}
-	code, err := e.db.rest(&c)
+	status, err := e.db.rc.Do(&c)
 	if err != nil {
 		return val, err
 	}
-	switch code {
+	switch status {
 	case 200:
 		return val, nil
 	case 404:
@@ -390,15 +342,16 @@ func (e *nrBase) DeleteProperty(key string) error {
 	}
 	parts := []string{uri, key}
 	uri = strings.Join(parts, "/")
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
-		Method: "DELETE",
+		Method: restclient.DELETE,
+		Error:  new(neoError),
 	}
-	code, err := e.db.rest(&c)
+	status, err := e.db.rc.Do(&c)
 	if err != nil {
 		return err
 	}
-	switch code {
+	switch status {
 	case 204:
 		return nil // Success!
 	case 404:
@@ -413,18 +366,19 @@ func (e *nrBase) Delete() error {
 	if uri == "" {
 		return FeatureUnavailable
 	}
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
-		Method: "DELETE",
+		Method: restclient.DELETE,
+		Error:  new(neoError),
 	}
-	code, err := e.db.rest(&c)
+	status, err := e.db.rc.Do(&c)
 	switch {
 	case err != nil:
 		return err
-	case code == 204:
+	case status == 204:
 		// Successful deletion!
 		return nil
-	case code == 409:
+	case status == 409:
 		return CannotDelete
 	}
 	return BadResponse
@@ -437,17 +391,18 @@ func (e *nrBase) Properties() (Properties, error) {
 	if uri == "" {
 		return props, FeatureUnavailable
 	}
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
-		Method: "GET",
+		Method: restclient.GET,
 		Result: &props,
+		Error:  new(neoError),
 	}
-	code, err := e.db.rest(&c)
+	status, err := e.db.rc.Do(&c)
 	if err != nil {
 		return props, err
 	}
 	// Status code 204 indicates no properties on this node
-	if code == 204 {
+	if status == 204 {
 		props = map[string]string{}
 	}
 	return props, nil
@@ -459,16 +414,17 @@ func (e *nrBase) SetProperties(p Properties) error {
 	if uri == "" {
 		return FeatureUnavailable
 	}
-	c := restCall{
-		Url:     uri,
-		Method:  "PUT",
-		Content: &p,
+	c := restclient.RestRequest{
+		Url:    uri,
+		Method: restclient.PUT,
+		Data:   &p,
+		Error:  new(neoError),
 	}
-	code, err := e.db.rest(&c)
+	status, err := e.db.rc.Do(&c)
 	if err != nil {
 		return err
 	}
-	if code == 204 {
+	if status == 204 {
 		return nil // Success!
 	}
 	return BadResponse
@@ -480,15 +436,16 @@ func (e *nrBase) DeleteProperties() error {
 	if uri == "" {
 		return FeatureUnavailable
 	}
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
 		Method: "DELETE",
+		Error:  new(neoError),
 	}
-	code, err := e.db.rest(&c)
+	status, err := e.db.rc.Do(&c)
 	if err != nil {
 		return err
 	}
-	switch code {
+	switch status {
 	case 204:
 		return nil // Success!
 	case 404:
@@ -533,12 +490,13 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		uri = strings.Join(parts, "/")
 	}
 	s := []nrInfo{}
-	c := restCall{
+	c := restclient.RestRequest{
 		Url:    uri,
-		Method: "GET",
+		Method: restclient.GET,
 		Result: &s,
+		Error:  new(neoError),
 	}
-	code, err := n.db.rest(&c)
+	status, err := n.db.rc.Do(&c)
 	if err != nil {
 		return m, err
 	}
@@ -549,7 +507,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		}}
 		m[rel.Id()] = rel
 	}
-	if code == 200 {
+	if status == 200 {
 		return m, nil // Success!
 	}
 	return m, BadResponse
@@ -588,17 +546,18 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	if p != nil {
 		content["data"] = &p
 	}
-	c := restCall{
-		Url:     srcUri,
-		Method:  "POST",
-		Content: content,
-		Result:  &info,
+	c := restclient.RestRequest{
+		Url:    srcUri,
+		Method: restclient.POST,
+		Data:   content,
+		Result: &info,
+		Error:  new(neoError),
 	}
-	code, err := n.db.rest(&c)
+	status, err := n.db.rc.Do(&c)
 	if err != nil {
 		return &rel, err
 	}
-	if code != 201 {
+	if status != 201 {
 		return &rel, BadResponse
 	}
 	return &rel, nil
