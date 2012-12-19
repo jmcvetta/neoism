@@ -8,15 +8,14 @@ import (
 	"log"
 )
 
-type IndexConfig struct {
+type NodeIndexConfig struct {
 	Name     string `json:"name"`
 	Type     string `json:"type"`
 	Provider string `json:"provider"`
 }
 
-// An indexInfo is returned from the Neo4j server on operations involving an Index.
-type indexInfo struct {
-	neoError
+// A nodeIndexInfo is returned from the Neo4j server on operations involving an Index.
+type nodeIndexInfo struct {
 	Template string `json:"template"`
 	Type     string `json:"type"`
 	Provider string `json:"provider"`
@@ -24,32 +23,32 @@ type indexInfo struct {
 
 type Index struct {
 	db   *Database
-	info *indexInfo
+	info *nodeIndexInfo
 }
 
 // CreateIndex creates a new Index, with the name supplied, in the db.
-func (db *Database) CreateIndex(name string) (*Index, error) {
-	conf := IndexConfig{
+func (m *NodeManager) CreateIndex(name string) (*Index, error) {
+	conf := NodeIndexConfig{
 		Name: name,
 	}
-	return db.CreateIndexFromConf(conf)
+	return m.CreateIndexFromConf(conf)
 }
 
 // CreateIndexFromConf creates a new Index based on an IndexConfig object
-func (db *Database) CreateIndexFromConf(conf IndexConfig) (*Index, error) {
-	var info indexInfo
+func (m *NodeManager) CreateIndexFromConf(conf NodeIndexConfig) (*Index, error) {
+	var info nodeIndexInfo
 	i := Index{
-		db:   db,
+		db:   m.db,
 		info: &info,
 	}
 	c := restclient.RestRequest{
-		Url:    db.info.NodeIndex,
+		Url:    m.db.info.NodeIndex,
 		Method: restclient.POST,
 		Data:   &conf,
 		Result: &info,
 		Error:  new(neoError),
 	}
-	status, err := db.rc.Do(&c)
+	status, err := m.db.rc.Do(&c)
 	if err != nil {
 		return &i, err
 	}

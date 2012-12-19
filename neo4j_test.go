@@ -331,7 +331,7 @@ func TestNodeProperties(t *testing.T) {
 // 19.8.1. Create node index
 func TestCreateNodeIndex(t *testing.T) {
 	db := connect(t)
-	_, err := db.CreateIndex("foobar")
+	_, err := db.Nodes.CreateIndex("foobar")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -340,12 +340,12 @@ func TestCreateNodeIndex(t *testing.T) {
 // 19.8.2. Create node index with configuration
 func TestCreateNodeIndexWithConfiguration(t *testing.T) {
 	db := connect(t)
-	conf := IndexConfig{
+	conf := NodeIndexConfig{
 		Name:     "fulltext",
 		Type:     "fulltext",
 		Provider: "lucene",
 	}
-	_, err := db.CreateIndexFromConf(conf)
+	_, err := db.Nodes.CreateIndexFromConf(conf)
 	if err != nil {
 		t.Fatal(err)
 	}
