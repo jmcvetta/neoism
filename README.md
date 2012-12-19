@@ -6,11 +6,11 @@ Neo4j client for [Go](http://golang.org).
 
 # Documentation
 
-See [GoPkgDoc](http://go.pkgdoc.org/github.com/jmcvetta/neo4j) for automatic
+See [GoDoc](http://godoc.org/github.com/jmcvetta/neo4j) for automatic
 documentation.
 
 
-# Note
+# Status
 
 This driver is a work in progress.  It is currently incomplete, and not ready
 for production use.
