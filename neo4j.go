@@ -10,8 +10,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -25,10 +23,12 @@ var (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	url    *url.URL // Root URL for REST API
-	client *http.Client
-	rc     *restclient.Client
-	info   *serviceRootInfo
+	url           *url.URL // Root URL for REST API
+	client        *http.Client
+	rc            *restclient.Client
+	info          *serviceRootInfo
+	Nodes         *NodeManager
+	Relationships *RelationshipManager
 }
 
 // A neoError is populated by api calls when there is an error.
@@ -62,6 +62,7 @@ func join(fragments ...string) string {
 	}
 	return strings.Join(parts, "/")
 }
+
 func Connect(uri string) (*Database, error) {
 	var info serviceRootInfo
 	db := &Database{
@@ -74,6 +75,12 @@ func Connect(uri string) (*Database, error) {
 		return db, err
 	}
 	db.url = u
+	db.Nodes = &NodeManager{
+		db: db,
+	}
+	db.Relationships = &RelationshipManager{
+		db: db,
+	}
 	r := restclient.RestRequest{
 		Url:    u.String(),
 		Method: restclient.GET,
@@ -99,146 +106,19 @@ func Connect(uri string) (*Database, error) {
 	return db, BadResponse
 }
 
-// CreateNode creates a Node in the database.
-func (db *Database) CreateNode(p Properties) (*Node, error) {
-	var info nrInfo
-	n := Node{nrBase{
-		db:   db,
-		info: &info,
-	}}
-	c := restclient.RestRequest{
-		Url:    db.info.Node,
-		Method: restclient.POST,
-		Data:   &p,
-		Result: &info,
-		Error:  new(neoError),
+/*
+func (db *Database) Nodes() *NodeManager {
+	return &NodeManager{
+		db: db,
 	}
-	status, err := db.rc.Do(&c)
-	if err != nil || status != 201 {
-		return &n, err
-	}
-	if info.Self == "" {
-		return &n, BadResponse
-	}
-	return &n, nil
 }
 
-// GetNode fetches a Node from the database
-func (db *Database) GetNode(id int) (*Node, error) {
-	uri := join(db.info.Node, strconv.Itoa(id))
-	return db.getNodeByUri(uri)
+func (db *Database) Relationships() *RelationshipManager {
+	return &RelationshipManager{
+		db: db,
+	}
 }
-
-// GetNode fetches a Node from the database based on its uri
-func (db *Database) getNodeByUri(uri string) (*Node, error) {
-	var info nrInfo
-	n := Node{nrBase{
-		db:   db,
-		info: &info,
-	}}
-	c := restclient.RestRequest{
-		Url:    uri,
-		Method: restclient.GET,
-		Result: &info,
-		Error:  new(neoError),
-	}
-	status, err := db.rc.Do(&c)
-	switch {
-	case status == 404:
-		return &n, NotFound
-	case status != 200 || info.Self == "":
-		return &n, BadResponse
-	}
-	if err != nil {
-		return &n, err
-	}
-	// n.Info = &info
-	return &n, nil
-}
-
-// GetRelationship fetches a Relationship from the DB by id.
-func (db *Database) GetRelationship(id int) (*Relationship, error) {
-	var info nrInfo
-	rel := Relationship{nrBase{
-		db:   db,
-		info: &info,
-	}}
-	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
-	c := restclient.RestRequest{
-		Url:    uri,
-		Method: restclient.GET,
-		Result: &info,
-		Error:  new(neoError),
-	}
-	status, err := db.rc.Do(&c)
-	switch status {
-	default:
-		err = BadResponse
-	case 200:
-		err = nil // Success!
-	case 404:
-		err = NotFound
-	}
-	return &rel, err
-}
-
-// RelationshipTypes gets all existing relationship types from the DB
-func (db *Database) RelationshipTypes() ([]string, error) {
-	reltypes := []string{}
-	if db.info.RelTypes == "" {
-		return reltypes, FeatureUnavailable
-	}
-	c := restclient.RestRequest{
-		Url:    db.info.RelTypes,
-		Method: restclient.GET,
-		Result: &reltypes,
-		Error:  new(neoError),
-	}
-	status, err := db.rc.Do(&c)
-	if err != nil {
-		return reltypes, err
-	}
-	if status == 200 {
-		return reltypes, nil // Success!
-	}
-	sort.Sort(sort.StringSlice(reltypes))
-	return reltypes, BadResponse
-}
-
-// CreateIndex creates a new Index, with the name supplied, in the db.
-func (db *Database) CreateIndex(name string) (*Index, error) {
-	conf := IndexConfig{
-		Name: name,
-	}
-	return db.CreateIndexFromConf(conf)
-}
-
-// CreateIndexFromConf creates a new Index based on an IndexConfig object
-func (db *Database) CreateIndexFromConf(conf IndexConfig) (*Index, error) {
-	var info indexInfo
-	i := Index{
-		db:   db,
-		info: &info,
-	}
-	c := restclient.RestRequest{
-		Url:    db.info.NodeIndex,
-		Method: restclient.POST,
-		Data:   &conf,
-		Result: &info,
-		Error:  new(neoError),
-	}
-	status, err := db.rc.Do(&c)
-	if err != nil {
-		return &i, err
-	}
-	if status != 201 {
-		log.Printf("Unexpected response from server:")
-		log.Printf("    Response code:", status)
-		log.Printf("    Result:", info)
-		return &i, BadResponse
-	}
-	return &i, nil
-}
+*/
 
 // Properties is a bag of key/value pairs that can describe Nodes
 // and Relationships.
@@ -452,177 +332,4 @@ func (e *nrBase) DeleteProperties() error {
 		return NotFound
 	}
 	return BadResponse
-}
-
-/*******************************************************************************
- *
- * Node
- *
- ******************************************************************************/
-
-// A node in a Neo4j database
-type Node struct {
-	nrBase
-}
-
-// Id gets the ID number of this Node.
-func (n *Node) Id() int {
-	l := len(n.db.info.Node)
-	s := n.info.Self[l:]
-	s = strings.Trim(s, "/")
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		panic(err)
-	}
-	return id
-}
-
-// getRelationships makes an api call to the supplied uri and returns a map 
-// keying relationship IDs to Relationship objects.
-func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationship, error) {
-	m := map[int]Relationship{}
-	if uri == "" {
-		return m, FeatureUnavailable
-	}
-	if types != nil {
-		fragment := strings.Join(types, "&")
-		parts := []string{uri, fragment}
-		uri = strings.Join(parts, "/")
-	}
-	s := []nrInfo{}
-	c := restclient.RestRequest{
-		Url:    uri,
-		Method: restclient.GET,
-		Result: &s,
-		Error:  new(neoError),
-	}
-	status, err := n.db.rc.Do(&c)
-	if err != nil {
-		return m, err
-	}
-	for _, info := range s {
-		rel := Relationship{nrBase{
-			db:   n.db,
-			info: &info,
-		}}
-		m[rel.Id()] = rel
-	}
-	if status == 200 {
-		return m, nil // Success!
-	}
-	return m, BadResponse
-}
-
-// Relationships gets all Relationships for this Node, optionally filtered by 
-// type, returning them as a map keyed on Relationship ID.
-func (n *Node) Relationships(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.info.AllRels, types...)
-}
-
-// Incoming gets all incoming Relationships for this Node.
-func (n *Node) Incoming(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.info.IncomingRels, types...)
-}
-
-// Outgoing gets all outgoing Relationships for this Node.
-func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.info.OutgoingRels, types...)
-}
-
-// Relate creates a relationship of relType, with specified properties, 
-// from this Node to the node identified by destId.
-func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
-	var info nrInfo
-	rel := Relationship{nrBase{
-		db:   n.db,
-		info: &info,
-	}}
-	srcUri := join(n.info.Self, "relationships")
-	destUri := join(n.db.info.Node, strconv.Itoa(destId))
-	content := map[string]interface{}{
-		"to":   destUri,
-		"type": relType,
-	}
-	if p != nil {
-		content["data"] = &p
-	}
-	c := restclient.RestRequest{
-		Url:    srcUri,
-		Method: restclient.POST,
-		Data:   content,
-		Result: &info,
-		Error:  new(neoError),
-	}
-	status, err := n.db.rc.Do(&c)
-	if err != nil {
-		return &rel, err
-	}
-	if status != 201 {
-		return &rel, BadResponse
-	}
-	return &rel, nil
-}
-
-/*******************************************************************************
- *
- * Relationship
- *
- ******************************************************************************/
-
-// A relationship in a Neo4j database
-type Relationship struct {
-	nrBase
-}
-
-// Id gets the ID number of this Relationship
-func (r *Relationship) Id() int {
-	parts := strings.Split(r.info.Self, "/")
-	s := parts[len(parts)-1]
-	id, err := strconv.Atoi(s)
-	if err != nil {
-		// Are both r.Info and r.Node valid?
-		panic(err)
-	}
-	return id
-}
-
-// Start gets the starting Node of this Relationship.
-func (r *Relationship) Start() (*Node, error) {
-	// log.Println("INFO", r.Info)
-	return r.db.getNodeByUri(r.info.Start)
-}
-
-// End gets the ending Node of this Relationship.
-func (r *Relationship) End() (*Node, error) {
-	return r.db.getNodeByUri(r.info.End)
-}
-
-// Type gets the type of this relationship
-func (r *Relationship) Type() string {
-	return r.info.Type
-}
-
-/*******************************************************************************
- *
- * Index
- *
- ******************************************************************************/
-
-type IndexConfig struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Provider string `json:"provider"`
-}
-
-// An indexInfo is returned from the Neo4j server on operations involving an Index.
-type indexInfo struct {
-	neoError
-	Template string `json:"template"`
-	Type     string `json:"type"`
-	Provider string `json:"provider"`
-}
-
-type Index struct {
-	db   *Database
-	info *indexInfo
 }

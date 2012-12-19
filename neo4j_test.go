@@ -42,27 +42,27 @@ func TestNode(t *testing.T) {
 	//
 	// 19.3.1. Create Node
 	//
-	node0, err := db.CreateNode(empty)
+	node0, err := db.Nodes.Create(empty)
 	if err != nil {
 		t.Fatal(err)
 	}
 	//
 	// 19.3.2. Create Node with properties
 	//
-	node1, err := db.CreateNode(kirk)
+	node1, err := db.Nodes.Create(kirk)
 	if err != nil {
 		t.Fatal(err)
 	}
 	//
 	// 19.3.3. Get node
 	//
-	check, err := db.GetNode(node0.Id())
+	check, err := db.Nodes.Get(node0.Id())
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, node0.Id(), check.Id())
 	// Make sure we can also get a node created w/ properties
-	_, err = db.GetNode(node1.Id())
+	_, err = db.Nodes.Get(node1.Id())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,7 +70,7 @@ func TestNode(t *testing.T) {
 	// 19.3.4. Get non-existent node
 	//
 	badId := node1.Id() + 1000000 // Probably does not exist yet
-	_, err = db.GetNode(badId)
+	_, err = db.Nodes.Get(badId)
 	assert.Equal(t, NotFound, err)
 	//
 	// 19.3.5. Delete node
@@ -80,12 +80,12 @@ func TestNode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = db.GetNode(n0Id) // Make sure it's really gone
+	_, err = db.Nodes.Get(n0Id) // Make sure it's really gone
 	assert.Equal(t, NotFound, err)
 	//
 	// 19.3.6. Nodes with relationships can not be deleted
 	//
-	node2, err := db.CreateNode(empty)
+	node2, err := db.Nodes.Create(empty)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,8 +104,8 @@ func TestRelationships(t *testing.T) {
 	//
 	// This section must precede 19.4.1. in order to have an object in the DB for us to Get
 	db := connect(t)
-	node0, _ := db.CreateNode(empty)
-	node1, _ := db.CreateNode(empty)
+	node0, _ := db.Nodes.Create(empty)
+	node1, _ := db.Nodes.Create(empty)
 	rel0, err := node0.Relate("knows", node1.Id(), empty)
 	if err != nil {
 		t.Fatal(err)
@@ -123,7 +123,7 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.1. Get Relationship by ID
 	//
-	clone, err := db.GetRelationship(rel0.Id())
+	clone, err := db.Relationships.Get(rel0.Id())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestRelationships(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Make sure it's gone:
-	_, err = db.GetRelationship(r0Id)
+	_, err = db.Relationships.Get(r0Id)
 	assert.Equal(t, NotFound, err)
 	//
 	// 19.4.6. Set all properties on a relationship
@@ -248,7 +248,7 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.13. Get relationships on a node without relationships
 	//
-	node3, _ := db.CreateNode(empty)
+	node3, _ := db.Nodes.Create(empty)
 	rs, err = node3.Relationships()
 	if err != nil {
 		t.Fatal(err)
@@ -262,7 +262,7 @@ func TestRelationshipTypes(t *testing.T) {
 	//
 	// 19.5.1. Get relationship types
 	//
-	reltypes, err := db.RelationshipTypes()
+	reltypes, err := db.Relationships.Types()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,7 +277,7 @@ func TestNodeProperties(t *testing.T) {
 	//
 	// 19.6.1. Set property on node
 	//
-	node0, _ := db.CreateNode(empty)
+	node0, _ := db.Nodes.Create(empty)
 	err := node0.SetProperty("name", "mccoy")
 	if err != nil {
 		t.Fatal(err)
