@@ -7,9 +7,6 @@ package neo4j
 import (
 	"errors"
 	"github.com/jmcvetta/restclient"
-	"log"
-	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -21,36 +18,11 @@ var (
 	CannotDelete       = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
 )
 
-// A Database is a REST client connected to a Neo4j database.
-type Database struct {
-	url           *url.URL // Root URL for REST API
-	client        *http.Client
-	rc            *restclient.Client
-	info          *serviceRootInfo
-	Nodes         *NodeManager
-	Relationships *RelationshipManager
-}
-
 // A neoError is populated by api calls when there is an error.
 type neoError struct {
 	Message    string   `json:"message"`
 	Exception  string   `json:"exception"`
 	Stacktrace []string `json:"stacktrace"`
-}
-
-// A serviceRootInfo describes services available on the Neo4j server
-type serviceRootInfo struct {
-	neoError
-	Extensions interface{} `json:"extensions"`
-	Node       string      `json:"node"`
-	RefNode    string      `json:"reference_node"`
-	NodeIndex  string      `json:"node_index"`
-	RelIndex   string      `json:"relationship_index"`
-	ExtInfo    string      `json:"extensions_info"`
-	RelTypes   string      `json:"relationship_types"`
-	Batch      string      `json:"batch"`
-	Cypher     string      `json:"cypher"`
-	Version    string      `json:"neo4j_version"`
 }
 
 // Joins URL fragments
@@ -62,66 +34,6 @@ func join(fragments ...string) string {
 	}
 	return strings.Join(parts, "/")
 }
-
-func Connect(uri string) (*Database, error) {
-	var info serviceRootInfo
-	db := &Database{
-		client: new(http.Client),
-		rc:     restclient.New(),
-		info:   &info,
-	}
-	u, err := url.Parse(uri)
-	if err != nil {
-		return db, err
-	}
-	db.url = u
-	db.Nodes = &NodeManager{
-		db: db,
-		Indexes: &NodeIndexManager{
-			db: db,
-		},
-	}
-	db.Relationships = &RelationshipManager{
-		db: db,
-	}
-	r := restclient.RestRequest{
-		Url:    u.String(),
-		Method: restclient.GET,
-		Result: &info,
-		Error:  new(neoError),
-	}
-	status, err := db.rc.Do(&r)
-	if err != nil {
-		log.Println(info.Message)
-		log.Println(info.Exception)
-		log.Println(info.Stacktrace)
-		return db, err
-	}
-	switch {
-	case status == 200 && db.info.Version != "":
-		return db, nil // Success!
-	case status == 404:
-		return db, InvalidDatabase
-	}
-	log.Println(info.Message)
-	log.Println(info.Exception)
-	log.Println(info.Stacktrace)
-	return db, BadResponse
-}
-
-/*
-func (db *Database) Nodes() *NodeManager {
-	return &NodeManager{
-		db: db,
-	}
-}
-
-func (db *Database) Relationships() *RelationshipManager {
-	return &RelationshipManager{
-		db: db,
-	}
-}
-*/
 
 // Properties is a bag of key/value pairs that can describe Nodes
 // and Relationships.
