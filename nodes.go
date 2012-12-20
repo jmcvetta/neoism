@@ -10,7 +10,8 @@ import (
 )
 
 type NodeManager struct {
-	db *Database
+	db      *Database
+	Indexes *NodeIndexManager
 }
 
 // CreateNode creates a Node in the database.

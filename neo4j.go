@@ -33,9 +33,9 @@ type Database struct {
 
 // A neoError is populated by api calls when there is an error.
 type neoError struct {
-	Mesage     string   `json:"message"`
+	Message    string   `json:"message"`
 	Exception  string   `json:"exception"`
-	StackTrace []string `json:"stacktrace"`
+	Stacktrace []string `json:"stacktrace"`
 }
 
 // A serviceRootInfo describes services available on the Neo4j server
@@ -77,6 +77,9 @@ func Connect(uri string) (*Database, error) {
 	db.url = u
 	db.Nodes = &NodeManager{
 		db: db,
+		Indexes: &NodeIndexManager{
+			db: db,
+		},
 	}
 	db.Relationships = &RelationshipManager{
 		db: db,
@@ -89,9 +92,9 @@ func Connect(uri string) (*Database, error) {
 	}
 	status, err := db.rc.Do(&r)
 	if err != nil {
-		log.Println(info.Mesage)
+		log.Println(info.Message)
 		log.Println(info.Exception)
-		log.Println(info.StackTrace)
+		log.Println(info.Stacktrace)
 		return db, err
 	}
 	switch {
@@ -100,9 +103,9 @@ func Connect(uri string) (*Database, error) {
 	case status == 404:
 		return db, InvalidDatabase
 	}
-	log.Println(info.Mesage)
+	log.Println(info.Message)
 	log.Println(info.Exception)
-	log.Println(info.StackTrace)
+	log.Println(info.Stacktrace)
 	return db, BadResponse
 }
 

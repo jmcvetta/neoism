@@ -9,6 +9,7 @@ package neo4j
 
 import (
 	"github.com/bmizerany/assert"
+	"github.com/jmcvetta/randutil"
 	"log"
 	"sort"
 	"testing"
@@ -330,22 +331,25 @@ func TestNodeProperties(t *testing.T) {
 
 // 19.8.1. Create node index
 func TestCreateNodeIndex(t *testing.T) {
+	name, err := randutil.AlphaString(128)
+	if err != nil {
+		t.Error(err)
+	}
 	db := connect(t)
-	_, err := db.Nodes.CreateIndex("foobar")
+	_, err = db.Nodes.Indexes.Create(name)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 // 19.8.2. Create node index with configuration
-func TestCreateNodeIndexWithConfiguration(t *testing.T) {
-	db := connect(t)
-	conf := NodeIndexConfig{
-		Name:     "fulltext",
-		Type:     "fulltext",
-		Provider: "lucene",
+func TestNodeIndexCreateWithConf(t *testing.T) {
+	name, err := randutil.AlphaString(128)
+	if err != nil {
+		t.Error(err)
 	}
-	_, err := db.Nodes.CreateIndexFromConf(conf)
+	db := connect(t)
+	_, err = db.Nodes.Indexes.CreateWithConf(name, "fulltext", "lucene")
 	if err != nil {
 		t.Fatal(err)
 	}
