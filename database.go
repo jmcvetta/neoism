@@ -15,14 +15,13 @@ type Database struct {
 	url           *url.URL // Root URL for REST API
 	client        *http.Client
 	rc            *restclient.Client
-	info          *serviceRootInfo
+	info          *serviceRoot
 	Nodes         *NodeManager
 	Relationships *RelationshipManager
 }
 
-// A serviceRootInfo describes services available on the Neo4j server
-type serviceRootInfo struct {
-	neoError
+// A serviceRoot describes services available on the Neo4j server
+type serviceRoot struct {
 	Extensions interface{} `json:"extensions"`
 	Node       string      `json:"node"`
 	RefNode    string      `json:"reference_node"`
@@ -36,11 +35,12 @@ type serviceRootInfo struct {
 }
 
 func Connect(uri string) (*Database, error) {
-	var info serviceRootInfo
+	var sr serviceRoot
+	var e neoError
 	db := &Database{
 		client: new(http.Client),
 		rc:     restclient.New(),
-		info:   &info,
+		info:   &sr,
 	}
 	u, err := url.Parse(uri)
 	if err != nil {
@@ -59,14 +59,14 @@ func Connect(uri string) (*Database, error) {
 	r := restclient.RestRequest{
 		Url:    u.String(),
 		Method: restclient.GET,
-		Result: &info,
-		Error:  new(neoError),
+		Result: &sr,
+		Error:  &e,
 	}
 	status, err := db.rc.Do(&r)
 	if err != nil {
-		log.Println(info.Message)
-		log.Println(info.Exception)
-		log.Println(info.Stacktrace)
+		log.Println(e.Message)
+		log.Println(e.Exception)
+		log.Println(e.Stacktrace)
 		return db, err
 	}
 	switch {
@@ -75,9 +75,8 @@ func Connect(uri string) (*Database, error) {
 	case status == 404:
 		return db, InvalidDatabase
 	}
-	log.Println(info.Message)
-	log.Println(info.Exception)
-	log.Println(info.Stacktrace)
+	log.Println(e.Message)
+	log.Println(e.Exception)
+	log.Println(e.Stacktrace)
 	return db, BadResponse
 }
-
