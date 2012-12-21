@@ -8,6 +8,14 @@ import (
 	"strings"
 )
 
+/*
+
+NOTE:  The API for working with Nodes and Relationships is basically identical. 
+So we base both types on nrBase.  But is this a good idea?  Is the similarity
+between Node and Relationship by design, or just coincidental?
+
+*/
+
 // Properties is a bag of key/value pairs that can describe Nodes
 // and Relationships.
 type Properties map[string]string
