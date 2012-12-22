@@ -7,6 +7,8 @@ package neo4j
 import (
 	"errors"
 	"github.com/kr/pretty"
+	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -36,5 +38,12 @@ func join(fragments ...string) string {
 }
 
 func logError(e *neoError) {
-	pretty.Printf("%# v", e)
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "???"
+		line = 0
+	}
+	lineNo := strconv.Itoa(line)
+	s := file + ":" + lineNo + ": %# v"
+	pretty.Printf(s, e)
 }
