@@ -7,6 +7,7 @@ import (
 	"github.com/jmcvetta/restclient"
 	"strconv"
 	"strings"
+	"log"
 )
 
 type NodeManager struct {
@@ -14,27 +15,85 @@ type NodeManager struct {
 	Indexes *nodeIndexManager
 }
 
+// A node in a Neo4j database
+type Node struct {
+	Entity
+	HrefOutgoingRels      string
+	HrefTraverse          string
+	HrefAllTypedRels      string
+	HrefOutgoing          string
+	HrefIncomingRels      string
+	HrefCreateRel         string
+	HrefPagedTraverse     string
+	HrefAllRels           string
+	HrefIncomingTypedRels string
+}
+
+type nodeResponse struct {
+	HrefProperty   string      `json:"property"`
+	HrefProperties string      `json:"properties"`
+	HrefSelf       string      `json:"self"`
+	HrefData       interface{} `json:"data"`
+	HrefExtensions interface{} `json:"extensions"`
+	//
+	HrefOutgoingRels      string `json:"outgoing_relationships"`
+	HrefTraverse          string `json:"traverse"`
+	HrefAllTypedRels      string `json:"all_typed_relationships"`
+	HrefOutgoing          string `json:"outgoing_typed_relationships"`
+	HrefIncomingRels      string `json:"incoming_relationships"`
+	HrefCreateRel         string `json:"create_relationship"`
+	HrefPagedTraverse     string `json:"paged_traverse"`
+	HrefAllRels           string `json:"all_relationships"`
+	HrefIncomingTypedRels string `json:"incoming_typed_relationships"`
+}
+
+// do is a convenience wrapper around the embedded restclient's Do() method.
+func (nm *NodeManager) do(rr *restclient.RestRequest) (status int, err error) {
+	return nm.db.rc.Do(rr)
+}
+
+// populate uses the values from a nodeResponse object to populate the fields on
+// this Node.
+func (n *Node) populate(r *nodeResponse) {
+	n.HrefProperty = r.HrefProperty
+	n.HrefProperties = r.HrefProperties
+	n.HrefSelf = r.HrefSelf
+	// n.HrefData = r.HrefData
+	// n.HrefExtensions = r.HrefExtensions
+	n.HrefOutgoingRels = r.HrefOutgoingRels
+	n.HrefTraverse = r.HrefTraverse
+	n.HrefAllTypedRels = r.HrefAllTypedRels
+	n.HrefOutgoing = r.HrefOutgoing
+	n.HrefIncomingRels = r.HrefIncomingRels
+	n.HrefCreateRel = r.HrefCreateRel
+	n.HrefPagedTraverse = r.HrefPagedTraverse
+	n.HrefAllRels = r.HrefAllRels
+	n.HrefIncomingTypedRels = r.HrefIncomingTypedRels
+}
+
 // CreateNode creates a Node in the database.
 func (m *NodeManager) Create(p Properties) (*Node, error) {
-	var info nrInfo
-	n := Node{nrBase: nrBase{
-		db:   m.db,
-		info: &info,
-	}}
-	c := restclient.RestRequest{
+	n := Node{}
+	n.db = m.db
+	res := new(nodeResponse)
+	ne := new(neoError)
+	rr := restclient.RestRequest{
 		Url:    m.db.info.Node,
 		Method: restclient.POST,
 		Data:   &p,
-		Result: &info,
-		Error:  new(neoError),
+		Result: &res,
+		Error:  &ne,
 	}
-	status, err := m.db.rc.Do(&c)
+	status, err := m.do(&rr)
 	if err != nil || status != 201 {
+		logError(ne)
 		return &n, err
 	}
-	if info.Self == "" {
+	if res.HrefSelf == "" {
+		logError(ne)
 		return &n, BadResponse
 	}
+	n.populate(res)
 	return &n, nil
 }
 
@@ -47,10 +106,8 @@ func (m *NodeManager) Get(id int) (*Node, error) {
 // GetNode fetches a Node from the database based on its uri
 func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	var info nrInfo
-	n := Node{nrBase{
-		db:   m.db,
-		info: &info,
-	}}
+	n := Node{}
+	n.db = m.db
 	c := restclient.RestRequest{
 		Url:    uri,
 		Method: restclient.GET,
@@ -71,15 +128,12 @@ func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	return &n, nil
 }
 
-// A node in a Neo4j database
-type Node struct {
-	nrBase
-}
-
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
+	log.Println(n.db.info.Node)
+	log.Println(n.HrefSelf)
 	l := len(n.db.info.Node)
-	s := n.info.Self[l:]
+	s := n.HrefSelf[l:]
 	s = strings.Trim(s, "/")
 	id, err := strconv.Atoi(s)
 	if err != nil {
@@ -127,17 +181,17 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 // Relationships gets all Relationships for this Node, optionally filtered by 
 // type, returning them as a map keyed on Relationship ID.
 func (n *Node) Relationships(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.info.AllRels, types...)
+	return n.getRelationships(n.HrefAllRels, types...)
 }
 
 // Incoming gets all incoming Relationships for this Node.
 func (n *Node) Incoming(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.info.IncomingRels, types...)
+	return n.getRelationships(n.HrefIncomingRels, types...)
 }
 
 // Outgoing gets all outgoing Relationships for this Node.
 func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
-	return n.getRelationships(n.info.OutgoingRels, types...)
+	return n.getRelationships(n.HrefOutgoingRels, types...)
 }
 
 // Relate creates a relationship of relType, with specified properties, 
@@ -148,7 +202,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 		db:   n.db,
 		info: &info,
 	}}
-	srcUri := join(n.info.Self, "relationships")
+	srcUri := join(n.HrefSelf, "relationships")
 	destUri := join(n.db.info.Node, strconv.Itoa(destId))
 	content := map[string]interface{}{
 		"to":   destUri,

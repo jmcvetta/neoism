@@ -13,11 +13,6 @@ type IndexManager interface {
 	CreateWithConf(name, indexType, provider string) (*Index, error)
 }
 
-// An Entity is an object in the Neo4j database, either a Node or a Relationship.
-type Entity interface {
-	Id() int
-}
-
 type Index interface {
 	Name() string                          // Common Name of this index
 	Template() string                      // Template for making REST calls to this Index

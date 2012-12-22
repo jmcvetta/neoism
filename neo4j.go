@@ -6,6 +6,7 @@ package neo4j
 
 import (
 	"errors"
+	"github.com/kr/pretty"
 	"strings"
 )
 
@@ -32,4 +33,8 @@ func join(fragments ...string) string {
 		parts = append(parts, v)
 	}
 	return strings.Join(parts, "/")
+}
+
+func logError(e *neoError) {
+	pretty.Printf("%# v", e)
 }
