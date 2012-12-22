@@ -49,7 +49,7 @@ func Connect(uri string) (*Database, error) {
 	db.url = u
 	db.Nodes = &NodeManager{
 		db: db,
-		Indexes: &NodeIndexManager{
+		Indexes: &nodeIndexManager{
 			db: db,
 		},
 	}

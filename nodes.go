@@ -11,7 +11,7 @@ import (
 
 type NodeManager struct {
 	db      *Database
-	Indexes *NodeIndexManager
+	Indexes *nodeIndexManager
 }
 
 // CreateNode creates a Node in the database.
