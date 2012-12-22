@@ -7,7 +7,6 @@ import (
 	"github.com/jmcvetta/restclient"
 	"strconv"
 	"strings"
-	"log"
 )
 
 type NodeManager struct {
@@ -81,8 +80,8 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 		Url:    m.db.info.Node,
 		Method: restclient.POST,
 		Data:   &p,
-		Result: &res,
-		Error:  &ne,
+		Result: res,
+		Error:  ne,
 	}
 	status, err := m.do(&rr)
 	if err != nil || status != 201 {
@@ -103,35 +102,36 @@ func (m *NodeManager) Get(id int) (*Node, error) {
 	return m.getNodeByUri(uri)
 }
 
-// GetNode fetches a Node from the database based on its uri
+// getNodeByUri fetches a Node from the database based on its URI.
 func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
-	var info nrInfo
+	res := new(nodeResponse)
+	ne := new(neoError)
 	n := Node{}
 	n.db = m.db
-	c := restclient.RestRequest{
+	rr := restclient.RestRequest{
 		Url:    uri,
 		Method: restclient.GET,
-		Result: &info,
-		Error:  new(neoError),
+		Result: res,
+		Error:  ne,
 	}
-	status, err := m.db.rc.Do(&c)
+	status, err := m.do(&rr)
 	switch {
 	case status == 404:
 		return &n, NotFound
-	case status != 200 || info.Self == "":
+	case status != 200 || res.HrefSelf == "":
+		logError(ne)
 		return &n, BadResponse
 	}
 	if err != nil {
+		logError(ne)
 		return &n, err
 	}
-	// n.Info = &info
+	n.populate(res)
 	return &n, nil
 }
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
-	log.Println(n.db.info.Node)
-	log.Println(n.HrefSelf)
 	l := len(n.db.info.Node)
 	s := n.HrefSelf[l:]
 	s = strings.Trim(s, "/")
