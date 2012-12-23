@@ -14,60 +14,9 @@ type NodeManager struct {
 	Indexes *nodeIndexManager
 }
 
-// A node in a Neo4j database
-type Node struct {
-	Entity
-	HrefOutgoingRels      string
-	HrefTraverse          string
-	HrefAllTypedRels      string
-	HrefOutgoing          string
-	HrefIncomingRels      string
-	HrefCreateRel         string
-	HrefPagedTraverse     string
-	HrefAllRels           string
-	HrefIncomingTypedRels string
-}
-
-type nodeResponse struct {
-	HrefProperty   string      `json:"property"`
-	HrefProperties string      `json:"properties"`
-	HrefSelf       string      `json:"self"`
-	HrefData       interface{} `json:"data"`
-	HrefExtensions interface{} `json:"extensions"`
-	//
-	HrefOutgoingRels      string `json:"outgoing_relationships"`
-	HrefTraverse          string `json:"traverse"`
-	HrefAllTypedRels      string `json:"all_typed_relationships"`
-	HrefOutgoing          string `json:"outgoing_typed_relationships"`
-	HrefIncomingRels      string `json:"incoming_relationships"`
-	HrefCreateRel         string `json:"create_relationship"`
-	HrefPagedTraverse     string `json:"paged_traverse"`
-	HrefAllRels           string `json:"all_relationships"`
-	HrefIncomingTypedRels string `json:"incoming_typed_relationships"`
-}
-
 // do is a convenience wrapper around the embedded restclient's Do() method.
 func (nm *NodeManager) do(rr *restclient.RestRequest) (status int, err error) {
 	return nm.db.rc.Do(rr)
-}
-
-// populate uses the values from a nodeResponse object to populate the fields on
-// this Node.
-func (n *Node) populate(r *nodeResponse) {
-	n.HrefProperty = r.HrefProperty
-	n.HrefProperties = r.HrefProperties
-	n.HrefSelf = r.HrefSelf
-	// n.HrefData = r.HrefData
-	// n.HrefExtensions = r.HrefExtensions
-	n.HrefOutgoingRels = r.HrefOutgoingRels
-	n.HrefTraverse = r.HrefTraverse
-	n.HrefAllTypedRels = r.HrefAllTypedRels
-	n.HrefOutgoing = r.HrefOutgoing
-	n.HrefIncomingRels = r.HrefIncomingRels
-	n.HrefCreateRel = r.HrefCreateRel
-	n.HrefPagedTraverse = r.HrefPagedTraverse
-	n.HrefAllRels = r.HrefAllRels
-	n.HrefIncomingTypedRels = r.HrefIncomingTypedRels
 }
 
 // CreateNode creates a Node in the database.
@@ -130,6 +79,57 @@ func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	return &n, nil
 }
 
+type nodeResponse struct {
+	HrefProperty   string `json:"property"`
+	HrefProperties string `json:"properties"`
+	HrefSelf       string `json:"self"`
+	// HrefData       interface{} `json:"data"`
+	// HrefExtensions interface{} `json:"extensions"`
+	//
+	HrefOutgoingRels      string `json:"outgoing_relationships"`
+	HrefTraverse          string `json:"traverse"`
+	HrefAllTypedRels      string `json:"all_typed_relationships"`
+	HrefOutgoing          string `json:"outgoing_typed_relationships"`
+	HrefIncomingRels      string `json:"incoming_relationships"`
+	HrefCreateRel         string `json:"create_relationship"`
+	HrefPagedTraverse     string `json:"paged_traverse"`
+	HrefAllRels           string `json:"all_relationships"`
+	HrefIncomingTypedRels string `json:"incoming_typed_relationships"`
+}
+
+// populate uses the values from a nodeResponse object to populate the fields on
+// this Node.
+func (n *Node) populate(r *nodeResponse) {
+	n.HrefProperty = r.HrefProperty
+	n.HrefProperties = r.HrefProperties
+	n.HrefSelf = r.HrefSelf
+	// n.HrefData = r.HrefData
+	// n.HrefExtensions = r.HrefExtensions
+	n.HrefOutgoingRels = r.HrefOutgoingRels
+	n.HrefTraverse = r.HrefTraverse
+	n.HrefAllTypedRels = r.HrefAllTypedRels
+	n.HrefOutgoing = r.HrefOutgoing
+	n.HrefIncomingRels = r.HrefIncomingRels
+	n.HrefCreateRel = r.HrefCreateRel
+	n.HrefPagedTraverse = r.HrefPagedTraverse
+	n.HrefAllRels = r.HrefAllRels
+	n.HrefIncomingTypedRels = r.HrefIncomingTypedRels
+}
+
+// A node in a Neo4j database
+type Node struct {
+	Entity
+	HrefOutgoingRels      string
+	HrefTraverse          string
+	HrefAllTypedRels      string
+	HrefOutgoing          string
+	HrefIncomingRels      string
+	HrefCreateRel         string
+	HrefPagedTraverse     string
+	HrefAllRels           string
+	HrefIncomingTypedRels string
+}
+
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
 	l := len(n.db.info.Node)
@@ -154,22 +154,22 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		parts := []string{uri, fragment}
 		uri = strings.Join(parts, "/")
 	}
-	s := []nrInfo{}
-	c := restclient.RestRequest{
+	resArray := []relationshipResponse{}
+	ne := new(neoError)
+	rr := restclient.RestRequest{
 		Url:    uri,
 		Method: restclient.GET,
-		Result: &s,
-		Error:  new(neoError),
+		Result: &resArray,
+		Error:  &ne,
 	}
-	status, err := n.db.rc.Do(&c)
+	status, err := n.do(&rr)
 	if err != nil {
 		return m, err
 	}
-	for _, info := range s {
-		rel := Relationship{nrBase{
-			db:   n.db,
-			info: &info,
-		}}
+	for _, res := range resArray {
+		rel := Relationship{}
+		rel.db = n.db
+		rel.populate(&res)
 		m[rel.Id()] = rel
 	}
 	if status == 200 {
@@ -197,11 +197,10 @@ func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 // Relate creates a relationship of relType, with specified properties, 
 // from this Node to the node identified by destId.
 func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
-	var info nrInfo
-	rel := Relationship{nrBase{
-		db:   n.db,
-		info: &info,
-	}}
+	rel := Relationship{}
+	rel.db = n.db
+	res := new(relationshipResponse)
+	ne := new(neoError)
 	srcUri := join(n.HrefSelf, "relationships")
 	destUri := join(n.db.info.Node, strconv.Itoa(destId))
 	content := map[string]interface{}{
@@ -215,15 +214,18 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 		Url:    srcUri,
 		Method: restclient.POST,
 		Data:   content,
-		Result: &info,
-		Error:  new(neoError),
+		Result: &res,
+		Error:  &ne,
 	}
 	status, err := n.db.rc.Do(&c)
 	if err != nil {
+		logError(ne)
 		return &rel, err
 	}
 	if status != 201 {
+		logError(ne)
 		return &rel, BadResponse
 	}
+	rel.populate(res)
 	return &rel, nil
 }
