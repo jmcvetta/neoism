@@ -23,6 +23,9 @@ func (e *Entity) do(rr *restclient.RestRequest) (status int, err error) {
 	return e.db.rc.Do(rr)
 }
 
+// Properties is a bag of key/value pairs that describe an Entity.
+type Properties map[string]string
+
 // SetProperty sets the single property key to value.
 func (e *Entity) SetProperty(key string, value string) error {
 	if e.HrefProperties == "" {
