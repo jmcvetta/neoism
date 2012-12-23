@@ -8,11 +8,9 @@ import (
 	"strings"
 )
 
-// Properties is a bag of key/value pairs that can describe Nodes
-// and Relationships.
-// type Properties map[string]string
-
-// nrBase is the base type for Nodes and Relationships.
+// An Entity is an object - either a Node or a Relationship - in a Neo4j graph
+// database.  An Entity may optinally be assigned an arbitrary set of key:value
+// properties.
 type Entity struct {
 	db             *Database
 	HrefProperty   string
@@ -20,40 +18,9 @@ type Entity struct {
 	HrefSelf       string
 }
 
+// do is a convenience wrapper around the embedded restclient's Do() method.
 func (e *Entity) do(rr *restclient.RestRequest) (status int, err error) {
 	return e.db.rc.Do(rr)
-}
-
-// A nrInfo is returned from the Neo4j server on successful operations 
-// involving a Node or a Relationship.
-type entityInfo struct {
-	neoError
-	//
-	// Always filled on success
-	//
-	HrefProperty   string      `json:"property"`
-	HrefProperties string      `json:"properties"`
-	HrefSelf       string      `json:"self"`
-	HrefData       interface{} `json:"data"`
-	HrefExtensions interface{} `json:"extensions"`
-	//
-	// Filled only for Node operations
-	//
-	HrefOutgoingRels      string `json:"outgoing_relationships"`
-	HrefTraverse          string `json:"traverse"`
-	HrefAllTypedRels      string `json:"all_typed_relationships"`
-	HrefOutgoing          string `json:"outgoing_typed_relationships"`
-	HrefIncomingRels      string `json:"incoming_relationships"`
-	HrefCreateRel         string `json:"create_relationship"`
-	HrefPagedTraverse     string `json:"paged_traverse"`
-	HrefAllRels           string `json:"all_relationships"`
-	HrefIncomingTypedRels string `json:"incoming_typed_relationships"`
-	//
-	// Filled only for Relationship operations
-	//
-	HrefStart string `json:"start"`
-	HrefType  string `json:"type"`
-	HrefEnd   string `json:"end"`
 }
 
 // SetProperty sets the single property key to value.
