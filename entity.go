@@ -156,7 +156,6 @@ func (e *Entity) Delete() error {
 		// Successful deletion!
 		return nil
 	case status == 409:
-		logError(ne)
 		return CannotDelete
 	}
 	logError(ne)
