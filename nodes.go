@@ -34,11 +34,11 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 	}
 	status, err := m.do(&rr)
 	if err != nil || status != 201 {
-		logError(ne)
+		logPretty(ne)
 		return &n, err
 	}
 	if res.HrefSelf == "" {
-		logError(ne)
+		logPretty(ne)
 		return &n, BadResponse
 	}
 	n.populate(res)
@@ -68,11 +68,11 @@ func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	case status == 404:
 		return &n, NotFound
 	case status != 200 || res.HrefSelf == "":
-		logError(ne)
+		logPretty(ne)
 		return &n, BadResponse
 	}
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return &n, err
 	}
 	n.populate(res)
@@ -219,11 +219,11 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	}
 	status, err := n.db.rc.Do(&c)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return &rel, err
 	}
 	if status != 201 {
-		logError(ne)
+		logPretty(ne)
 		return &rel, BadResponse
 	}
 	rel.populate(res)

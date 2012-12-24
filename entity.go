@@ -66,7 +66,7 @@ func (e *Entity) GetProperty(key string) (string, error) {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return val, err
 	}
 	switch status {
@@ -93,7 +93,7 @@ func (e *Entity) DeleteProperty(key string) error {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return err
 	}
 	switch status {
@@ -102,7 +102,7 @@ func (e *Entity) DeleteProperty(key string) error {
 	case 404:
 		return NotFound
 	}
-	logError(ne)
+	logPretty(ne)
 	return BadResponse
 }
 
@@ -120,7 +120,7 @@ func (e *Entity) Delete() error {
 	status, err := e.do(&rr)
 	switch {
 	case err != nil:
-		logError(ne)
+		logPretty(ne)
 		return err
 	case status == 204:
 		// Successful deletion!
@@ -128,7 +128,7 @@ func (e *Entity) Delete() error {
 	case status == 409:
 		return CannotDelete
 	}
-	logError(ne)
+	logPretty(ne)
 	return BadResponse
 }
 
@@ -147,7 +147,7 @@ func (e *Entity) Properties() (Properties, error) {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return props, err
 	}
 	// Status code 204 indicates no properties on this node
@@ -171,13 +171,13 @@ func (e *Entity) SetProperties(p Properties) error {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return err
 	}
 	if status == 204 {
 		return nil // Success!
 	}
-	logError(ne)
+	logPretty(ne)
 	return BadResponse
 }
 
@@ -194,7 +194,7 @@ func (e *Entity) DeleteProperties() error {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return err
 	}
 	switch status {
@@ -203,6 +203,6 @@ func (e *Entity) DeleteProperties() error {
 	case 404:
 		return NotFound
 	}
-	logError(ne)
+	logPretty(ne)
 	return BadResponse
 }

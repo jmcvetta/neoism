@@ -37,13 +37,13 @@ func join(fragments ...string) string {
 	return strings.Join(parts, "/")
 }
 
-func logError(e *neoError) {
+func logPretty(x interface{}) {
 	_, file, line, ok := runtime.Caller(1)
 	if !ok {
 		file = "???"
 		line = 0
 	}
 	lineNo := strconv.Itoa(line)
-	s := file + ":" + lineNo + ": %# v"
-	pretty.Printf(s, e)
+	s := file + ":" + lineNo + ": %# v\n"
+	pretty.Printf(s, x)
 }

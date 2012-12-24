@@ -34,12 +34,12 @@ func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 	}
 	status, err := m.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return &rel, err
 	}
 	switch status {
 	default:
-		logError(ne)
+		logPretty(ne)
 		err = BadResponse
 	case 200:
 		err = nil // Success!
@@ -65,14 +65,14 @@ func (m *RelationshipManager) Types() ([]string, error) {
 	}
 	status, err := m.db.rc.Do(&c)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return reltypes, err
 	}
 	if status == 200 {
 		sort.Sort(sort.StringSlice(reltypes))
 		return reltypes, nil // Success!
 	}
-	logError(ne)
+	logPretty(ne)
 	return reltypes, BadResponse
 }
 
