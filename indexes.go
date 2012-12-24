@@ -20,20 +20,9 @@ type NodeIndex struct {
 	db           *Database
 	Name         string
 	HrefTemplate string
-	HrefProvider string
-	HrefType     string
-}
-
-func (ni *NodeIndex) populate(res *nodeIndexResponse) {
-	ni.HrefTemplate = res.HrefTemplate
-	ni.HrefProvider = res.HrefProvider
-	ni.HrefType = res.HrefType
-}
-
-type nodeIndexResponse struct {
-	HrefTemplate string `json:"template"`
-	HrefProvider string `json:"provider"`
-	HrefType     string `json:"type"`
+	Provider     string
+	IndexType    string
+	LowerCase    bool
 }
 
 // CreateIndex creates a new Index, with the name supplied, in the db.
@@ -56,11 +45,11 @@ func (nim *NodeIndexManager) Create(name string) (*NodeIndex, error) {
 	}
 	status, err := nim.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return idx, err
 	}
 	if status != 201 {
-		logError(ne)
+		logPretty(ne)
 		return idx, BadResponse
 	}
 	idx.populate(res)
@@ -70,6 +59,7 @@ func (nim *NodeIndexManager) Create(name string) (*NodeIndex, error) {
 func (nim *NodeIndexManager) CreateWithConf(name, indexType, provider string) (*NodeIndex, error) {
 	idx := new(NodeIndex)
 	idx.db = nim.db
+	idx.Name = name
 	type conf struct {
 		Type     string `json:"type"`
 		Provider string `json:"provider"`
@@ -96,13 +86,85 @@ func (nim *NodeIndexManager) CreateWithConf(name, indexType, provider string) (*
 	}
 	status, err := nim.do(&rr)
 	if err != nil {
-		logError(ne)
+		logPretty(ne)
 		return idx, err
 	}
 	if status != 201 {
-		logError(ne)
+		logPretty(ne)
 		return idx, BadResponse
 	}
 	idx.populate(res)
 	return idx, nil
+}
+
+func (nim *NodeIndexManager) All() ([]*NodeIndex, error) {
+	res := []nodeIndexResponse{}
+	nis := []*NodeIndex{}
+	ne := new(neoError)
+	req := restclient.RestRequest{
+		Url:    nim.db.info.NodeIndex,
+		Method: restclient.GET,
+		Result: res,
+		Error:  ne,
+	}
+	status, err := nim.do(&req)
+	if err != nil {
+		logPretty(ne)
+		return nis, err
+	}
+	if status != 200 {
+		logPretty(ne)
+		return nis, BadResponse
+	}
+	for _, r := range res {
+		n := NodeIndex{}
+		n.db = nim.db
+		n.populate(&r)
+		nis = append(nis, &n)
+	}
+	return nis, nil
+}
+
+func (nim *NodeIndexManager) Get(name string) (*NodeIndex, error) {
+	ni := new(NodeIndex)
+	ni.Name = name
+	ne := new(neoError)
+	baseUri := nim.db.info.NodeIndex
+	if baseUri == "" {
+		return ni, FeatureUnavailable
+	}
+	uri := join(baseUri, name)
+	req := restclient.RestRequest{
+		Url:    uri,
+		Method: restclient.GET,
+		Error:  ne,
+	}
+	status, err := nim.do(&req)
+	if err != nil {
+		logPretty(ne)
+		return ni, err
+	}
+	switch status {
+	// Success!
+	case 200:
+		return ni, nil
+	case 400:
+		return ni, NotFound
+	}
+	logPretty(ne)
+	return ni, BadResponse
+}
+
+type nodeIndexResponse struct {
+	HrefTemplate string `json:"template"`
+	Provider     string `json:"provider"`      // Not always populated by server
+	IndexType    string `json:"type"`          // Not always populated by server
+	LowerCase    bool   `json:"to_lower_case"` // Not always populated by server
+}
+
+func (ni *NodeIndex) populate(res *nodeIndexResponse) {
+	ni.HrefTemplate = res.HrefTemplate
+	ni.Provider = res.Provider
+	ni.IndexType = res.IndexType
+	ni.LowerCase = res.LowerCase
 }
