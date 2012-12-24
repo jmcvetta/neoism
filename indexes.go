@@ -17,12 +17,12 @@ func (nim *NodeIndexManager) do(rr *restclient.RestRequest) (status int, err err
 }
 
 type NodeIndex struct {
-	db           *Database
-	Name         string
-	HrefTemplate string
-	Provider     string
-	IndexType    string
-	LowerCase    bool
+	db            *Database
+	Name          string
+	HrefTemplate  string
+	Provider      string
+	IndexType     string
+	CaseSensitive bool
 }
 
 // CreateIndex creates a new Index, with the name supplied, in the db.
@@ -98,13 +98,13 @@ func (nim *NodeIndexManager) CreateWithConf(name, indexType, provider string) (*
 }
 
 func (nim *NodeIndexManager) All() ([]*NodeIndex, error) {
-	res := []nodeIndexResponse{}
+	res := map[string]nodeIndexResponse{}
 	nis := []*NodeIndex{}
 	ne := new(neoError)
 	req := restclient.RestRequest{
 		Url:    nim.db.info.NodeIndex,
 		Method: restclient.GET,
-		Result: res,
+		Result: &res,
 		Error:  ne,
 	}
 	status, err := nim.do(&req)
@@ -116,9 +116,10 @@ func (nim *NodeIndexManager) All() ([]*NodeIndex, error) {
 		logPretty(ne)
 		return nis, BadResponse
 	}
-	for _, r := range res {
+	for name, r := range res {
 		n := NodeIndex{}
 		n.db = nim.db
+		n.Name = name
 		n.populate(&r)
 		nis = append(nis, &n)
 	}
@@ -159,12 +160,16 @@ type nodeIndexResponse struct {
 	HrefTemplate string `json:"template"`
 	Provider     string `json:"provider"`      // Not always populated by server
 	IndexType    string `json:"type"`          // Not always populated by server
-	LowerCase    bool   `json:"to_lower_case"` // Not always populated by server
+	LowerCase    string `json:"to_lower_case"` // Not always populated by server
 }
 
 func (ni *NodeIndex) populate(res *nodeIndexResponse) {
 	ni.HrefTemplate = res.HrefTemplate
 	ni.Provider = res.Provider
 	ni.IndexType = res.IndexType
-	ni.LowerCase = res.LowerCase
+	if res.LowerCase == "true" {
+		ni.CaseSensitive = false
+	} else {
+		ni.CaseSensitive = true
+	}
 }
