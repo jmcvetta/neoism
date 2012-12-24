@@ -79,7 +79,6 @@ func TestListNodeIndexes(t *testing.T) {
 		t.Error(err)
 	}
 	valid := false
-	logPretty(indexes)
 	for _, i := range indexes {
 		if i.Name == name {
 			valid = true
