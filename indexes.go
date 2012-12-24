@@ -5,116 +5,104 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
-	"log"
 )
 
-type IndexManager interface {
-	Create(name string) *Index
-	CreateWithConf(name, indexType, provider string) (*Index, error)
-}
-
-type Index interface {
-	Name() string                          // Common Name of this index
-	Template() string                      // Template for making REST calls to this Index
-	Add(e Entity, key, value string) error // Add an entity to this index under key:value
-}
-
-type NodeIndex struct {
-	template  string
-	provider  string
-	indexType string
-}
-
-func (ni *NodeIndex) Name() string {
-	return "foobar!"
-}
-
-func (ni *NodeIndex) Template() string {
-	return ni.template
-}
-func (ni *NodeIndex) Add(e Entity, key, value string) error {
-	return nil
-}
-
-type nodeIndexManager struct {
+type NodeIndexManager struct {
 	db *Database
 }
 
-// indexCreateResp is suitable for unmarshalling the JSON response from an index create operation.
-type indexCreateResp struct {
-	Template string `json:"template"`
-	Provider string `json:"provider"`
-	Type     string `json:"type"`
+// do is a convenience wrapper around the embedded restclient's Do() method.
+func (nim *NodeIndexManager) do(rr *restclient.RestRequest) (status int, err error) {
+	return nim.db.rc.Do(rr)
+}
+
+type NodeIndex struct {
+	db           *Database
+	Name         string
+	HrefTemplate string
+	HrefProvider string
+	HrefType     string
+}
+
+func (ni *NodeIndex) populate(res *nodeIndexResponse) {
+	ni.HrefTemplate = res.HrefTemplate
+	ni.HrefProvider = res.HrefProvider
+	ni.HrefType = res.HrefType
+}
+
+type nodeIndexResponse struct {
+	HrefTemplate string `json:"template"`
+	HrefProvider string `json:"provider"`
+	HrefType     string `json:"type"`
 }
 
 // CreateIndex creates a new Index, with the name supplied, in the db.
-func (nim *nodeIndexManager) Create(name string) (Index, error) {
-	var ni NodeIndex
-	type req struct {
+func (nim *NodeIndexManager) Create(name string) (*NodeIndex, error) {
+	type s struct {
 		Name string `json:"name"`
 	}
-	data := req{Name: name}
-	var r indexCreateResp
-	var e neoError
-	c := restclient.RestRequest{
+	data := s{Name: name}
+	res := new(nodeIndexResponse)
+	ne := new(neoError)
+	idx := new(NodeIndex)
+	idx.db = nim.db
+	idx.Name = name
+	rr := restclient.RestRequest{
 		Url:    nim.db.info.NodeIndex,
 		Method: restclient.POST,
 		Data:   &data,
-		Result: &r,
-		Error:  &e,
+		Result: &res,
+		Error:  &ne,
 	}
-	status, err := nim.db.rc.Do(&c)
+	status, err := nim.do(&rr)
 	if err != nil {
-		return &ni, err
+		logError(ne)
+		return idx, err
 	}
 	if status != 201 {
-		log.Printf("Unexpected response from server:")
-		log.Printf("    Response code:", status)
-		log.Printf("    Error:", e)
-		return &ni, BadResponse
+		logError(ne)
+		return idx, BadResponse
 	}
-	ni.template = r.Template
-	return &ni, nil
+	idx.populate(res)
+	return idx, nil
 }
 
-func (nim *nodeIndexManager) CreateWithConf(name, indexType, provider string) (Index, error) {
-	var ni NodeIndex
+func (nim *NodeIndexManager) CreateWithConf(name, indexType, provider string) (*NodeIndex, error) {
+	idx := new(NodeIndex)
+	idx.db = nim.db
 	type conf struct {
 		Type     string `json:"type"`
 		Provider string `json:"provider"`
 	}
-	type req struct {
+	type s struct {
 		Name   string `json:"name"`
 		Config conf   `json:"config"`
 	}
-	data := req{
+	data := s{
 		Name: name,
 		Config: conf{
 			Type:     indexType,
 			Provider: provider,
 		},
 	}
-	var r indexCreateResp
-	var e neoError
-	c := restclient.RestRequest{
+	res := new(nodeIndexResponse)
+	ne := new(neoError)
+	rr := restclient.RestRequest{
 		Url:    nim.db.info.NodeIndex,
 		Method: restclient.POST,
 		Data:   &data,
-		Result: &r,
-		Error:  &e,
+		Result: res,
+		Error:  ne,
 	}
-	status, err := nim.db.rc.Do(&c)
+	status, err := nim.do(&rr)
 	if err != nil {
-		return &ni, err
+		logError(ne)
+		return idx, err
 	}
 	if status != 201 {
-		log.Printf("Unexpected response from server:")
-		log.Printf("    Response code:", status)
-		log.Printf("    Error:", e)
-		return &ni, BadResponse
+		logError(ne)
+		return idx, BadResponse
 	}
-	ni.template = r.Template
-	ni.provider = r.Provider
-	ni.indexType = r.Type
-	return &ni, nil
+	idx.populate(res)
+	return idx, nil
 }
