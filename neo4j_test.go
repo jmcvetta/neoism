@@ -37,6 +37,14 @@ func connect(t *testing.T) *Database {
 	return db
 }
 
+func rname(t *testing.T) string {
+	name, err := randutil.AlphaString(64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return name
+}
+
 // Tests API described in Neo4j Manual section 19.3. Nodes
 func TestNode(t *testing.T) {
 	db := connect(t)
@@ -327,30 +335,4 @@ func TestNodeProperties(t *testing.T) {
 	}
 	props, _ = node0.Properties()
 	assert.Equal(t, spock, props)
-}
-
-// 19.8.1. Create node index
-func TestCreateNodeIndex(t *testing.T) {
-	name, err := randutil.AlphaString(128)
-	if err != nil {
-		t.Error(err)
-	}
-	db := connect(t)
-	_, err = db.Nodes.Indexes.Create(name)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-// 19.8.2. Create node index with configuration
-func TestNodeIndexCreateWithConf(t *testing.T) {
-	name, err := randutil.AlphaString(128)
-	if err != nil {
-		t.Error(err)
-	}
-	db := connect(t)
-	_, err = db.Nodes.Indexes.CreateWithConf(name, "fulltext", "lucene")
-	if err != nil {
-		t.Fatal(err)
-	}
 }
