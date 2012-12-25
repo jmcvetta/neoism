@@ -1,6 +1,7 @@
 // Copyright (c) 2012 Jason McVetta.  This is Free Software, released under the 
 // terms of the GPL v3.  See http://www.gnu.org/copyleft/gpl.html for details.
 
+// Package neo4j provides a client for the Neo4j graph database.
 package neo4j
 
 import (

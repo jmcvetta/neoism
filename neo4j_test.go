@@ -38,7 +38,7 @@ func connect(t *testing.T) *Database {
 }
 
 func rname(t *testing.T) string {
-	name, err := randutil.AlphaString(64)
+	name, err := randutil.AlphaString(12)
 	if err != nil {
 		t.Fatal(err)
 	}
