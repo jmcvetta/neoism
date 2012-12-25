@@ -5,6 +5,7 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
+	"strings"
 )
 
 type NodeIndexManager struct {
@@ -14,15 +15,6 @@ type NodeIndexManager struct {
 // do is a convenience wrapper around the embedded restclient's Do() method.
 func (nim *NodeIndexManager) do(rr *restclient.RestRequest) (status int, err error) {
 	return nim.db.rc.Do(rr)
-}
-
-type NodeIndex struct {
-	db            *Database
-	Name          string
-	HrefTemplate  string
-	Provider      string
-	IndexType     string
-	CaseSensitive bool
 }
 
 // CreateIndex creates a new Index, with the name supplied, in the db.
@@ -134,6 +126,7 @@ func (nim *NodeIndexManager) Get(name string) (*NodeIndex, error) {
 	if baseUri == "" {
 		return ni, FeatureUnavailable
 	}
+	name = encodeSpaces(name)
 	uri := join(baseUri, name)
 	req := restclient.RestRequest{
 		Url:    uri,
@@ -149,7 +142,7 @@ func (nim *NodeIndexManager) Get(name string) (*NodeIndex, error) {
 	// Success!
 	case 200:
 		return ni, nil
-	case 400:
+	case 404:
 		return ni, NotFound
 	}
 	logPretty(ne)
@@ -172,4 +165,41 @@ func (ni *NodeIndex) populate(res *nodeIndexResponse) {
 	} else {
 		ni.CaseSensitive = true
 	}
+}
+
+type NodeIndex struct {
+	db            *Database
+	Name          string
+	HrefTemplate  string
+	Provider      string
+	IndexType     string
+	CaseSensitive bool
+}
+
+// encodeSpaces encodes spaces in a string as %20.
+func encodeSpaces(s string) string {
+	return strings.Replace(s, " ", "%20", -1)
+}
+
+// Delete removes a NodeIndex from the database.
+func (ni *NodeIndex) Delete() error {
+	name := encodeSpaces(ni.Name)
+	uri := join(ni.db.info.NodeIndex, name)
+	ne := new(neoError)
+	req := restclient.RestRequest{
+		Url:    uri,
+		Method: restclient.DELETE,
+		Error:  ne,
+	}
+	status, err := ni.db.rc.Do(&req)
+	if err != nil {
+		logPretty(ne)
+		return err
+	}
+	if status == 204 {
+		// Success!
+		return nil
+	}
+	logPretty(ne)
+	return BadResponse
 }
