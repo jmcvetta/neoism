@@ -203,3 +203,36 @@ func (ni *NodeIndex) Delete() error {
 	logPretty(ne)
 	return BadResponse
 }
+
+func (ni *NodeIndex) Add(n *Node, key, value string) error {
+	name := encodeSpaces(ni.Name)
+	uri := join(ni.db.info.NodeIndex, name)
+	ne := new(neoError)
+	type s struct {
+		Uri   string `json:"uri"`
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+	data := s{
+		Uri:   n.HrefSelf,
+		Key:   key,
+		Value: value,
+	}
+	req := restclient.RestRequest{
+		Url:    uri,
+		Method: restclient.POST,
+		Data:   data,
+		Error:  ne,
+	}
+	status, err := ni.db.rc.Do(&req)
+	if err != nil {
+		logPretty(ne)
+		return err
+	}
+	if status == 201 {
+		// Success!
+		return nil
+	}
+	logPretty(ne)
+	return BadResponse
+}

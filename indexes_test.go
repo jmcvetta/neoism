@@ -20,7 +20,7 @@ func init() {
 // 18.9.1. Create node index
 func TestCreateNodeIndex(t *testing.T) {
 	db := connect(t)
-	name := rname(t)
+	name := rndStr(t)
 	template := join(db.info.NodeIndex, name, "{key}/{value}")
 	//
 	// Create new index
@@ -44,7 +44,7 @@ func TestCreateNodeIndex(t *testing.T) {
 // 18.9.2. Create node index with configuration
 func TestNodeIndexCreateWithConf(t *testing.T) {
 	db := connect(t)
-	name := rname(t)
+	name := rndStr(t)
 	indexType := "fulltext"
 	provider := "lucene"
 	template := join(db.info.NodeIndex, name, "{key}/{value}")
@@ -72,7 +72,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 // 18.9.4. List node indexes
 func TestListNodeIndexes(t *testing.T) {
 	db := connect(t)
-	name := rname(t)
+	name := rndStr(t)
 	db.Nodes.Indexes.Create(name)
 	indexes, err := db.Nodes.Indexes.All()
 	if err != nil {
@@ -91,7 +91,7 @@ func TestListNodeIndexes(t *testing.T) {
 func TestDeleteNodeIndex(t *testing.T) {
 	db := connect(t)
 	// Include a space in the name to ensure correct URL escaping.
-	name := rname(t) + " " + rname(t)
+	name := rndStr(t) + " " + rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
 	err := idx0.Delete()
 	if err != nil {
@@ -99,4 +99,20 @@ func TestDeleteNodeIndex(t *testing.T) {
 	}
 	_, err = db.Nodes.Indexes.Get(name)
 	assert.Equal(t, err, NotFound)
+}
+
+// 18.9.5. Add node to index
+func TestAddNodeToIndex(t *testing.T) {
+	db := connect(t)
+	name := rndStr(t)
+	key := rndStr(t)
+	value := rndStr(t)
+	idx0, _ := db.Nodes.Indexes.Create(name)
+	n0, _ := db.Nodes.Create(empty)
+	err := idx0.Add(n0, key, value)
+	if err != nil {
+		t.Error(err)
+	}
+	idx0.Delete()
+	n0.Delete()
 }
