@@ -79,7 +79,7 @@ func (m *RelationshipManager) Types() ([]string, error) {
 // A Relationship is a directional connection between two Nodes, with an
 // optional set of arbitrary properties.
 type Relationship struct {
-	Entity
+	entity
 	HrefStart string
 	HrefType  string
 	HrefEnd   string
