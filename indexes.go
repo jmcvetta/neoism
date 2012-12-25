@@ -204,6 +204,7 @@ func (ni *NodeIndex) Delete() error {
 	return BadResponse
 }
 
+// Add associates a Node with the given key/value pair in the given index.
 func (ni *NodeIndex) Add(n *Node, key, value string) error {
 	name := encodeSpaces(ni.Name)
 	uri := join(ni.db.info.NodeIndex, name)
