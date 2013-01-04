@@ -15,6 +15,9 @@ import (
 	"testing"
 )
 
+// Database connection used by all tests
+var db *Database
+
 // Buckets of properties for convenient testing
 var (
 	empty = Properties{}
@@ -24,17 +27,12 @@ var (
 
 func init() {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-}
-
-func connect(t *testing.T) *Database {
 	//
-	// Connect
-	//
-	db, err := Connect("http://localhost:7474/db/data")
+	var err error
+	db, err = Connect("http://localhost:7474/db/data")
 	if err != nil {
-		t.Fatal(err)
+		log.Panic(err)
 	}
-	return db
 }
 
 func rndStr(t *testing.T) string {
@@ -47,7 +45,6 @@ func rndStr(t *testing.T) string {
 
 // Tests API described in Neo4j Manual section 19.3. Nodes
 func TestNode(t *testing.T) {
-	db := connect(t)
 	//
 	// 19.3.1. Create Node
 	//
@@ -112,7 +109,6 @@ func TestRelationships(t *testing.T) {
 	// 19.4.2. Create relationship
 	//
 	// This section must precede 19.4.1. in order to have an object in the DB for us to Get
-	db := connect(t)
 	node0, _ := db.Nodes.Create(empty)
 	node1, _ := db.Nodes.Create(empty)
 	rel0, err := node0.Relate("knows", node1.Id(), empty)
@@ -267,7 +263,6 @@ func TestRelationships(t *testing.T) {
 
 // Tests API described in Neo4j Manual section 19.5. Relationship types
 func TestRelationshipTypes(t *testing.T) {
-	db := connect(t)
 	//
 	// 19.5.1. Get relationship types
 	//
@@ -282,7 +277,6 @@ func TestRelationshipTypes(t *testing.T) {
 
 // Tests API described in Neo4j Manual section 19.6. Node properties
 func TestNodeProperties(t *testing.T) {
-	db := connect(t)
 	//
 	// 19.6.1. Set property on node
 	//

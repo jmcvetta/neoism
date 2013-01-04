@@ -19,7 +19,6 @@ func init() {
 
 // 18.9.1. Create node index
 func TestCreateNodeIndex(t *testing.T) {
-	db := connect(t)
 	name := rndStr(t)
 	template := join(db.info.NodeIndex, name, "{key}/{value}")
 	//
@@ -43,7 +42,6 @@ func TestCreateNodeIndex(t *testing.T) {
 
 // 18.9.2. Create node index with configuration
 func TestNodeIndexCreateWithConf(t *testing.T) {
-	db := connect(t)
 	name := rndStr(t)
 	indexType := "fulltext"
 	provider := "lucene"
@@ -71,7 +69,6 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 
 // 18.9.3. Delete node index
 func TestDeleteNodeIndex(t *testing.T) {
-	db := connect(t)
 	// Include a space in the name to ensure correct URL escaping.
 	name := rndStr(t) + " " + rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
@@ -85,7 +82,6 @@ func TestDeleteNodeIndex(t *testing.T) {
 
 // 18.9.4. List node indexes
 func TestListNodeIndexes(t *testing.T) {
-	db := connect(t)
 	name := rndStr(t)
 	db.Nodes.Indexes.Create(name)
 	indexes, err := db.Nodes.Indexes.All()
@@ -103,7 +99,6 @@ func TestListNodeIndexes(t *testing.T) {
 
 // 18.9.5. Add node to index
 func TestAddNodeToIndex(t *testing.T) {
-	db := connect(t)
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
