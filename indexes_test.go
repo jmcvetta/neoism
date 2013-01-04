@@ -69,6 +69,20 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	assert.Equal(t, idx0.Name, idx1.Name)
 }
 
+// 18.9.3. Delete node index
+func TestDeleteNodeIndex(t *testing.T) {
+	db := connect(t)
+	// Include a space in the name to ensure correct URL escaping.
+	name := rndStr(t) + " " + rndStr(t)
+	idx0, _ := db.Nodes.Indexes.Create(name)
+	err := idx0.Delete()
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = db.Nodes.Indexes.Get(name)
+	assert.Equal(t, err, NotFound)
+}
+
 // 18.9.4. List node indexes
 func TestListNodeIndexes(t *testing.T) {
 	db := connect(t)
@@ -85,20 +99,6 @@ func TestListNodeIndexes(t *testing.T) {
 		}
 	}
 	assert.T(t, valid, "Newly created Index not found in listing of all Indexes.")
-}
-
-// 18.9.3. Delete node index
-func TestDeleteNodeIndex(t *testing.T) {
-	db := connect(t)
-	// Include a space in the name to ensure correct URL escaping.
-	name := rndStr(t) + " " + rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(name)
-	err := idx0.Delete()
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = db.Nodes.Indexes.Get(name)
-	assert.Equal(t, err, NotFound)
 }
 
 // 18.9.5. Add node to index
