@@ -121,13 +121,13 @@ func (nim *NodeIndexManager) All() ([]*NodeIndex, error) {
 func (nim *NodeIndexManager) Get(name string) (*NodeIndex, error) {
 	ni := new(NodeIndex)
 	ni.Name = name
-	ne := new(neoError)
+	name = encodeSpaces(name)
 	baseUri := nim.db.info.NodeIndex
 	if baseUri == "" {
 		return ni, FeatureUnavailable
 	}
-	name = encodeSpaces(name)
 	uri := join(baseUri, name)
+	ne := new(neoError)
 	req := restclient.RestRequest{
 		Url:    uri,
 		Method: restclient.GET,
@@ -181,10 +181,15 @@ func encodeSpaces(s string) string {
 	return strings.Replace(s, " ", "%20", -1)
 }
 
+// uri returns the URI for this Index.
+func (ni *NodeIndex) uri() string {
+	name := encodeSpaces(ni.Name)
+	return join(ni.db.info.NodeIndex, name)
+}
+
 // Delete removes a NodeIndex from the database.
 func (ni *NodeIndex) Delete() error {
-	name := encodeSpaces(ni.Name)
-	uri := join(ni.db.info.NodeIndex, name)
+	uri := ni.uri()
 	ne := new(neoError)
 	req := restclient.RestRequest{
 		Url:    uri,
@@ -206,8 +211,7 @@ func (ni *NodeIndex) Delete() error {
 
 // Add associates a Node with the given key/value pair in the given index.
 func (ni *NodeIndex) Add(n *Node, key, value string) error {
-	name := encodeSpaces(ni.Name)
-	uri := join(ni.db.info.NodeIndex, name)
+	uri := ni.uri()
 	ne := new(neoError)
 	type s struct {
 		Uri   string `json:"uri"`
@@ -236,4 +240,8 @@ func (ni *NodeIndex) Add(n *Node, key, value string) error {
 	}
 	logPretty(ne)
 	return BadResponse
+}
+
+func (ni *NodeIndex) Remove(n *Node, key, value string) error {
+	return nil
 }
