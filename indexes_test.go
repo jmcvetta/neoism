@@ -125,3 +125,31 @@ func TestRemoveNodeFromIndex(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+// 18.9.7. Remove all entries with a given node and key from an indexj
+func TestRemoveNodeAndKeyFromIndex(t *testing.T) {
+	name := rndStr(t)
+	key := rndStr(t)
+	value := rndStr(t)
+	idx0, _ := db.Nodes.Indexes.Create(name)
+	n0, _ := db.Nodes.Create(empty)
+	idx0.Add(n0, key, value)
+	err := idx0.Remove(n0, key, "")
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+// 18.9.8. Remove all entries with a given node, key and value from an index
+func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
+	name := rndStr(t)
+	key := rndStr(t)
+	value := rndStr(t)
+	idx0, _ := db.Nodes.Indexes.Create(name)
+	n0, _ := db.Nodes.Create(empty)
+	idx0.Add(n0, key, value)
+	err := idx0.Remove(n0, key, "")
+	if err != nil {
+		t.Error(err)
+	}
+}

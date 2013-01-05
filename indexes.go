@@ -246,12 +246,15 @@ func (ni *NodeIndex) Add(n *Node, key, value string) error {
 // Remove removes all entries with a given node, key and value from an index. 
 // If value or both key and value may be the blank string, they are ignored.
 func (ni *NodeIndex) Remove(n *Node, key, value string) error {
-	// If key is an empty string, it will be ignored by join().  However it is only
-	// valid to specify a value if key is non-empty.
-	uri := join(ni.uri(), strconv.Itoa(n.Id()), key)
+	uri := ni.uri()
+	// Since join() ignores fragments that are empty strings, joining an empty
+	// value with a non-empty key produces a valid URL.  But joining a non-empty
+	// value with an empty key would produce an invalid URL wherein they value is
+	// conflated with the key.
 	if key != "" {
-		uri = join(uri, value)
+		uri = join(uri, key, value)
 	}
+	uri = join(uri, strconv.Itoa(n.Id()))
 	ne := new(neoError)
 	req := restclient.RestRequest{
 		Url:    uri,
