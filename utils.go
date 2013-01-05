@@ -13,9 +13,13 @@ import (
 // Joins URL fragments
 func join(fragments ...string) string {
 	parts := []string{}
-	for _, v := range fragments {
-		v = strings.Trim(v, "/")
-		parts = append(parts, v)
+	for _, str := range fragments {
+		if str == "" {
+			// Only join non-empty fragment strings
+			continue
+		}
+		str = strings.Trim(str, "/")
+		parts = append(parts, str)
 	}
 	return strings.Join(parts, "/")
 }
