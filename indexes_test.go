@@ -111,3 +111,17 @@ func TestAddNodeToIndex(t *testing.T) {
 	idx0.Delete()
 	n0.Delete()
 }
+
+// 18.9.6. Remove all entries with a given node from an index
+func TestRemoveNodeFromIndex(t *testing.T) {
+	name := rndStr(t)
+	key := rndStr(t)
+	value := rndStr(t)
+	idx0, _ := db.Nodes.Indexes.Create(name)
+	n0, _ := db.Nodes.Create(empty)
+	idx0.Add(n0, key, value)
+	err := idx0.Remove(n0, "", "")
+	if err != nil {
+		t.Error(err)
+	}
+}

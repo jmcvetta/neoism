@@ -5,6 +5,7 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
+	"strconv"
 	"strings"
 )
 
@@ -242,6 +243,30 @@ func (ni *NodeIndex) Add(n *Node, key, value string) error {
 	return BadResponse
 }
 
+// Remove removes all entries with a given node, key and value from an index. 
+// If value or both key and value may be the blank string, they are ignored.
 func (ni *NodeIndex) Remove(n *Node, key, value string) error {
-	return nil
+	// If key is an empty string, it will be ignored by join().  However it is only
+	// valid to specify a value if key is non-empty.
+	uri := join(ni.uri(), strconv.Itoa(n.Id()), key)
+	if key != "" {
+		uri = join(uri, value)
+	}
+	ne := new(neoError)
+	req := restclient.RestRequest{
+		Url:    uri,
+		Method: restclient.DELETE,
+		Error:  ne,
+	}
+	status, err := ni.db.rc.Do(&req)
+	if err != nil {
+		logPretty(ne)
+		return err
+	}
+	if status == 204 {
+		// Success!
+		return nil
+	}
+	logPretty(req)
+	return BadResponse
 }
