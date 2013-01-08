@@ -244,7 +244,7 @@ func (ni *NodeIndex) Add(n *Node, key, value string) error {
 }
 
 // Remove removes all entries with a given node, key and value from an index. 
-// If value or both key and value may be the blank string, they are ignored.
+// If value or both key and value are the blank string, they are ignored.
 func (ni *NodeIndex) Remove(n *Node, key, value string) error {
 	uri := ni.uri()
 	// Since join() ignores fragments that are empty strings, joining an empty
