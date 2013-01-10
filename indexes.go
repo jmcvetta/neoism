@@ -273,3 +273,35 @@ func (ni *NodeIndex) Remove(n *Node, key, value string) error {
 	logPretty(req)
 	return BadResponse
 }
+
+// Find locates a node in the index by exact key/value match.
+func (ni *NodeIndex) Find(key, value string) ([]*Node, error) {
+	key = encodeSpaces(key)
+	value = encodeSpaces(value)
+	uri := join(ni.uri(), key, value)
+	ne := new(neoError)
+	nodes := []*Node{}
+	resp := []nodeResponse{}
+	req := restclient.RestRequest{
+		Url:    uri,
+		Method: restclient.GET,
+		Result: &resp,
+		Error:  ne,
+	}
+	status, err := ni.db.rc.Do(&req)
+	if err != nil {
+		logPretty(ne)
+		return nodes, err
+	}
+	if status != 200 {
+		logPretty(req)
+		return nodes, BadResponse
+	}
+	for _, r := range resp {
+		n := Node{}
+		n.db = ni.db
+		n.populate(&r)
+		nodes = append(nodes, &n)
+	}
+	return nodes, nil
+}
