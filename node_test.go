@@ -79,3 +79,14 @@ func TestGetNonexistentNode(t *testing.T) {
 	// Cleanup
 	n0.Delete()
 }
+
+// 18.4.5. Delete node
+func TestDeleteNode(t *testing.T) {
+	// Create then delete a node
+	n0, _ := db.Nodes.Create(emptyProps)
+	id := n0.Id()
+	n0.Delete()
+	// Check that node is no longer in db
+	_, err := db.Nodes.Get(id)
+	assert.Equal(t, err, NotFound)
+}
