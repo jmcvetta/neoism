@@ -21,8 +21,8 @@ var db *Database
 // Buckets of properties for convenient testing
 var (
 	emptyProps = Properties{}
-	kirk  = Properties{"name": "kirk"}
-	spock = Properties{"name": "spock"}
+	kirk       = Properties{"name": "kirk"}
+	spock      = Properties{"name": "spock"}
 )
 
 func init() {
@@ -41,66 +41,6 @@ func rndStr(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return name
-}
-
-// Tests API described in Neo4j Manual section 19.3. Nodes
-func TestNode(t *testing.T) {
-	//
-	// 19.3.1. Create Node
-	//
-	node0, err := db.Nodes.Create(emptyProps)
-	if err != nil {
-		t.Fatal(err)
-	}
-	//
-	// 19.3.2. Create Node with properties
-	//
-	node1, err := db.Nodes.Create(kirk)
-	if err != nil {
-		t.Fatal(err)
-	}
-	//
-	// 19.3.3. Get node
-	//
-	check, err := db.Nodes.Get(node0.Id())
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, node0.Id(), check.Id())
-	// Make sure we can also get a node created w/ properties
-	_, err = db.Nodes.Get(node1.Id())
-	if err != nil {
-		t.Fatal(err)
-	}
-	//
-	// 19.3.4. Get non-existent node
-	//
-	badId := node1.Id() + 1000000 // Probably does not exist yet
-	_, err = db.Nodes.Get(badId)
-	assert.Equal(t, NotFound, err)
-	//
-	// 19.3.5. Delete node
-	//
-	n0Id := node0.Id()
-	err = node0.Delete()
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = db.Nodes.Get(n0Id) // Make sure it's really gone
-	assert.Equal(t, NotFound, err)
-	//
-	// 19.3.6. Nodes with relationships can not be deleted
-	//
-	node2, err := db.Nodes.Create(emptyProps)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = node1.Relate("knows", node2.Id(), emptyProps)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = node1.Delete()
-	assert.Equal(t, CannotDelete, err)
 }
 
 // Tests API described in Neo4j Manual section 19.4. Relationships
