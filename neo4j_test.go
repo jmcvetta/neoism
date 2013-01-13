@@ -20,7 +20,7 @@ var db *Database
 
 // Buckets of properties for convenient testing
 var (
-	empty = Properties{}
+	emptyProps = Properties{}
 	kirk  = Properties{"name": "kirk"}
 	spock = Properties{"name": "spock"}
 )
@@ -48,7 +48,7 @@ func TestNode(t *testing.T) {
 	//
 	// 19.3.1. Create Node
 	//
-	node0, err := db.Nodes.Create(empty)
+	node0, err := db.Nodes.Create(emptyProps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,11 +91,11 @@ func TestNode(t *testing.T) {
 	//
 	// 19.3.6. Nodes with relationships can not be deleted
 	//
-	node2, err := db.Nodes.Create(empty)
+	node2, err := db.Nodes.Create(emptyProps)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = node1.Relate("knows", node2.Id(), empty)
+	_, err = node1.Relate("knows", node2.Id(), emptyProps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,9 +109,9 @@ func TestRelationships(t *testing.T) {
 	// 19.4.2. Create relationship
 	//
 	// This section must precede 19.4.1. in order to have an object in the DB for us to Get
-	node0, _ := db.Nodes.Create(empty)
-	node1, _ := db.Nodes.Create(empty)
-	rel0, err := node0.Relate("knows", node1.Id(), empty)
+	node0, _ := db.Nodes.Create(emptyProps)
+	node1, _ := db.Nodes.Create(emptyProps)
+	rel0, err := node0.Relate("knows", node1.Id(), emptyProps)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.6. Set all properties on a relationship
 	//
-	rel2, err := node0.Relate("knows", node1.Id(), empty)
+	rel2, err := node0.Relate("knows", node1.Id(), emptyProps)
 	err = rel2.SetProperties(kirk)
 	if err != nil {
 		t.Fatal(err)
@@ -180,7 +180,7 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.8. Set single property on a relationship
 	//
-	rel3, err := node0.Relate("likes", node1.Id(), empty)
+	rel3, err := node0.Relate("likes", node1.Id(), emptyProps)
 	err = rel3.SetProperty("name", "kirk")
 	if err != nil {
 		t.Fatal(err)
@@ -203,7 +203,7 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.10. Get incoming relationships
 	//
-	rel4, _ := node1.Relate("knows", node0.Id(), empty) // Attach an incoming rel
+	rel4, _ := node1.Relate("knows", node0.Id(), emptyProps) // Attach an incoming rel
 	rs, err = node0.Incoming()
 	if err != nil {
 		t.Fatal(err)
@@ -253,7 +253,7 @@ func TestRelationships(t *testing.T) {
 	//
 	// 19.4.13. Get relationships on a node without relationships
 	//
-	node3, _ := db.Nodes.Create(empty)
+	node3, _ := db.Nodes.Create(emptyProps)
 	rs, err = node3.Relationships()
 	if err != nil {
 		t.Fatal(err)
@@ -280,7 +280,7 @@ func TestNodeProperties(t *testing.T) {
 	//
 	// 19.6.1. Set property on node
 	//
-	node0, _ := db.Nodes.Create(empty)
+	node0, _ := db.Nodes.Create(emptyProps)
 	err := node0.SetProperty("name", "mccoy")
 	if err != nil {
 		t.Fatal(err)
@@ -317,7 +317,7 @@ func TestNodeProperties(t *testing.T) {
 		t.Fatal(err)
 	}
 	props, _ = node0.Properties()
-	assert.Equal(t, empty, props)
+	assert.Equal(t, emptyProps, props)
 	//
 	// 19.6.7. Delete a named property from a node
 	//
