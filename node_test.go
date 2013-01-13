@@ -90,3 +90,18 @@ func TestDeleteNode(t *testing.T) {
 	_, err := db.Nodes.Get(id)
 	assert.Equal(t, err, NotFound)
 }
+
+// 18.4.6. Nodes with relationships can not be deleted
+func TestDeleteNodeWithRelationships(t *testing.T) {
+	// Create 
+	n0, _ := db.Nodes.Create(emptyProps)
+	n1, _ := db.Nodes.Create(emptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	// Attempt to delete node without deleting relationship
+	err := n0.Delete()
+	assert.Equalf(t, err, CannotDelete, "Should not be possible to delete node with relationship.")
+	// Cleanup
+	r0.Delete()
+	n0.Delete()
+	n1.Delete()
+}
