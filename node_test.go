@@ -52,3 +52,18 @@ func TestCreateNodeWithProperties(t *testing.T) {
 	// Cleanup
 	n0.Delete()
 }
+
+// 18.4.3. Get node
+func TestGetNode(t *testing.T) {
+	// Create
+	n0, _ := db.Nodes.Create(emptyProps)
+	// Get Node
+	n1, err := db.Nodes.Get(n0.Id())
+	if err != nil {
+		t.Error(err)
+	}
+	// Confirm nodes are the same
+	assert.Equalf(t, n0.Id(), n1.Id(), "Nodes do not have same ID")
+	// Cleanup
+	n0.Delete()
+}
