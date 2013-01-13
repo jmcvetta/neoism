@@ -67,3 +67,15 @@ func TestGetNode(t *testing.T) {
 	// Cleanup
 	n0.Delete()
 }
+
+// 18.4.4. Get non-existent node
+func TestGetNonexistentNode(t *testing.T) {
+	// Create a node
+	n0, _ := db.Nodes.Create(emptyProps)
+	// Try to get non-existent node with next Id
+	implausible := n0.Id() + 1000
+	_, err := db.Nodes.Get(implausible)
+	assert.Equal(t, err, NotFound)
+	// Cleanup
+	n0.Delete()
+}
