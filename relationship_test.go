@@ -62,12 +62,8 @@ func TestCreateRelationshipWithProperties(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	// Confirm relationship was created with specified properties.  No need to
-	// check success of creation itself, as that is handled by TestCreateRelationship().
-	props1, err := r0.Properties()
-	if err != nil {
-		t.Error(err)
-	}
+	// Confirm relationship was created with specified properties.
+	props1, _ := r0.Properties()
 	assert.Equalf(t, props0, props1, "Properties queried from relationship do not match properties it was created with.")
 	// Cleanup
 	r0.Delete()
@@ -89,6 +85,26 @@ func TestDeleteRelationship(t *testing.T) {
 	_, err = db.Relationships.Get(r0.Id())
 	assert.Equalf(t, err, NotFound, "Should not be able to Get() a deleted relationship.")
 	// Cleanup
+	n0.Delete()
+	n1.Delete()
+}
+
+// 18.5.5. Get all properties on a relationship
+func TestGetAllPropertiesOnRelationship(t *testing.T) {
+	// Create
+	props0 := Properties{"foo": "bar", "spam": "eggs"}
+	n0, _ := db.Nodes.Create(emptyProps)
+	n1, _ := db.Nodes.Create(emptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), props0)
+	// Confirm relationship was created with specified properties.  No need to
+	// check success of creation itself, as that is handled by TestCreateRelationship().
+	props1, err := r0.Properties()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, props0, props1, "Properties queried from relationship do not match properties it was created with.")
+	// Cleanup
+	r0.Delete()
 	n0.Delete()
 	n1.Delete()
 }
