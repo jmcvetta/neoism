@@ -166,9 +166,27 @@ func TestSetSinglePropertyOnRelationship(t *testing.T) {
 }
 
 // 18.5.9. Get all relationships
-
-
-
-
-
-
+func TestGetAllRelationships(t *testing.T) {
+	// Create
+	n0, _ := db.Nodes.Create(emptyProps)
+	n1, _ := db.Nodes.Create(emptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), emptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	// Check relationships
+	rels, err := n0.Relationships()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, len(rels), 3, "Wrong number of relationships")
+	for _, r := range []*Relationship{r0, r1, r2} {
+		_, present := rels[r.Id()]
+		assert.Tf(t, present, "Missing expected relationship")
+	}
+	// Cleanup
+	r0.Delete()
+	r1.Delete()
+	r2.Delete()
+	n0.Delete()
+	n1.Delete()
+}
