@@ -136,7 +136,7 @@ func TestGetSinglePropertyOnRelationship(t *testing.T) {
 	n1, _ := db.Nodes.Create(emptyProps)
 	r0, _ := n0.Relate("knows", n1.Id(), props)
 	// Get property
-	value, err := r0.GetProperty("foo")
+	value, err := r0.Property("foo")
 	if err != nil {
 		t.Error(err)
 	}
@@ -148,7 +148,7 @@ func TestGetSinglePropertyOnRelationship(t *testing.T) {
 }
 
 // 18.5.8. Set single property on a relationship
-func SetSinglePropertyOnRelationship(t *testing.T) {
+func TestSetSinglePropertyOnRelationship(t *testing.T) {
 	// Create
 	n0, _ := db.Nodes.Create(emptyProps)
 	n1, _ := db.Nodes.Create(emptyProps)
@@ -164,3 +164,11 @@ func SetSinglePropertyOnRelationship(t *testing.T) {
 	n0.Delete()
 	n1.Delete()
 }
+
+// 18.5.9. Get all relationships
+
+
+
+
+
+

@@ -50,7 +50,7 @@ func (e *entity) SetProperty(key string, value string) error {
 }
 
 // GetProperty fetches the value of property key.
-func (e *entity) GetProperty(key string) (string, error) {
+func (e *entity) Property(key string) (string, error) {
 	var val string
 	if e.HrefProperties == "" {
 		return val, FeatureUnavailable
