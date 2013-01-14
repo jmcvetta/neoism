@@ -240,3 +240,37 @@ func TestGetOutgoingRelationships(t *testing.T) {
 	n0.Delete()
 	n1.Delete()
 }
+
+// 18.5.12. Get typed relationships
+func TestGetTypedRelationships(t *testing.T) {
+	// Create
+	relType0 := rndStr(t)
+	relType1 := rndStr(t)
+	n0, _ := db.Nodes.Create(emptyProps)
+	n1, _ := db.Nodes.Create(emptyProps)
+	r0, _ := n0.Relate(relType0, n1.Id(), emptyProps)
+	r1, _ := n0.Relate(relType1, n1.Id(), emptyProps)
+	// Check one type of relationship
+	rels, err := n0.Relationships(relType0)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, len(rels), 1, "Wrong number of relationships")
+	_, present := rels[r0.Id()]
+	assert.Tf(t, present, "Missing expected relationship")
+	// Check two types of relationship together
+	rels, err = n0.Relationships(relType0, relType1)
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, len(rels), 2, "Wrong number of relationships")
+	for _, r := range []*Relationship{r0, r1} {
+		_, present := rels[r.Id()]
+		assert.Tf(t, present, "Missing expected relationship")
+	}
+	// Cleanup
+	r0.Delete()
+	r1.Delete()
+	n0.Delete()
+	n1.Delete()
+}
