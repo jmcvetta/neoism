@@ -74,3 +74,21 @@ func TestCreateRelationshipWithProperties(t *testing.T) {
 	n0.Delete()
 	n1.Delete()
 }
+
+// 18.5.4. Delete relationship
+func TestDeleteRelationship(t *testing.T) {
+	// Create
+	n0, _ := db.Nodes.Create(emptyProps)
+	n1, _ := db.Nodes.Create(emptyProps)
+	r0, err := n0.Relate("knows", n1.Id(), emptyProps)
+	if err != nil {
+		t.Error(err)
+	}
+	// Delete and confirm
+	r0.Delete()
+	_, err = db.Relationships.Get(r0.Id())
+	assert.Equalf(t, err, NotFound, "Should not be able to Get() a deleted relationship.")
+	// Cleanup
+	n0.Delete()
+	n1.Delete()
+}
