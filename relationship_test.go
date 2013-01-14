@@ -190,3 +190,27 @@ func TestGetAllRelationships(t *testing.T) {
 	n0.Delete()
 	n1.Delete()
 }
+
+// 18.5.10. Get incoming relationships
+func TestGetIncomingRelationships(t *testing.T) {
+	// Create
+	n0, _ := db.Nodes.Create(emptyProps)
+	n1, _ := db.Nodes.Create(emptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), emptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	// Check relationships
+	rels, err := n0.Incoming()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, len(rels), 1, "Wrong number of relationships")
+	_, present := rels[r1.Id()]
+	assert.Tf(t, present, "Missing expected relationship")
+	// Cleanup
+	r0.Delete()
+	r1.Delete()
+	r2.Delete()
+	n0.Delete()
+	n1.Delete()
+}
