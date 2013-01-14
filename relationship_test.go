@@ -274,3 +274,13 @@ func TestGetTypedRelationships(t *testing.T) {
 	n0.Delete()
 	n1.Delete()
 }
+
+// 18.5.13. Get relationships on a node without relationships
+func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
+	n0, _ := db.Nodes.Create(emptyProps)
+	rels, err := n0.Relationships()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, len(rels), 0, "Node with no relationships should return empty slice of relationships")
+}
