@@ -9,6 +9,7 @@ package neo4j
 
 import (
 	"github.com/bmizerany/assert"
+	"sort"
 	"testing"
 )
 
@@ -283,4 +284,37 @@ func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equalf(t, len(rels), 0, "Node with no relationships should return empty slice of relationships")
+}
+
+// 18.6.1. Get relationship types
+func TestGetRelationshipTypes(t *testing.T) {
+	relTypes := []string{}
+	for i := 0; i < 10; i++ {
+		relTypes = append(relTypes, rndStr(t))
+	}
+	// Create relationships
+	n0, _ := db.Nodes.Create(emptyProps)
+	n1, _ := db.Nodes.Create(emptyProps)
+	rels := []*Relationship{}
+	for _, rt := range relTypes {
+		aRel, _ := n0.Relate(rt, n1.Id(), emptyProps)
+		rels = append(rels, aRel)
+	}
+	// Get all relationship types, and confirm the list of types contains at least
+	// all those randomly-generated values in relTypes.  It cannot be guaranteed
+	// that the database will not contain other relationship types beyond these.
+	foundRelTypes, err := db.Relationships.Types()
+	if err != nil {
+		t.Error(err)
+	}
+	for _, rt := range relTypes {
+		assert.Tf(t, sort.SearchStrings(foundRelTypes, rt) < len(foundRelTypes),
+			"Could not find expected relationship type: "+rt)
+	}
+	// Cleanup
+	for _, r := range rels {
+		r.Delete()
+	}
+	n0.Delete()
+	n1.Delete()
 }
