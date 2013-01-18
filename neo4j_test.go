@@ -11,7 +11,6 @@ import (
 	"github.com/bmizerany/assert"
 	"github.com/jmcvetta/randutil"
 	"log"
-	"sort"
 	"testing"
 )
 
@@ -41,20 +40,6 @@ func rndStr(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return name
-}
-
-// Tests API described in Neo4j Manual section 19.5. Relationship types
-func TestRelationshipTypes(t *testing.T) {
-	//
-	// 19.5.1. Get relationship types
-	//
-	reltypes, err := db.Relationships.Types()
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected := []string{"likes", "knows"}
-	sort.Sort(sort.StringSlice(expected))
-	assert.Equal(t, expected, reltypes)
 }
 
 // Tests API described in Neo4j Manual section 19.6. Node properties
