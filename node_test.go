@@ -105,3 +105,22 @@ func TestDeleteNodeWithRelationships(t *testing.T) {
 	n0.Delete()
 	n1.Delete()
 }
+
+// 18.7.1. Set property on node
+func TestSetPropertyOnNode(t *testing.T) {
+	// Create
+	n0, _ := db.Nodes.Create(emptyProps)
+	key := rndStr(t)
+	value := rndStr(t)
+	err := n0.SetProperty(key, value)
+	if err != nil {
+		t.Error(err)
+	}
+	// Confirm
+	props, _ := n0.Properties()
+	checkVal, present := props[key]
+	assert.Tf(t, present, "Expected property key not found")
+	assert.Tf(t, checkVal == value, "Expected property value not found")
+	// Cleanup
+	n0.Delete()
+}
