@@ -11,23 +11,36 @@ import (
 // An entity is an object - either a Node or a Relationship - in a Neo4j graph
 // database.  An entity may optinally be assigned an arbitrary set of key:value
 // properties.
-type entity struct {
-	db             *Database
+type entity interface {
+	// HrefProperty()   string
+	// HrefProperties() string
+	// HrefSelf()       string
+	SetProperty(key string, value string) error
+	GetProperty(key string) (string, error)
+	DeleteProperty(key string) error
+	Delete() error
+	Properties() (Properties, error)
+	SetProperties(p Properties) error
+	DeleteProperties() error
+}
+
+type baseEntity struct {
 	HrefProperty   string
 	HrefProperties string
 	HrefSelf       string
+	db             *Database
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
-func (e *entity) do(rr *restclient.RestRequest) (status int, err error) {
+func (e *baseEntity) do(rr *restclient.RestRequest) (status int, err error) {
 	return e.db.rc.Do(rr)
 }
 
-// Properties is a bag of key/value pairs that describe an entity.
+// Properties is a bag of key/value pairs that describe an baseEntity.
 type Properties map[string]string
 
 // SetProperty sets the single property key to value.
-func (e *entity) SetProperty(key string, value string) error {
+func (e *baseEntity) SetProperty(key string, value string) error {
 	if e.HrefProperties == "" {
 		return FeatureUnavailable
 	}
@@ -50,7 +63,7 @@ func (e *entity) SetProperty(key string, value string) error {
 }
 
 // GetProperty fetches the value of property key.
-func (e *entity) Property(key string) (string, error) {
+func (e *baseEntity) Property(key string) (string, error) {
 	var val string
 	if e.HrefProperties == "" {
 		return val, FeatureUnavailable
@@ -79,7 +92,7 @@ func (e *entity) Property(key string) (string, error) {
 }
 
 // DeleteProperty deletes property key
-func (e *entity) DeleteProperty(key string) error {
+func (e *baseEntity) DeleteProperty(key string) error {
 	if e.HrefProperties == "" {
 		return FeatureUnavailable
 	}
@@ -107,7 +120,7 @@ func (e *entity) DeleteProperty(key string) error {
 }
 
 // Delete removes the object from the DB.
-func (e *entity) Delete() error {
+func (e *baseEntity) Delete() error {
 	if e.HrefSelf == "" {
 		return FeatureUnavailable
 	}
@@ -133,7 +146,7 @@ func (e *entity) Delete() error {
 }
 
 // Properties fetches all properties
-func (e *entity) Properties() (Properties, error) {
+func (e *baseEntity) Properties() (Properties, error) {
 	props := make(map[string]string)
 	if e.HrefProperties == "" {
 		return props, FeatureUnavailable
@@ -158,7 +171,7 @@ func (e *entity) Properties() (Properties, error) {
 }
 
 // SetProperties updates all properties, overwriting any existing properties.
-func (e *entity) SetProperties(p Properties) error {
+func (e *baseEntity) SetProperties(p Properties) error {
 	if e.HrefProperties == "" {
 		return FeatureUnavailable
 	}
@@ -182,7 +195,7 @@ func (e *entity) SetProperties(p Properties) error {
 }
 
 // DeleteProperties deletes all properties.
-func (e *entity) DeleteProperties() error {
+func (e *baseEntity) DeleteProperties() error {
 	if e.HrefProperties == "" {
 		return FeatureUnavailable
 	}

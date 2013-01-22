@@ -118,7 +118,7 @@ func (n *Node) populate(r *nodeResponse) {
 
 // A node in a Neo4j database
 type Node struct {
-	entity
+	baseEntity
 	HrefOutgoingRels      string
 	HrefTraverse          string
 	HrefAllTypedRels      string
