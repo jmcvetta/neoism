@@ -10,7 +10,6 @@ package neo4j
 import (
 	"github.com/bmizerany/assert"
 	"log"
-	"sort"
 	"strconv"
 	"testing"
 )
@@ -188,6 +187,7 @@ func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
 
 // 18.9.9. Find node by exact match
 func TestFindNodeByExactMatch(t *testing.T) {
+	// Create
 	idxName := rndStr(t)
 	key0 := rndStr(t)
 	key1 := rndStr(t)
@@ -210,19 +210,16 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	}
 	// This query should have returned a slice containing just two nodes, n1 and n0.
 	assert.Equal(t, len(nodes), 2)
-	nodeIds := []int{}
+	// Process nodes into a map for easy examination
+	nodeIds := map[int]bool{}
 	for _, aNode := range nodes {
-		nodeIds = append(nodeIds, aNode.Id())
+		nodeIds[aNode.Id()] = true
 	}
-	assert.Tf(t, sort.SearchInts(nodeIds, n0.Id()) < len(nodeIds),
-		"Find() failed to return node with id "+strconv.Itoa(n0.Id()))
-	assert.Tf(t, sort.SearchInts(nodeIds, n1.Id()) < len(nodeIds),
-		"Find() failed to return node with id "+strconv.Itoa(n1.Id()))
-	//
-	// TODO: Test that n0 and n1 are members of nodes
-	//
+	_, present := nodeIds[n0.Id()]
+	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n0.Id()))
+	_, present = nodeIds[n1.Id()]
+	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n1.Id()))
 	// Cleanup
-	//
 	n0.Delete()
 	n1.Delete()
 	n2.Delete()
