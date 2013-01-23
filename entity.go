@@ -39,6 +39,9 @@ func (e *baseEntity) do(rr *restclient.RestRequest) (status int, err error) {
 // Properties is a bag of key/value pairs that describe an baseEntity.
 type Properties map[string]string
 
+// EmptyProps is an empty Properties map.
+var EmptyProps = Properties{}
+
 // SetProperty sets the single property key to value.
 func (e *baseEntity) SetProperty(key string, value string) error {
 	if e.HrefProperties == "" {

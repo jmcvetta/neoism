@@ -117,7 +117,7 @@ func TestAddNodeToIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	err := idx0.Add(n0, key, value)
 	if err != nil {
 		t.Error(err)
@@ -135,7 +135,7 @@ func TestRemoveNodeFromIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	idx0.Add(n0, key, value)
 	err := idx0.Remove(n0, "", "")
 	if err != nil {
@@ -154,7 +154,7 @@ func TestRemoveNodeAndKeyFromIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	idx0.Add(n0, key, value)
 	err := idx0.Remove(n0, key, "")
 	if err != nil {
@@ -173,7 +173,7 @@ func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	idx0.Add(n0, key, value)
 	err := idx0.Remove(n0, key, "")
 	if err != nil {
@@ -194,9 +194,9 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	value0 := rndStr(t)
 	value1 := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(idxName)
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	n2, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	n2, _ := db.Nodes.Create(EmptyProps)
 	// These two will be located by Find() below
 	idx0.Add(n0, key0, value0)
 	idx0.Add(n1, key0, value0)

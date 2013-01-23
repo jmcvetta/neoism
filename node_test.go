@@ -18,7 +18,7 @@ import (
 // 18.4.1. Create Node
 func TestCreateNode(t *testing.T) {
 	// Create
-	n0, err := db.Nodes.Create(emptyProps)
+	n0, err := db.Nodes.Create(EmptyProps)
 	if err != nil {
 		t.Error(err)
 	}
@@ -56,7 +56,7 @@ func TestCreateNodeWithProperties(t *testing.T) {
 // 18.4.3. Get node
 func TestGetNode(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	// Get Node
 	n1, err := db.Nodes.Get(n0.Id())
 	if err != nil {
@@ -71,7 +71,7 @@ func TestGetNode(t *testing.T) {
 // 18.4.4. Get non-existent node
 func TestGetNonexistentNode(t *testing.T) {
 	// Create a node
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	// Try to get non-existent node with next Id
 	implausible := n0.Id() + 1000
 	_, err := db.Nodes.Get(implausible)
@@ -83,7 +83,7 @@ func TestGetNonexistentNode(t *testing.T) {
 // 18.4.5. Delete node
 func TestDeleteNode(t *testing.T) {
 	// Create then delete a node
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	id := n0.Id()
 	n0.Delete()
 	// Check that node is no longer in db
@@ -94,9 +94,9 @@ func TestDeleteNode(t *testing.T) {
 // 18.4.6. Nodes with relationships can not be deleted;
 func TestDeleteNodeWithRelationships(t *testing.T) {
 	// Create 
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	// Attempt to delete node without deleting relationship
 	err := n0.Delete()
 	assert.Equalf(t, err, CannotDelete, "Should not be possible to delete node with relationship.")
@@ -109,7 +109,7 @@ func TestDeleteNodeWithRelationships(t *testing.T) {
 // 18.7.1. Set property on node
 func TestSetPropertyOnNode(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	key := rndStr(t)
 	value := rndStr(t)
 	err := n0.SetProperty(key, value)
@@ -188,7 +188,7 @@ func TestDeleteAllPropertiesFromNode(t *testing.T) {
 	}
 	// Confirm deletion
 	checkProps, _ := n0.Properties()
-	assert.Equalf(t, emptyProps, checkProps, "Properties should be empty after call to DeleteProperties()")
+	assert.Equalf(t, EmptyProps, checkProps, "Properties should be empty after call to DeleteProperties()")
 	// Cleanup
 	n0.Delete()
 }

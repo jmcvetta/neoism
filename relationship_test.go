@@ -16,9 +16,9 @@ import (
 // 18.5.1. Get Relationship by ID
 func TestGetRelationshipById(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	// Get relationship
 	r1, err := db.Relationships.Get(r0.Id())
 	if err != nil {
@@ -34,9 +34,9 @@ func TestGetRelationshipById(t *testing.T) {
 // 18.5.2. Create relationship
 func TestCreateRelationship(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, err := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, err := n0.Relate("knows", n1.Id(), EmptyProps)
 	if err != nil {
 		t.Error(err)
 	}
@@ -57,8 +57,8 @@ func TestCreateRelationship(t *testing.T) {
 func TestCreateRelationshipWithProperties(t *testing.T) {
 	// Create
 	props0 := Properties{"foo": "bar", "spam": "eggs"}
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
 	r0, err := n0.Relate("knows", n1.Id(), props0)
 	if err != nil {
 		t.Error(err)
@@ -75,9 +75,9 @@ func TestCreateRelationshipWithProperties(t *testing.T) {
 // 18.5.4. Delete relationship
 func TestDeleteRelationship(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, err := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, err := n0.Relate("knows", n1.Id(), EmptyProps)
 	if err != nil {
 		t.Error(err)
 	}
@@ -94,8 +94,8 @@ func TestDeleteRelationship(t *testing.T) {
 func TestGetAllPropertiesOnRelationship(t *testing.T) {
 	// Create
 	props0 := Properties{"foo": "bar", "spam": "eggs"}
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
 	r0, _ := n0.Relate("knows", n1.Id(), props0)
 	// Confirm relationship was created with specified properties.  No need to
 	// check success of creation itself, as that is handled by TestCreateRelationship().
@@ -115,8 +115,8 @@ func TestSetAllPropertiesOnRelationship(t *testing.T) {
 	props0 := Properties{"foo": "bar"}
 	props1 := Properties{"spam": "eggs"}
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
 	r0, _ := n0.Relate("knows", n1.Id(), props0)
 	// Set all properties
 	r0.SetProperties(props1)
@@ -133,8 +133,8 @@ func TestSetAllPropertiesOnRelationship(t *testing.T) {
 func TestGetSinglePropertyOnRelationship(t *testing.T) {
 	// Create
 	props := Properties{"foo": "bar"}
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
 	r0, _ := n0.Relate("knows", n1.Id(), props)
 	// Get property
 	value, err := r0.Property("foo")
@@ -151,9 +151,9 @@ func TestGetSinglePropertyOnRelationship(t *testing.T) {
 // 18.5.8. Set single property on a relationship
 func TestSetSinglePropertyOnRelationship(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	// Set property
 	r0.SetProperty("foo", "bar")
 	// Confirm
@@ -169,11 +169,11 @@ func TestSetSinglePropertyOnRelationship(t *testing.T) {
 // 18.5.9. Get all relationships
 func TestGetAllRelationships(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
-	r1, _ := n1.Relate("knows", n0.Id(), emptyProps)
-	r2, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), EmptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	// Check relationships
 	rels, err := n0.Relationships()
 	if err != nil {
@@ -195,11 +195,11 @@ func TestGetAllRelationships(t *testing.T) {
 // 18.5.10. Get incoming relationships
 func TestGetIncomingRelationships(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
-	r1, _ := n1.Relate("knows", n0.Id(), emptyProps)
-	r2, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), EmptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	// Check relationships
 	rels, err := n0.Incoming()
 	if err != nil {
@@ -219,11 +219,11 @@ func TestGetIncomingRelationships(t *testing.T) {
 // 18.5.11. Get outgoing relationships
 func TestGetOutgoingRelationships(t *testing.T) {
 	// Create
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, _ := n0.Relate("knows", n1.Id(), emptyProps)
-	r1, _ := n1.Relate("knows", n0.Id(), emptyProps)
-	r2, _ := n0.Relate("knows", n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), EmptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	// Check relationships
 	rels, err := n0.Outgoing()
 	if err != nil {
@@ -247,10 +247,10 @@ func TestGetTypedRelationships(t *testing.T) {
 	// Create
 	relType0 := rndStr(t)
 	relType1 := rndStr(t)
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
-	r0, _ := n0.Relate(relType0, n1.Id(), emptyProps)
-	r1, _ := n0.Relate(relType1, n1.Id(), emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	r0, _ := n0.Relate(relType0, n1.Id(), EmptyProps)
+	r1, _ := n0.Relate(relType1, n1.Id(), EmptyProps)
 	// Check one type of relationship
 	rels, err := n0.Relationships(relType0)
 	if err != nil {
@@ -278,7 +278,7 @@ func TestGetTypedRelationships(t *testing.T) {
 
 // 18.5.13. Get relationships on a node without relationships
 func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
-	n0, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
 	rels, err := n0.Relationships()
 	if err != nil {
 		t.Error(err)
@@ -293,11 +293,11 @@ func TestGetRelationshipTypes(t *testing.T) {
 		relTypes = append(relTypes, rndStr(t))
 	}
 	// Create relationships
-	n0, _ := db.Nodes.Create(emptyProps)
-	n1, _ := db.Nodes.Create(emptyProps)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.Nodes.Create(EmptyProps)
 	rels := []*Relationship{}
 	for _, rt := range relTypes {
-		aRel, _ := n0.Relate(rt, n1.Id(), emptyProps)
+		aRel, _ := n0.Relate(rt, n1.Id(), EmptyProps)
 		rels = append(rels, aRel)
 	}
 	// Get all relationship types, and confirm the list of types contains at least
