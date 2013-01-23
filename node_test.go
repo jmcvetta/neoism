@@ -142,3 +142,18 @@ func TestUpdatePropertyOnNode(t *testing.T) {
 	// Cleanup
 	n0.Delete()
 }
+
+// 18.7.3. Get properties for node
+func TestGetPropertiesForNode(t *testing.T) {
+	// Create
+	props := Properties{rndStr(t): rndStr(t)}
+	n0, _ := db.Nodes.Create(props)
+	// Get properties & confirm
+	checkProps, err := n0.Properties()
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, props, checkProps, "Did not return expected properties.")
+	// Cleanup
+	n0.Delete()
+}
