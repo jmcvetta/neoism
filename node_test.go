@@ -165,3 +165,11 @@ func TestGetPropertiesForNode(t *testing.T) {
 // cannot be instantiated with a nil value.  If you try, the code will not compile.
 //
 
+//
+// 18.7.5. Property values can not be nested
+//
+// This section cannot be tested.  Properties is defined as map[string]string -
+// only strings may be used as values.  If you try to create a nested
+// Properties, the code will not compile.
+//
+
