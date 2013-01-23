@@ -157,3 +157,11 @@ func TestGetPropertiesForNode(t *testing.T) {
 	// Cleanup
 	n0.Delete()
 }
+
+//
+// 18.7.4. Property values can not be null
+//
+// This section cannot be tested.  Properties - which is a map[string]string -
+// cannot be instantiated with a nil value.  If you try, the code will not compile.
+//
+
