@@ -49,11 +49,10 @@ func Connect(uri string) (*Database, error) {
 	}
 	db.url = u
 	db.Nodes = &NodeManager{
-		db: db,
-		Indexes: &NodeIndexManager{
-			db: db,
-		},
+		db:      db,
+		Indexes: &NodeIndexManager{},
 	}
+	db.Nodes.Indexes.db = db
 	db.Relationships = &RelationshipManager{
 		db: db,
 	}
@@ -72,6 +71,9 @@ func Connect(uri string) (*Database, error) {
 	}
 	switch {
 	case status == 200 && db.info.Version != "":
+		// Set HrefIndex so the generic indexManager knows what URL to use when
+		// creating a NodeIndex.
+		db.Nodes.Indexes.HrefIndex = db.info.NodeIndex
 		return db, nil // Success!
 	case status == 404:
 		return db, InvalidDatabase

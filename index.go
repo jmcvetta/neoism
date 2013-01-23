@@ -9,34 +9,39 @@ import (
 	"strings"
 )
 
+type indexManager struct {
+	HrefIndex string
+	db        *Database
+}
+
 type NodeIndexManager struct {
-	db *Database
+	indexManager
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
-func (nim *NodeIndexManager) do(rr *restclient.RestRequest) (status int, err error) {
-	return nim.db.rc.Do(rr)
+func (im *indexManager) do(rr *restclient.RestRequest) (status int, err error) {
+	return im.db.rc.Do(rr)
 }
 
-// CreateIndex creates a new Index, with the name supplied, in the db.
-func (nim *NodeIndexManager) Create(name string) (*NodeIndex, error) {
+// CreateIndex creates a new Index with the supplied name.
+func (im *indexManager) Create(name string) (*index, error) {
 	type s struct {
 		Name string `json:"name"`
 	}
 	data := s{Name: name}
-	res := new(nodeIndexResponse)
+	res := new(indexResponse)
 	ne := new(neoError)
-	idx := new(NodeIndex)
-	idx.db = nim.db
+	idx := new(index)
+	idx.db = im.db
 	idx.Name = name
 	rr := restclient.RestRequest{
-		Url:    nim.db.info.NodeIndex,
+		Url:    im.HrefIndex,
 		Method: restclient.POST,
 		Data:   &data,
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := nim.do(&rr)
+	status, err := im.do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return idx, err
@@ -46,12 +51,14 @@ func (nim *NodeIndexManager) Create(name string) (*NodeIndex, error) {
 		return idx, BadResponse
 	}
 	idx.populate(res)
+	idx.HrefIndex = im.HrefIndex
 	return idx, nil
 }
 
-func (nim *NodeIndexManager) CreateWithConf(name, indexType, provider string) (*NodeIndex, error) {
-	idx := new(NodeIndex)
-	idx.db = nim.db
+// CreateIndexWithConf creates a new Index with the supplied name and configuration.
+func (im *indexManager) CreateWithConf(name, indexType, provider string) (*index, error) {
+	idx := new(index)
+	idx.db = im.db
 	idx.Name = name
 	type conf struct {
 		Type     string `json:"type"`
@@ -68,16 +75,16 @@ func (nim *NodeIndexManager) CreateWithConf(name, indexType, provider string) (*
 			Provider: provider,
 		},
 	}
-	res := new(nodeIndexResponse)
+	res := new(indexResponse)
 	ne := new(neoError)
 	rr := restclient.RestRequest{
-		Url:    nim.db.info.NodeIndex,
+		Url:    im.HrefIndex,
 		Method: restclient.POST,
 		Data:   &data,
 		Result: res,
 		Error:  ne,
 	}
-	status, err := nim.do(&rr)
+	status, err := im.do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return idx, err
@@ -87,20 +94,21 @@ func (nim *NodeIndexManager) CreateWithConf(name, indexType, provider string) (*
 		return idx, BadResponse
 	}
 	idx.populate(res)
+	idx.HrefIndex = im.HrefIndex
 	return idx, nil
 }
 
-func (nim *NodeIndexManager) All() ([]*NodeIndex, error) {
-	res := map[string]nodeIndexResponse{}
-	nis := []*NodeIndex{}
+func (im *indexManager) All() ([]*index, error) {
+	res := map[string]indexResponse{}
+	nis := []*index{}
 	ne := new(neoError)
 	req := restclient.RestRequest{
-		Url:    nim.db.info.NodeIndex,
+		Url:    im.HrefIndex,
 		Method: restclient.GET,
 		Result: &res,
 		Error:  ne,
 	}
-	status, err := nim.do(&req)
+	status, err := im.do(&req)
 	if err != nil {
 		logPretty(ne)
 		return nis, err
@@ -110,8 +118,8 @@ func (nim *NodeIndexManager) All() ([]*NodeIndex, error) {
 		return nis, BadResponse
 	}
 	for name, r := range res {
-		n := NodeIndex{}
-		n.db = nim.db
+		n := index{}
+		n.db = im.db
 		n.Name = name
 		n.populate(&r)
 		nis = append(nis, &n)
@@ -119,11 +127,11 @@ func (nim *NodeIndexManager) All() ([]*NodeIndex, error) {
 	return nis, nil
 }
 
-func (nim *NodeIndexManager) Get(name string) (*NodeIndex, error) {
-	ni := new(NodeIndex)
+func (im *indexManager) Get(name string) (*index, error) {
+	ni := new(index)
 	ni.Name = name
 	name = encodeSpaces(name)
-	baseUri := nim.db.info.NodeIndex
+	baseUri := im.HrefIndex
 	if baseUri == "" {
 		return ni, FeatureUnavailable
 	}
@@ -134,7 +142,7 @@ func (nim *NodeIndexManager) Get(name string) (*NodeIndex, error) {
 		Method: restclient.GET,
 		Error:  ne,
 	}
-	status, err := nim.do(&req)
+	status, err := im.do(&req)
 	if err != nil {
 		logPretty(ne)
 		return ni, err
@@ -150,14 +158,14 @@ func (nim *NodeIndexManager) Get(name string) (*NodeIndex, error) {
 	return ni, BadResponse
 }
 
-type nodeIndexResponse struct {
+type indexResponse struct {
 	HrefTemplate string `json:"template"`
 	Provider     string `json:"provider"`      // Not always populated by server
 	IndexType    string `json:"type"`          // Not always populated by server
 	LowerCase    string `json:"to_lower_case"` // Not always populated by server
 }
 
-func (ni *NodeIndex) populate(res *nodeIndexResponse) {
+func (ni *index) populate(res *indexResponse) {
 	ni.HrefTemplate = res.HrefTemplate
 	ni.Provider = res.Provider
 	ni.IndexType = res.IndexType
@@ -168,13 +176,18 @@ func (ni *NodeIndex) populate(res *nodeIndexResponse) {
 	}
 }
 
-type NodeIndex struct {
+type index struct {
 	db            *Database
 	Name          string
 	HrefTemplate  string
 	Provider      string
 	IndexType     string
 	CaseSensitive bool
+	HrefIndex     string
+}
+
+type NodeIndex struct {
+	index
 }
 
 // encodeSpaces encodes spaces in a string as %20.
@@ -183,13 +196,13 @@ func encodeSpaces(s string) string {
 }
 
 // uri returns the URI for this Index.
-func (ni *NodeIndex) uri() string {
+func (ni *index) uri() string {
 	name := encodeSpaces(ni.Name)
-	return join(ni.db.info.NodeIndex, name)
+	return join(ni.HrefIndex, name)
 }
 
-// Delete removes a NodeIndex from the database.
-func (ni *NodeIndex) Delete() error {
+// Delete removes a index from the database.
+func (ni *index) Delete() error {
 	uri := ni.uri()
 	ne := new(neoError)
 	req := restclient.RestRequest{
@@ -199,7 +212,7 @@ func (ni *NodeIndex) Delete() error {
 	}
 	status, err := ni.db.rc.Do(&req)
 	if err != nil {
-		logPretty(ne)
+		logPretty(req)
 		return err
 	}
 	if status == 204 {
@@ -211,7 +224,7 @@ func (ni *NodeIndex) Delete() error {
 }
 
 // Add associates a Node with the given key/value pair in the given index.
-func (ni *NodeIndex) Add(n *Node, key, value string) error {
+func (ni *index) Add(n *Node, key, value string) error {
 	uri := ni.uri()
 	ne := new(neoError)
 	type s struct {
@@ -245,7 +258,7 @@ func (ni *NodeIndex) Add(n *Node, key, value string) error {
 
 // Remove removes all entries with a given node, key and value from an index. 
 // If value or both key and value are the blank string, they are ignored.
-func (ni *NodeIndex) Remove(n *Node, key, value string) error {
+func (ni *index) Remove(n *Node, key, value string) error {
 	uri := ni.uri()
 	// Since join() ignores fragments that are empty strings, joining an empty
 	// value with a non-empty key produces a valid URL.  But joining a non-empty
@@ -275,7 +288,7 @@ func (ni *NodeIndex) Remove(n *Node, key, value string) error {
 }
 
 // Find locates a node in the index by exact key/value match.
-func (ni *NodeIndex) Find(key, value string) ([]*Node, error) {
+func (ni *index) Find(key, value string) ([]*Node, error) {
 	key = encodeSpaces(key)
 	value = encodeSpaces(value)
 	uri := join(ni.uri(), key, value)
