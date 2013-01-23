@@ -173,3 +173,20 @@ func TestGetPropertiesForNode(t *testing.T) {
 // Properties, the code will not compile.
 //
 
+// 18.7.6. Delete all properties from node
+func TestDeleteAllPropertiesFromNode(t *testing.T) {
+	// Create
+	props := Properties{
+		rndStr(t): rndStr(t),
+		rndStr(t): rndStr(t),
+	}
+	n0, _ := db.Nodes.Create(props)
+	// Delete properties
+	err := n0.DeleteProperties()
+	if err != nil {
+		t.Error(err)
+	}
+	// Confirm deletion
+	checkProps, _ := n0.Properties()
+	assert.Equalf(t, emptyProps, checkProps, "Properties should be empty after call to DeleteProperties()")
+}
