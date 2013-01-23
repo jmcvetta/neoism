@@ -189,4 +189,24 @@ func TestDeleteAllPropertiesFromNode(t *testing.T) {
 	// Confirm deletion
 	checkProps, _ := n0.Properties()
 	assert.Equalf(t, emptyProps, checkProps, "Properties should be empty after call to DeleteProperties()")
+	// Cleanup
+	n0.Delete()
+}
+
+// 18.7.7. Delete a named property from a node
+func TestDeleteNamedPropertyFromNode(t *testing.T) {
+	// Create
+	props0 := Properties{"foo": "bar"}
+	props1 := Properties{"foo": "bar", "spam": "eggs"}
+	n0, _ := db.Nodes.Create(props1)
+	// Delete
+	err := n0.DeleteProperty("spam")
+	if err != nil {
+		t.Error(err)
+	}
+	// Confirm
+	checkProps, _ := n0.Properties()
+	assert.Equalf(t, props0, checkProps, "Failed to remove named property with DeleteProperty().")
+	// Cleanup
+	n0.Delete()
 }
