@@ -5,8 +5,8 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
+	"net/url"
 	"strconv"
-	"strings"
 )
 
 type indexManager struct {
@@ -132,41 +132,49 @@ func (im *indexManager) All() ([]*index, error) {
 }
 
 func (im *indexManager) Get(name string) (*index, error) {
-	ni := new(index)
-	ni.Name = name
-	name = encodeSpaces(name)
+	idx := new(index)
+	resp := new(indexResponse)
+	idx.Name = name
 	baseUri := im.HrefIndex
 	if baseUri == "" {
-		return ni, FeatureUnavailable
+		return idx, FeatureUnavailable
 	}
-	uri := join(baseUri, name)
+	rawurl := join(baseUri, name)
+	u, err := url.ParseRequestURI(rawurl)
+	if err != nil {
+		return idx, err
+	}
 	ne := new(neoError)
 	req := restclient.RestRequest{
-		Url:    uri,
+		Url:    u.String(),
 		Method: restclient.GET,
 		Error:  ne,
 	}
 	status, err := im.do(&req)
 	if err != nil {
-		logPretty(ne)
-		return ni, err
+		logPretty(req)
+		return idx, err
 	}
 	switch status {
 	// Success!
 	case 200:
-		return ni, nil
+		idx.populate(resp)
+		return idx, nil
 	case 404:
-		return ni, NotFound
+		return idx, NotFound
 	}
 	logPretty(ne)
-	return ni, BadResponse
+	return idx, BadResponse
 }
 
-type indexResponse struct {
-	HrefTemplate string `json:"template"`
-	Provider     string `json:"provider"`      // Not always populated by server
-	IndexType    string `json:"type"`          // Not always populated by server
-	LowerCase    string `json:"to_lower_case"` // Not always populated by server
+type index struct {
+	db            *Database
+	Name          string
+	HrefTemplate  string
+	Provider      string
+	IndexType     string
+	CaseSensitive bool
+	HrefIndex     string
 }
 
 func (ni *index) populate(res *indexResponse) {
@@ -180,14 +188,11 @@ func (ni *index) populate(res *indexResponse) {
 	}
 }
 
-type index struct {
-	db            *Database
-	Name          string
-	HrefTemplate  string
-	Provider      string
-	IndexType     string
-	CaseSensitive bool
-	HrefIndex     string
+type indexResponse struct {
+	HrefTemplate string `json:"template"`
+	Provider     string `json:"provider"`      // Not always populated by server
+	IndexType    string `json:"type"`          // Not always populated by server
+	LowerCase    string `json:"to_lower_case"` // Not always populated by server
 }
 
 // A NodeIndex is an index for searching Nodes.
@@ -200,27 +205,26 @@ type RelationshipIndex struct {
 	index
 }
 
-// encodeSpaces encodes spaces in a string as %20.
-func encodeSpaces(s string) string {
-	return strings.Replace(s, " ", "%20", -1)
-}
-
 // uri returns the URI for this Index.
-func (ni *index) uri() string {
-	name := encodeSpaces(ni.Name)
-	return join(ni.HrefIndex, name)
+func (idx *index) uri() (string, error) {
+	s := join(idx.HrefIndex, idx.Name)
+	u, err := url.ParseRequestURI(s)
+	return u.String(), err
 }
 
 // Delete removes a index from the database.
-func (ni *index) Delete() error {
-	uri := ni.uri()
+func (idx *index) Delete() error {
+	uri, err := idx.uri()
+	if err != nil {
+		return err
+	}
 	ne := new(neoError)
 	req := restclient.RestRequest{
 		Url:    uri,
 		Method: restclient.DELETE,
 		Error:  ne,
 	}
-	status, err := ni.db.rc.Do(&req)
+	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(req)
 		return err
@@ -234,8 +238,11 @@ func (ni *index) Delete() error {
 }
 
 // Add associates a Node with the given key/value pair in the given index.
-func (ni *index) Add(n *Node, key, value string) error {
-	uri := ni.uri()
+func (idx *index) Add(n *Node, key, value string) error {
+	uri, err := idx.uri()
+	if err != nil {
+		return err
+	}
 	ne := new(neoError)
 	type s struct {
 		Uri   string `json:"uri"`
@@ -253,7 +260,7 @@ func (ni *index) Add(n *Node, key, value string) error {
 		Data:   data,
 		Error:  ne,
 	}
-	status, err := ni.db.rc.Do(&req)
+	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -268,8 +275,11 @@ func (ni *index) Add(n *Node, key, value string) error {
 
 // Remove removes all entries with a given node, key and value from an index. 
 // If value or both key and value are the blank string, they are ignored.
-func (ni *index) Remove(n *Node, key, value string) error {
-	uri := ni.uri()
+func (idx *index) Remove(n *Node, key, value string) error {
+	uri, err := idx.uri()
+	if err != nil {
+		return err
+	}
 	// Since join() ignores fragments that are empty strings, joining an empty
 	// value with a non-empty key produces a valid URL.  But joining a non-empty
 	// value with an empty key would produce an invalid URL wherein they value is
@@ -284,7 +294,7 @@ func (ni *index) Remove(n *Node, key, value string) error {
 		Method: restclient.DELETE,
 		Error:  ne,
 	}
-	status, err := ni.db.rc.Do(&req)
+	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -298,20 +308,26 @@ func (ni *index) Remove(n *Node, key, value string) error {
 }
 
 // Find locates a node in the index by exact key/value match.
-func (ni *index) Find(key, value string) ([]*Node, error) {
-	key = encodeSpaces(key)
-	value = encodeSpaces(value)
-	uri := join(ni.uri(), key, value)
-	ne := new(neoError)
+func (idx *index) Find(key, value string) ([]*Node, error) {
 	nodes := []*Node{}
+	rawurl, err := idx.uri()
+	if err != nil {
+		return nodes, err
+	}
+	rawurl = join(rawurl, key, value)
+	u, err := url.ParseRequestURI(rawurl)
+	if err != nil {
+		return nodes, err
+	}
+	ne := new(neoError)
 	resp := []nodeResponse{}
 	req := restclient.RestRequest{
-		Url:    uri,
+		Url:    u.String(),
 		Method: restclient.GET,
 		Result: &resp,
 		Error:  ne,
 	}
-	status, err := ni.db.rc.Do(&req)
+	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return nodes, err
@@ -322,7 +338,7 @@ func (ni *index) Find(key, value string) ([]*Node, error) {
 	}
 	for _, r := range resp {
 		n := Node{}
-		n.db = ni.db
+		n.db = idx.db
 		n.populate(&r)
 		nodes = append(nodes, &n)
 	}
