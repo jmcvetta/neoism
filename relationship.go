@@ -11,7 +11,8 @@ import (
 )
 
 type RelationshipManager struct {
-	db *Database
+	db      *Database
+	Indexes *RelationshipIndexManager
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.

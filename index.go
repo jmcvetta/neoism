@@ -18,6 +18,10 @@ type NodeIndexManager struct {
 	indexManager
 }
 
+type RelationshipIndexManager struct {
+	indexManager
+}
+
 // do is a convenience wrapper around the embedded restclient's Do() method.
 func (im *indexManager) do(rr *restclient.RestRequest) (status int, err error) {
 	return im.db.rc.Do(rr)
@@ -186,7 +190,13 @@ type index struct {
 	HrefIndex     string
 }
 
+// A NodeIndex is an index for searching Nodes.
 type NodeIndex struct {
+	index
+}
+
+// A RelationshipIndex is an index for searching Relationships.
+type RelationshipIndex struct {
 	index
 }
 

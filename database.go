@@ -54,7 +54,8 @@ func Connect(uri string) (*Database, error) {
 	}
 	db.Nodes.Indexes.db = db
 	db.Relationships = &RelationshipManager{
-		db: db,
+		db:      db,
+		Indexes: &RelationshipIndexManager{},
 	}
 	r := restclient.RestRequest{
 		Url:    u.String(),
@@ -74,6 +75,7 @@ func Connect(uri string) (*Database, error) {
 		// Set HrefIndex so the generic indexManager knows what URL to use when
 		// creating a NodeIndex.
 		db.Nodes.Indexes.HrefIndex = db.info.NodeIndex
+		db.Relationships.Indexes.HrefIndex = db.info.RelIndex
 		return db, nil // Success!
 	case status == 404:
 		return db, InvalidDatabase
