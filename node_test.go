@@ -91,7 +91,7 @@ func TestDeleteNode(t *testing.T) {
 	assert.Equal(t, err, NotFound)
 }
 
-// 18.4.6. Nodes with relationships can not be deleted
+// 18.4.6. Nodes with relationships can not be deleted;
 func TestDeleteNodeWithRelationships(t *testing.T) {
 	// Create 
 	n0, _ := db.Nodes.Create(emptyProps)
@@ -121,6 +121,24 @@ func TestSetPropertyOnNode(t *testing.T) {
 	checkVal, present := props[key]
 	assert.Tf(t, present, "Expected property key not found")
 	assert.Tf(t, checkVal == value, "Expected property value not found")
+	// Cleanup
+	n0.Delete()
+}
+
+// 18.7.2. Update node properties
+func TestUpdatePropertyOnNode(t *testing.T) {
+	// Create
+	props0 := Properties{rndStr(t): rndStr(t)}
+	props1 := Properties{rndStr(t): rndStr(t)}
+	n0, _ := db.Nodes.Create(props0)
+	// Update
+	err := n0.SetProperties(props1)
+	if err != nil {
+		t.Error(err)
+	}
+	// Confirm
+	checkProps, _ := n0.Properties()
+	assert.Equalf(t, props1, checkProps, "Did not recover expected properties after updating with SetProperties().")
 	// Cleanup
 	n0.Delete()
 }
