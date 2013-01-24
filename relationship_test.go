@@ -284,6 +284,8 @@ func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equalf(t, len(rels), 0, "Node with no relationships should return empty slice of relationships")
+	// Cleanup
+	n0.Delete()
 }
 
 // 18.6.1. Get relationship types
