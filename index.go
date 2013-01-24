@@ -307,7 +307,7 @@ func (idx *index) Remove(n *Node, key, value string) error {
 	return BadResponse
 }
 
-// Find locates a node in the index by exact key/value match.
+// Find locates Nodes in the index by exact key/value match.
 func (idx *index) Find(key, value string) ([]*Node, error) {
 	nodes := []*Node{}
 	rawurl, err := idx.uri()
@@ -346,7 +346,7 @@ func (idx *index) Find(key, value string) ([]*Node, error) {
 }
 
 
-// Query locates a nobe by query, in the query language appropriate for a given Index.
+// Query locatess Nodes by query, in the query language appropriate for a given Index.
 func (idx *index) Query(query string) ([]*Node, error) {
 	nodes := []*Node{}
 	rawurl, err := idx.uri()
