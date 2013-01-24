@@ -344,3 +344,35 @@ func (idx *index) Find(key, value string) ([]*Node, error) {
 	}
 	return nodes, nil
 }
+
+
+// Query locates a nobe by query, in the query language appropriate for a given Index.
+func (idx *index) Query(query string) ([]*Node, error) {
+	nodes := []*Node{}
+	rawurl, err := idx.uri()
+	if err != nil {
+		return nodes, err
+	}
+	v := new(url.Values)
+	v.Add("query", query)
+	rawurl += "?" + v.Encode()
+	u, err := url.ParseRequestURI(rawurl)
+	if err != nil {
+		return nodes, err
+	}
+	result := []nodeResponse{}
+	req := restclient.RestRequest{
+		Url: u.String(),
+		Method: restclient.GET,
+		Result: result,
+	}
+	status, err := idx.db.rc.Do(&req)
+	if err != nil {
+		return nodes, err
+	}
+	if status == 200 {
+	return nodes, nil
+	}
+	logPretty(req)
+	return nodes, BadResponse
+}
