@@ -307,17 +307,20 @@ func (idx *index) Remove(n *Node, key, value string) error {
 	return BadResponse
 }
 
-// Find locates a node in the index by exact key/value match.
-func (idx *index) Find(key, value string) ([]*Node, error) {
-	nodes := []*Node{}
+// A NodeMap associates Node objects with their integer IDs.
+type NodeMap map[int]*Node
+
+// Find locates Nodes in the index by exact key/value match.
+func (idx *index) Find(key, value string) (NodeMap, error) {
+	nm := make(NodeMap)
 	rawurl, err := idx.uri()
 	if err != nil {
-		return nodes, err
+		return nm, err
 	}
 	rawurl = join(rawurl, key, value)
 	u, err := url.ParseRequestURI(rawurl)
 	if err != nil {
-		return nodes, err
+		return nm, err
 	}
 	ne := new(neoError)
 	resp := []nodeResponse{}
@@ -330,17 +333,54 @@ func (idx *index) Find(key, value string) ([]*Node, error) {
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(ne)
-		return nodes, err
+		return nm, err
 	}
 	if status != 200 {
 		logPretty(req)
-		return nodes, BadResponse
+		return nm, BadResponse
 	}
 	for _, r := range resp {
 		n := Node{}
 		n.db = idx.db
 		n.populate(&r)
-		nodes = append(nodes, &n)
+		nm[n.Id()] = &n
 	}
-	return nodes, nil
+	return nm, nil
+}
+
+// Query locatess Nodes by query, in the query language appropriate for a given Index.
+func (idx *index) Query(query string) (NodeMap, error) {
+	nm := make(NodeMap)
+	rawurl, err := idx.uri()
+	if err != nil {
+		return nm, err
+	}
+	v := make(url.Values)
+	v.Add("query", query)
+	rawurl += "?" + v.Encode()
+	u, err := url.ParseRequestURI(rawurl)
+	if err != nil {
+		return nm, err
+	}
+	result := []nodeResponse{}
+	req := restclient.RestRequest{
+		Url:    u.String(),
+		Method: restclient.GET,
+		Result: &result,
+	}
+	status, err := idx.db.rc.Do(&req)
+	if err != nil {
+		return nm, err
+	}
+	if status != 200 {
+		logPretty(req)
+		return nm, BadResponse
+	}
+	for _, r := range result {
+		n := Node{}
+		n.db = idx.db
+		n.populate(&r)
+		nm[n.Id()] = &n
+	}
+	return nm, nil
 }

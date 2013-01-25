@@ -8,6 +8,7 @@
 package neo4j
 
 import (
+	"fmt"
 	"github.com/bmizerany/assert"
 	"log"
 	"strconv"
@@ -208,20 +209,57 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	// This query should have returned a slice containing just two nodes, n1 and n0.
+	// This query should have returned a map containing just two nodes, n1 and n0.
 	assert.Equal(t, len(nodes), 2)
-	// Process nodes into a map for easy examination
-	nodeIds := map[int]bool{}
-	for _, aNode := range nodes {
-		nodeIds[aNode.Id()] = true
-	}
-	_, present := nodeIds[n0.Id()]
+	_, present := nodes[n0.Id()]
 	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n0.Id()))
-	_, present = nodeIds[n1.Id()]
+	_, present = nodes[n1.Id()]
 	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n1.Id()))
 	// Cleanup
 	n0.Delete()
 	n1.Delete()
 	n2.Delete()
 	idx0.Delete()
+}
+
+// 18.9.10. Find node by query
+func TestFindNodeByQuery(t *testing.T) {
+	// Create
+	idx0, _ := db.Nodes.Indexes.Create("test index")
+	key0 := rndStr(t)
+	key1 := rndStr(t)
+	value0 := rndStr(t)
+	value1 := rndStr(t)
+	n0, _ := db.Nodes.Create(EmptyProps)
+	idx0.Add(n0, key0, value0)
+	idx0.Add(n0, key1, value1)
+	n1, _ := db.Nodes.Create(EmptyProps)
+	idx0.Add(n1, key0, value0)
+	n2, _ := db.Nodes.Create(EmptyProps)
+	idx0.Add(n2, rndStr(t), rndStr(t))
+	// Retrieve
+	luceneQuery0 := fmt.Sprintf("%v:%v AND %v:%v", key0, value0, key1, value1) // Retrieve n0 only
+	luceneQuery1 := fmt.Sprintf("%v:%v", key0, value0)                         // Retrieve n0 and n1
+	nodes0, err := idx0.Query(luceneQuery0)
+	if err != nil {
+		t.Error(err)
+	}
+	nodes1, err := idx0.Query(luceneQuery1)
+	if err != nil {
+		t.Error(err)
+	}
+	// Confirm
+	assert.Equalf(t, len(nodes0), 1, "Query should have returned only one Node.")
+	_, present := nodes0[n0.Id()]
+	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n0.Id()))
+	assert.Equalf(t, len(nodes1), 2, "Query should have returned exactly 2 Nodes.")
+	_, present = nodes1[n0.Id()]
+	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n0.Id()))
+	_, present = nodes1[n1.Id()]
+	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n1.Id()))
+	// Cleanup
+	idx0.Delete()
+	n0.Delete()
+	n1.Delete()
+	n2.Delete()
 }
