@@ -19,29 +19,29 @@ type Database struct {
 	Nodes         *NodeManager
 	Relationships *RelationshipManager
 	//
-	HrefNode       string
-	HrefRefNode    string
-	HrefNodeIndex  string
-	HrefRelIndex   string
-	HrefExtInfo    string
-	HrefRelTypes   string
-	HrefBatch      string
-	HrefCypher     string
-	Version    string
+	HrefNode      string
+	HrefRefNode   string
+	HrefNodeIndex string
+	HrefRelIndex  string
+	HrefExtInfo   string
+	HrefRelTypes  string
+	HrefBatch     string
+	HrefCypher    string
+	Version       string
 }
 
 // A serviceRoot describes services available on the Neo4j server
 type serviceRoot struct {
-	Extensions interface{} `json:"extensions"`
-	HrefNode       string      `json:"node"`
-	HrefRefNode    string      `json:"reference_node"`
-	HrefNodeIndex  string      `json:"node_index"`
-	HrefRelIndex   string      `json:"relationship_index"`
-	HrefExtInfo    string      `json:"extensions_info"`
-	HrefRelTypes   string      `json:"relationship_types"`
-	HrefBatch      string      `json:"batch"`
-	HrefCypher     string      `json:"cypher"`
-	Version    string      `json:"neo4j_version"`
+	Extensions    interface{} `json:"extensions"`
+	HrefNode      string      `json:"node"`
+	HrefRefNode   string      `json:"reference_node"`
+	HrefNodeIndex string      `json:"node_index"`
+	HrefRelIndex  string      `json:"relationship_index"`
+	HrefExtInfo   string      `json:"extensions_info"`
+	HrefRelTypes  string      `json:"relationship_types"`
+	HrefBatch     string      `json:"batch"`
+	HrefCypher    string      `json:"cypher"`
+	Version       string      `json:"neo4j_version"`
 }
 
 func Connect(uri string) (*Database, error) {
@@ -102,4 +102,4 @@ func Connect(uri string) (*Database, error) {
 	db.Relationships.Indexes.HrefIndex = sr.HrefRelIndex
 	// Success!
 	return db, nil
-	}
+}

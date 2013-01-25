@@ -3,11 +3,11 @@
 
 package neo4j
 
+/*
 import (
-//	"testing"
+	"testing"
 )
 
-/*
 // 18.3.1. Send queries with parameters
 func TestCypherSendQueryWithParameters(t *testing.T) {
 	// Create
