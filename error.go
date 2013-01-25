@@ -7,6 +7,8 @@ import (
 	"errors"
 )
 
+// One of these errors is returned if we receive an error or unexpected response
+// from the server.
 var (
 	InvalidDatabase    = errors.New("Invalid database.  Check URI.")
 	BadResponse        = errors.New("Bad response from Neo4j server.")
