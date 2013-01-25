@@ -18,7 +18,8 @@ type CypherResult struct {
 	Data    [][]string `json:"data"`
 }
 
-func (db *Database) CypherQuery(query string, params map[string]string) (*CypherResult, error) {
+// Cypher executes a db query written in the cypher language.
+func (db *Database) Cypher(query string, params map[string]string) (*CypherResult, error) {
 	result := new(CypherResult)
 	ne := new(neoError)
 	data := cypherRequest{
