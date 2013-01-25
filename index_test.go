@@ -18,7 +18,7 @@ func init() {
 // 18.9.1. Create node index
 func TestCreateNodeIndex(t *testing.T) {
 	name := rndStr(t)
-	template := join(db.info.NodeIndex, name, "{key}/{value}")
+	template := join(db.HrefNodeIndex, name, "{key}/{value}")
 	//
 	// Create new index
 	//
@@ -47,7 +47,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	name := rndStr(t)
 	indexType := "fulltext"
 	provider := "lucene"
-	template := join(db.info.NodeIndex, name, "{key}/{value}")
+	template := join(db.HrefNodeIndex, name, "{key}/{value}")
 	//
 	// Create new index
 	//

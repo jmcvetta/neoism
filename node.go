@@ -26,7 +26,7 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 	res := new(nodeResponse)
 	ne := new(neoError)
 	rr := restclient.RestRequest{
-		Url:    m.db.info.Node,
+		Url:    m.db.HrefNode,
 		Method: restclient.POST,
 		Data:   &p,
 		Result: res,
@@ -47,7 +47,7 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 
 // GetNode fetches a Node from the database
 func (m *NodeManager) Get(id int) (*Node, error) {
-	uri := join(m.db.info.Node, strconv.Itoa(id))
+	uri := join(m.db.HrefNode, strconv.Itoa(id))
 	return m.getNodeByUri(uri)
 }
 
@@ -132,7 +132,7 @@ type Node struct {
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
-	l := len(n.db.info.Node)
+	l := len(n.db.HrefNode)
 	s := n.HrefSelf[l:]
 	s = strings.Trim(s, "/")
 	id, err := strconv.Atoi(s)
@@ -202,7 +202,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	res := new(relationshipResponse)
 	ne := new(neoError)
 	srcUri := join(n.HrefSelf, "relationships")
-	destUri := join(n.db.info.Node, strconv.Itoa(destId))
+	destUri := join(n.db.HrefNode, strconv.Itoa(destId))
 	content := map[string]interface{}{
 		"to":   destUri,
 		"type": relType,

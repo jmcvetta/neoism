@@ -54,12 +54,12 @@ func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 // Types lists all existing relationship types
 func (m *RelationshipManager) Types() ([]string, error) {
 	reltypes := []string{}
-	if m.db.info.RelTypes == "" {
+	if m.db.HrefRelTypes == "" {
 		return reltypes, FeatureUnavailable
 	}
 	ne := new(neoError)
 	c := restclient.RestRequest{
-		Url:    m.db.info.RelTypes,
+		Url:    m.db.HrefRelTypes,
 		Method: restclient.GET,
 		Result: &reltypes,
 		Error:  &ne,

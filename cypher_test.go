@@ -19,7 +19,7 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 		"startName": "I",
 		"name":      "you",
 	}
-	result, err := db.CypherQuery(query, params)
+	result, err := db.Cypher(query, params)
 	if err != nil {
 		t.Error(err)
 	}
