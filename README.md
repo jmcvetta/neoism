@@ -25,9 +25,13 @@ risk.
 
 ## To Do:
 
+* Unique Indexes
 * Automatic Indexes - Not sure how much there is to do here, but these are a
   seperate section in the REST API manual, that I have not yet read.
-* Traversals
+* Traversals - May never be supported due to security concerns.  From the
+  manual:  "The Traversal REST Endpoint executes arbitrary Groovy code under
+  the hood as part of the evaluators definitions. In hosted and open
+  environments, this can constitute a security risk."
 * Built-In Graph Algorithms
 * Batch Operations
 * Cypher
