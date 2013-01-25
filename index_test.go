@@ -208,16 +208,11 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	// This query should have returned a slice containing just two nodes, n1 and n0.
+	// This query should have returned a map containing just two nodes, n1 and n0.
 	assert.Equal(t, len(nodes), 2)
-	// Process nodes into a map for easy examination
-	nodeIds := map[int]bool{}
-	for _, aNode := range nodes {
-		nodeIds[aNode.Id()] = true
-	}
-	_, present := nodeIds[n0.Id()]
+	_, present := nodes[n0.Id()]
 	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n0.Id()))
-	_, present = nodeIds[n1.Id()]
+	_, present = nodes[n1.Id()]
 	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n1.Id()))
 	// Cleanup
 	n0.Delete()
@@ -225,3 +220,43 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	n2.Delete()
 	idx0.Delete()
 }
+
+/*
+// 18.9.10. Find node by query
+func TestFindNodeByQuery(t *testing.T) {
+	// Create
+	idx0,_ := db.Nodes.Indexes.Create("test index")
+	n0, _ := db.Nodes.Create(EmptyProps)
+	idx0.Add(n0, "foo", "bar")
+	idx0.Add(n0, "spam", "eggs")
+	n1, _ := db.Nodes.Create(EmptyProps)
+	idx0.Add(n1, "foo", "bar")
+	n2, _ := db.Nodes.Create(EmptyProps)
+	idx0.Add(n2, "steak", "fish")
+	// Retrieve
+	luceneQuery0 := "foo: bar AND spam: eggs"
+	luceneQuery1 := "foo: bar"
+	nodes0, err := idx0.Query(luceneQuery0)
+	if err != nil {
+		t.Error(err)
+	}
+	// Cleanup
+	idx0.Delete()
+	n0.Delete()
+	n1.Delete()
+	n2.Delete()
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
