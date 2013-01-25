@@ -348,15 +348,14 @@ func (idx *index) Find(key, value string) (NodeMap, error) {
 	return nm, nil
 }
 
-
 // Query locatess Nodes by query, in the query language appropriate for a given Index.
 func (idx *index) Query(query string) (NodeMap, error) {
-	var nm NodeMap
+	nm := make(NodeMap)
 	rawurl, err := idx.uri()
 	if err != nil {
 		return nm, err
 	}
-	v := new(url.Values)
+	v := make(url.Values)
 	v.Add("query", query)
 	rawurl += "?" + v.Encode()
 	u, err := url.ParseRequestURI(rawurl)
@@ -365,9 +364,9 @@ func (idx *index) Query(query string) (NodeMap, error) {
 	}
 	result := []nodeResponse{}
 	req := restclient.RestRequest{
-		Url: u.String(),
+		Url:    u.String(),
 		Method: restclient.GET,
-		Result: result,
+		Result: &result,
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
