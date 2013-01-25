@@ -34,7 +34,7 @@ risk.
   environments, this can constitute a security risk."
 * Built-In Graph Algorithms
 * Batch Operations
-* Cypher
+* Cypher - *currently under active development*
 * Gremlin
 
 
