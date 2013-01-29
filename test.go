@@ -39,7 +39,7 @@ func init() {
 	var err error
 	db, err = Connect("http://localhost:7474/db/data")
 	if err != nil {
-		log.Panic(err)
+		log.Println(err)
 	}
 }
 
