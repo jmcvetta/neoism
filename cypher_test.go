@@ -5,19 +5,27 @@ package neo4j
 
 import (
 	"testing"
+	// "fmt"
 )
 
 // 18.3.1. Send queries with parameters
 func TestCypherSendQueryWithParameters(t *testing.T) {
 	// Create
+	// idx0, _ := db.Nodes.Indexes.CreateWithConf("name_auto_index", "fulltext", "lucene")
 	n0, _ := db.Nodes.Create(Properties{"name": "I"})
 	n1, _ := db.Nodes.Create(Properties{"name": "you"})
 	r0, _ := n0.Relate("know", n1.Id(), nil)
+	// Deferred Cleanup
+	defer r0.Delete()
+	defer n0.Delete()
+	defer n1.Delete()
+	// defer idx0.Delete()
 	// Query
 	query := "START x = node:node_auto_index(name={startName}) MATCH path = (x-[r]-friend) WHERE friend.name = {name} RETURN TYPE(r)"
+	// query := fmt.Sprintf("START n=node(%v) RETURN n", n0.Id())
 	params := map[string]string{
-		"startName": "I",
-		"name":      "you",
+		// "startName": "I",
+		// "name":      "you",
 	}
 	result, err := db.Cypher(query, params)
 	if err != nil {
@@ -25,8 +33,4 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	}
 	// Check result
 	logPretty(result)
-	// Cleanup
-	r0.Delete()
-	n0.Delete()
-	n1.Delete()
 }
