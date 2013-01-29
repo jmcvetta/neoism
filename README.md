@@ -22,6 +22,8 @@ risk.
 * Node (create/edit/relate/delete/properties)
 * Relationship (create/edit/delete/properties)
 * Index (create/edit/delete/add node/remove node/find/query)
+* Cypher (query with and without parameters) - still under active development,
+  API should not be considered stable.
 
 ## To Do:
 
@@ -34,7 +36,6 @@ risk.
   environments, this can constitute a security risk."
 * Built-In Graph Algorithms
 * Batch Operations
-* Cypher - *currently under active development*
 * Gremlin
 
 

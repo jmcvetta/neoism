@@ -8,6 +8,10 @@ import (
 )
 
 type cypherRequest struct {
+	Query string `json:"query"`
+}
+
+type cypherRequestParams struct {
 	Query  string            `json:"query"`
 	Params map[string]string `json:"params"`
 }
@@ -22,9 +26,16 @@ type CypherResult struct {
 func (db *Database) Cypher(query string, params map[string]string) (*CypherResult, error) {
 	result := new(CypherResult)
 	ne := new(neoError)
-	data := cypherRequest{
-		Query:  query,
-		Params: params,
+	var data interface{}
+	if params != nil {
+		data = cypherRequestParams{
+			Query:  query,
+			Params: params,
+		}
+	} else {
+		data = cypherRequest{
+			Query: query,
+		}
 	}
 	req := restclient.RestRequest{
 		Url:    db.HrefCypher,
