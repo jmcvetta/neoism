@@ -6,7 +6,6 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
-	"log"
 	"net/http"
 	"net/url"
 )
@@ -74,9 +73,6 @@ func Connect(uri string) (*Database, error) {
 	status, err := db.rc.Do(&req)
 	if err != nil {
 		logPretty(req)
-		log.Println(e.Message)
-		log.Println(e.Exception)
-		log.Println(e.Stacktrace)
 		return db, err
 	}
 	switch {
