@@ -30,18 +30,18 @@ import (
 	"testing"
 )
 
-// Database connection used by all tests
-var db *Database
-
 func init() {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	//
-	var err error
-	db, err = Connect("http://localhost:7474/db/data")
-	if err != nil {
-		log.Panic(err)
-	}
 }
+
+func connectTest(t *testing.T) *Database {
+	db, err := Connect("http://localhost:7474/db/data")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return db
+}
+
 
 func rndStr(t *testing.T) string {
 	name, err := randutil.AlphaString(12)

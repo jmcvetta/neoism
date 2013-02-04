@@ -17,6 +17,7 @@ func init() {
 
 // 18.9.1. Create node index
 func TestCreateNodeIndex(t *testing.T) {
+	db := connectTest(t)
 	name := rndStr(t)
 	template := join(db.HrefNodeIndex, name, "{key}/{value}")
 	//
@@ -44,6 +45,7 @@ func TestCreateNodeIndex(t *testing.T) {
 
 // 18.9.2. Create node index with configuration
 func TestNodeIndexCreateWithConf(t *testing.T) {
+	db := connectTest(t)
 	name := rndStr(t)
 	indexType := "fulltext"
 	provider := "lucene"
@@ -75,6 +77,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 
 // 18.9.3. Delete node index
 func TestDeleteNodeIndex(t *testing.T) {
+	db := connectTest(t)
 	// Include a space in the name to ensure correct URL escaping.
 	name := rndStr(t) + " " + rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
@@ -88,6 +91,7 @@ func TestDeleteNodeIndex(t *testing.T) {
 
 // 18.9.4. List node indexes
 func TestListNodeIndexes(t *testing.T) {
+	db := connectTest(t)
 	name := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
 	indexes, err := db.Nodes.Indexes.All()
@@ -109,6 +113,7 @@ func TestListNodeIndexes(t *testing.T) {
 
 // 18.9.5. Add node to index
 func TestAddNodeToIndex(t *testing.T) {
+	db := connectTest(t)
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
@@ -127,6 +132,7 @@ func TestAddNodeToIndex(t *testing.T) {
 
 // 18.9.6. Remove all entries with a given node from an index
 func TestRemoveNodeFromIndex(t *testing.T) {
+	db := connectTest(t)
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
@@ -146,6 +152,7 @@ func TestRemoveNodeFromIndex(t *testing.T) {
 
 // 18.9.7. Remove all entries with a given node and key from an indexj
 func TestRemoveNodeAndKeyFromIndex(t *testing.T) {
+	db := connectTest(t)
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
@@ -165,6 +172,7 @@ func TestRemoveNodeAndKeyFromIndex(t *testing.T) {
 
 // 18.9.8. Remove all entries with a given node, key and value from an index
 func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
+	db := connectTest(t)
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
@@ -184,6 +192,7 @@ func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
 
 // 18.9.9. Find node by exact match
 func TestFindNodeByExactMatch(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	idxName := rndStr(t)
 	key0 := rndStr(t)
@@ -220,6 +229,7 @@ func TestFindNodeByExactMatch(t *testing.T) {
 
 // 18.9.10. Find node by query
 func TestFindNodeByQuery(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	idx0, _ := db.Nodes.Indexes.Create("test index")
 	key0 := rndStr(t)

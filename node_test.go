@@ -17,6 +17,7 @@ import (
 
 // 18.4.1. Create Node
 func TestCreateNode(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, err := db.Nodes.Create(EmptyProps)
 	if err != nil {
@@ -33,6 +34,7 @@ func TestCreateNode(t *testing.T) {
 
 // 18.4.2. Create Node with properties
 func TestCreateNodeWithProperties(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props0 := Properties{}
 	props0["foo"] = "bar"
@@ -55,6 +57,7 @@ func TestCreateNodeWithProperties(t *testing.T) {
 
 // 18.4.3. Get node
 func TestGetNode(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	// Get Node
@@ -70,6 +73,7 @@ func TestGetNode(t *testing.T) {
 
 // 18.4.4. Get non-existent node
 func TestGetNonexistentNode(t *testing.T) {
+	db := connectTest(t)
 	// Create a node
 	n0, _ := db.Nodes.Create(EmptyProps)
 	// Try to get non-existent node with next Id
@@ -82,6 +86,7 @@ func TestGetNonexistentNode(t *testing.T) {
 
 // 18.4.5. Delete node
 func TestDeleteNode(t *testing.T) {
+	db := connectTest(t)
 	// Create then delete a node
 	n0, _ := db.Nodes.Create(EmptyProps)
 	id := n0.Id()
@@ -93,6 +98,7 @@ func TestDeleteNode(t *testing.T) {
 
 // 18.4.6. Nodes with relationships can not be deleted;
 func TestDeleteNodeWithRelationships(t *testing.T) {
+	db := connectTest(t)
 	// Create 
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -108,6 +114,7 @@ func TestDeleteNodeWithRelationships(t *testing.T) {
 
 // 18.7.1. Set property on node
 func TestSetPropertyOnNode(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	key := rndStr(t)
@@ -127,6 +134,7 @@ func TestSetPropertyOnNode(t *testing.T) {
 
 // 18.7.2. Update node properties
 func TestUpdatePropertyOnNode(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props0 := Properties{rndStr(t): rndStr(t)}
 	props1 := Properties{rndStr(t): rndStr(t)}
@@ -145,6 +153,7 @@ func TestUpdatePropertyOnNode(t *testing.T) {
 
 // 18.7.3. Get properties for node
 func TestGetPropertiesForNode(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props := Properties{rndStr(t): rndStr(t)}
 	n0, _ := db.Nodes.Create(props)
@@ -175,6 +184,7 @@ func TestGetPropertiesForNode(t *testing.T) {
 
 // 18.7.6. Delete all properties from node
 func TestDeleteAllPropertiesFromNode(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props := Properties{
 		rndStr(t): rndStr(t),
@@ -195,6 +205,7 @@ func TestDeleteAllPropertiesFromNode(t *testing.T) {
 
 // 18.7.7. Delete a named property from a node
 func TestDeleteNamedPropertyFromNode(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props0 := Properties{"foo": "bar"}
 	props1 := Properties{"foo": "bar", "spam": "eggs"}

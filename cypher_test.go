@@ -11,6 +11,7 @@ import (
 
 // 18.3.1. Send queries with parameters
 func TestCypherSendQueryWithParameters(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	idx0, _ := db.Nodes.Indexes.Create("name_index")
 	n0, _ := db.Nodes.Create(Properties{"name": "I"})
@@ -46,6 +47,7 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 
 // 18.3.2. Send a Query
 func TestCypherSendQuery(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	idx0, _ := db.Nodes.Indexes.Create("name_index")
 	n0, _ := db.Nodes.Create(Properties{"name": "I"})

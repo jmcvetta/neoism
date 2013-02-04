@@ -15,6 +15,7 @@ import (
 
 // 18.5.1. Get Relationship by ID
 func TestGetRelationshipById(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -33,6 +34,7 @@ func TestGetRelationshipById(t *testing.T) {
 
 // 18.5.2. Create relationship
 func TestCreateRelationship(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -55,6 +57,7 @@ func TestCreateRelationship(t *testing.T) {
 
 // 18.5.3. Create a relationship with properties
 func TestCreateRelationshipWithProperties(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props0 := Properties{"foo": "bar", "spam": "eggs"}
 	n0, _ := db.Nodes.Create(EmptyProps)
@@ -74,6 +77,7 @@ func TestCreateRelationshipWithProperties(t *testing.T) {
 
 // 18.5.4. Delete relationship
 func TestDeleteRelationship(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -92,6 +96,7 @@ func TestDeleteRelationship(t *testing.T) {
 
 // 18.5.5. Get all properties on a relationship
 func TestGetAllPropertiesOnRelationship(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props0 := Properties{"foo": "bar", "spam": "eggs"}
 	n0, _ := db.Nodes.Create(EmptyProps)
@@ -112,6 +117,7 @@ func TestGetAllPropertiesOnRelationship(t *testing.T) {
 
 // 18.5.6. Set all properties on a relationship
 func TestSetAllPropertiesOnRelationship(t *testing.T) {
+	db := connectTest(t)
 	props0 := Properties{"foo": "bar"}
 	props1 := Properties{"spam": "eggs"}
 	// Create
@@ -131,6 +137,7 @@ func TestSetAllPropertiesOnRelationship(t *testing.T) {
 
 // 18.5.7. Get single property on a relationship
 func TestGetSinglePropertyOnRelationship(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	props := Properties{"foo": "bar"}
 	n0, _ := db.Nodes.Create(EmptyProps)
@@ -150,6 +157,7 @@ func TestGetSinglePropertyOnRelationship(t *testing.T) {
 
 // 18.5.8. Set single property on a relationship
 func TestSetSinglePropertyOnRelationship(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -168,6 +176,7 @@ func TestSetSinglePropertyOnRelationship(t *testing.T) {
 
 // 18.5.9. Get all relationships
 func TestGetAllRelationships(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -194,6 +203,7 @@ func TestGetAllRelationships(t *testing.T) {
 
 // 18.5.10. Get incoming relationships
 func TestGetIncomingRelationships(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -218,6 +228,7 @@ func TestGetIncomingRelationships(t *testing.T) {
 
 // 18.5.11. Get outgoing relationships
 func TestGetOutgoingRelationships(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	n1, _ := db.Nodes.Create(EmptyProps)
@@ -244,6 +255,7 @@ func TestGetOutgoingRelationships(t *testing.T) {
 
 // 18.5.12. Get typed relationships
 func TestGetTypedRelationships(t *testing.T) {
+	db := connectTest(t)
 	// Create
 	relType0 := rndStr(t)
 	relType1 := rndStr(t)
@@ -278,6 +290,7 @@ func TestGetTypedRelationships(t *testing.T) {
 
 // 18.5.13. Get relationships on a node without relationships
 func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
+	db := connectTest(t)
 	n0, _ := db.Nodes.Create(EmptyProps)
 	rels, err := n0.Relationships()
 	if err != nil {
@@ -290,6 +303,7 @@ func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
 
 // 18.6.1. Get relationship types
 func TestGetRelationshipTypes(t *testing.T) {
+	db := connectTest(t)
 	relTypes := []string{}
 	for i := 0; i < 10; i++ {
 		relTypes = append(relTypes, rndStr(t))
