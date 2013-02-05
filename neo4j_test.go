@@ -42,7 +42,6 @@ func connectTest(t *testing.T) *Database {
 	return db
 }
 
-
 func rndStr(t *testing.T) string {
 	name, err := randutil.AlphaString(12)
 	if err != nil {
