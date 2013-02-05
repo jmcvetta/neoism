@@ -6,8 +6,10 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
+	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 // A Database is a REST client connected to a Neo4j database.
@@ -79,6 +81,7 @@ func Connect(uri string) (*Database, error) {
 	case status == 404:
 		return db, InvalidDatabase
 	case status != 200 || sr.Version == "":
+		log.Println("Status " + strconv.Itoa(status) + " trying to cconnect to " + u.String())
 		logPretty(req)
 		return db, BadResponse
 	}
