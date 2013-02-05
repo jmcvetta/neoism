@@ -27,6 +27,7 @@ func TestCreateNodeIndex(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer idx0.Delete()
 	assert.Equal(t, idx0.Name, name)
 	assert.Equal(t, idx0.HrefTemplate, template)
 	//
@@ -37,10 +38,6 @@ func TestCreateNodeIndex(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, idx0.Name, idx1.Name)
-	//
-	// Cleanup
-	//
-	idx0.Delete()
 }
 
 // 18.9.2. Create node index with configuration
@@ -57,6 +54,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer idx0.Delete()
 	assert.Equal(t, idx0.IndexType, indexType)
 	assert.Equal(t, idx0.Provider, provider)
 	assert.Equal(t, idx0.HrefTemplate, template)
@@ -69,10 +67,6 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, idx0.Name, idx1.Name)
-	//
-	// Cleanup
-	//
-	idx0.Delete()
 }
 
 // 18.9.3. Delete node index
@@ -94,6 +88,7 @@ func TestListNodeIndexes(t *testing.T) {
 	db := connectTest(t)
 	name := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
+	defer idx0.Delete()
 	indexes, err := db.Nodes.Indexes.All()
 	if err != nil {
 		t.Error(err)
@@ -105,10 +100,6 @@ func TestListNodeIndexes(t *testing.T) {
 		}
 	}
 	assert.T(t, valid, "Newly created Index not found in listing of all Indexes.")
-	//
-	// Cleanup
-	//
-	idx0.Delete()
 }
 
 // 18.9.5. Add node to index
@@ -118,16 +109,13 @@ func TestAddNodeToIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
+	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	err := idx0.Add(n0, key, value)
 	if err != nil {
 		t.Error(err)
 	}
-	//
-	// Cleanup
-	//
-	n0.Delete()
-	idx0.Delete()
 }
 
 // 18.9.6. Remove all entries with a given node from an index
@@ -137,17 +125,14 @@ func TestRemoveNodeFromIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
+	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	idx0.Add(n0, key, value)
 	err := idx0.Remove(n0, "", "")
 	if err != nil {
 		t.Error(err)
 	}
-	// 
-	// Cleanup
-	//
-	idx0.Delete()
-	n0.Delete()
 }
 
 // 18.9.7. Remove all entries with a given node and key from an indexj
@@ -157,17 +142,14 @@ func TestRemoveNodeAndKeyFromIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
+	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	idx0.Add(n0, key, value)
 	err := idx0.Remove(n0, key, "")
 	if err != nil {
 		t.Error(err)
 	}
-	// 
-	// Cleanup
-	//
-	idx0.Delete()
-	n0.Delete()
 }
 
 // 18.9.8. Remove all entries with a given node, key and value from an index
@@ -177,17 +159,14 @@ func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
 	key := rndStr(t)
 	value := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(name)
+	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	idx0.Add(n0, key, value)
 	err := idx0.Remove(n0, key, "")
 	if err != nil {
 		t.Error(err)
 	}
-	//
-	// Cleanup
-	//
-	n0.Delete()
-	idx0.Delete()
 }
 
 // 18.9.9. Find node by exact match
@@ -200,9 +179,13 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	value0 := rndStr(t)
 	value1 := rndStr(t)
 	idx0, _ := db.Nodes.Indexes.Create(idxName)
+	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	n1, _ := db.Nodes.Create(EmptyProps)
+	defer n1.Delete()
 	n2, _ := db.Nodes.Create(EmptyProps)
+	defer n2.Delete()
 	// These two will be located by Find() below
 	idx0.Add(n0, key0, value0)
 	idx0.Add(n1, key0, value0)
@@ -220,11 +203,6 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n0.Id()))
 	_, present = nodes[n1.Id()]
 	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n1.Id()))
-	// Cleanup
-	n0.Delete()
-	n1.Delete()
-	n2.Delete()
-	idx0.Delete()
 }
 
 // 18.9.10. Find node by query
@@ -232,16 +210,20 @@ func TestFindNodeByQuery(t *testing.T) {
 	db := connectTest(t)
 	// Create
 	idx0, _ := db.Nodes.Indexes.Create("test index")
+	defer idx0.Delete()
 	key0 := rndStr(t)
 	key1 := rndStr(t)
 	value0 := rndStr(t)
 	value1 := rndStr(t)
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	idx0.Add(n0, key0, value0)
 	idx0.Add(n0, key1, value1)
 	n1, _ := db.Nodes.Create(EmptyProps)
+	defer n1.Delete()
 	idx0.Add(n1, key0, value0)
 	n2, _ := db.Nodes.Create(EmptyProps)
+	defer n2.Delete()
 	idx0.Add(n2, rndStr(t), rndStr(t))
 	// Retrieve
 	luceneQuery0 := fmt.Sprintf("%v:%v AND %v:%v", key0, value0, key1, value1) // Retrieve n0 only
@@ -263,9 +245,4 @@ func TestFindNodeByQuery(t *testing.T) {
 	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n0.Id()))
 	_, present = nodes1[n1.Id()]
 	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n1.Id()))
-	// Cleanup
-	idx0.Delete()
-	n0.Delete()
-	n1.Delete()
-	n2.Delete()
 }

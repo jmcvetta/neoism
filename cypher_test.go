@@ -14,11 +14,16 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	db := connectTest(t)
 	// Create
 	idx0, _ := db.Nodes.Indexes.Create("name_index")
+	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(Properties{"name": "I"})
+	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
 	n1, _ := db.Nodes.Create(Properties{"name": "you"})
+	defer n1.Delete()
 	r0, _ := n0.Relate("know", n1.Id(), nil)
+	defer r0.Delete()
 	r1, _ := n0.Relate("love", n1.Id(), nil)
+	defer r1.Delete()
 	// Query
 	query := "START x = node:name_index(name={startName}) MATCH path = (x-[r]-friend) WHERE friend.name = {name} RETURN TYPE(r)"
 	params := map[string]string{
@@ -37,12 +42,6 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	expDat := [][]string{[]string{"know"}, []string{"love"}}
 	assert.Equal(t, expCol, result.Columns)
 	assert.Equal(t, expDat, result.Data)
-	// Cleanup
-	idx0.Delete()
-	r0.Delete()
-	r1.Delete()
-	n0.Delete()
-	n1.Delete()
 }
 
 // 18.3.2. Send a Query
@@ -50,10 +49,14 @@ func TestCypherSendQuery(t *testing.T) {
 	db := connectTest(t)
 	// Create
 	idx0, _ := db.Nodes.Indexes.Create("name_index")
+	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(Properties{"name": "I"})
+	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
 	n1, _ := db.Nodes.Create(Properties{"name": "you", "age": "69"})
+	defer n1.Delete()
 	r0, _ := n0.Relate("know", n1.Id(), nil)
+	defer r0.Delete()
 	// Query
 	query := "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?"
 	// query := "START x = node:name_index(name=I) MATCH path = (x-[r]-friend) WHERE friend.name = you RETURN TYPE(r)"
@@ -62,16 +65,11 @@ func TestCypherSendQuery(t *testing.T) {
 		t.Error(err)
 	}
 	// Check result
-	// Our test only passes if Neo4j returns results in the expected order.  Is
-	// there any guarantee about order?  Can we modify the query to ensure order?
-	// Or is there a convenient way to sort result.Data here before checking it?
+	//
+	// Our test only passes if Neo4j returns columns in the expected order - is 
+	// there any guarantee about order?
 	expCol := []string{"type(r)", "n.name?", "n.age?"}
 	expDat := [][]string{[]string{"know", "you", "69"}}
 	assert.Equal(t, expCol, result.Columns)
 	assert.Equal(t, expDat, result.Data)
-	// Cleanup
-	idx0.Delete()
-	r0.Delete()
-	n0.Delete()
-	n1.Delete()
 }

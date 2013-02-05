@@ -23,13 +23,12 @@ func TestCreateNode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer n0.Delete()
 	// Confirm creation
 	_, err = db.Nodes.Get(n0.Id())
 	if err != nil {
 		t.Error(err)
 	}
-	// Cleanup
-	n0.Delete()
 }
 
 // 18.4.2. Create Node with properties
@@ -43,6 +42,7 @@ func TestCreateNodeWithProperties(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer n0.Delete()
 	// Confirm creation
 	_, err = db.Nodes.Get(n0.Id())
 	if err != nil {
@@ -51,8 +51,6 @@ func TestCreateNodeWithProperties(t *testing.T) {
 	// Confirm properties
 	props1, _ := n0.Properties()
 	assert.Equalf(t, props0, props1, "Node properties not as expected")
-	// Cleanup
-	n0.Delete()
 }
 
 // 18.4.3. Get node
@@ -60,6 +58,7 @@ func TestGetNode(t *testing.T) {
 	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	// Get Node
 	n1, err := db.Nodes.Get(n0.Id())
 	if err != nil {
@@ -67,8 +66,6 @@ func TestGetNode(t *testing.T) {
 	}
 	// Confirm nodes are the same
 	assert.Equalf(t, n0.Id(), n1.Id(), "Nodes do not have same ID")
-	// Cleanup
-	n0.Delete()
 }
 
 // 18.4.4. Get non-existent node
@@ -76,12 +73,11 @@ func TestGetNonexistentNode(t *testing.T) {
 	db := connectTest(t)
 	// Create a node
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	// Try to get non-existent node with next Id
 	implausible := n0.Id() + 1000
 	_, err := db.Nodes.Get(implausible)
 	assert.Equal(t, err, NotFound)
-	// Cleanup
-	n0.Delete()
 }
 
 // 18.4.5. Delete node
@@ -90,9 +86,12 @@ func TestDeleteNode(t *testing.T) {
 	// Create then delete a node
 	n0, _ := db.Nodes.Create(EmptyProps)
 	id := n0.Id()
-	n0.Delete()
+	err := n0.Delete()
+	if err != nil {
+		t.Error(err)
+	}
 	// Check that node is no longer in db
-	_, err := db.Nodes.Get(id)
+	_, err = db.Nodes.Get(id)
 	assert.Equal(t, err, NotFound)
 }
 
@@ -101,15 +100,14 @@ func TestDeleteNodeWithRelationships(t *testing.T) {
 	db := connectTest(t)
 	// Create 
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	n1, _ := db.Nodes.Create(EmptyProps)
+	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	defer r0.Delete()
 	// Attempt to delete node without deleting relationship
 	err := n0.Delete()
 	assert.Equalf(t, err, CannotDelete, "Should not be possible to delete node with relationship.")
-	// Cleanup
-	r0.Delete()
-	n0.Delete()
-	n1.Delete()
 }
 
 // 18.7.1. Set property on node
@@ -117,6 +115,7 @@ func TestSetPropertyOnNode(t *testing.T) {
 	db := connectTest(t)
 	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
+	defer n0.Delete()
 	key := rndStr(t)
 	value := rndStr(t)
 	err := n0.SetProperty(key, value)
@@ -128,8 +127,6 @@ func TestSetPropertyOnNode(t *testing.T) {
 	checkVal, present := props[key]
 	assert.Tf(t, present, "Expected property key not found")
 	assert.Tf(t, checkVal == value, "Expected property value not found")
-	// Cleanup
-	n0.Delete()
 }
 
 // 18.7.2. Update node properties
@@ -139,6 +136,7 @@ func TestUpdatePropertyOnNode(t *testing.T) {
 	props0 := Properties{rndStr(t): rndStr(t)}
 	props1 := Properties{rndStr(t): rndStr(t)}
 	n0, _ := db.Nodes.Create(props0)
+	defer n0.Delete()
 	// Update
 	err := n0.SetProperties(props1)
 	if err != nil {
@@ -147,8 +145,6 @@ func TestUpdatePropertyOnNode(t *testing.T) {
 	// Confirm
 	checkProps, _ := n0.Properties()
 	assert.Equalf(t, props1, checkProps, "Did not recover expected properties after updating with SetProperties().")
-	// Cleanup
-	n0.Delete()
 }
 
 // 18.7.3. Get properties for node
@@ -157,14 +153,13 @@ func TestGetPropertiesForNode(t *testing.T) {
 	// Create
 	props := Properties{rndStr(t): rndStr(t)}
 	n0, _ := db.Nodes.Create(props)
+	defer n0.Delete()
 	// Get properties & confirm
 	checkProps, err := n0.Properties()
 	if err != nil {
 		t.Error(err)
 	}
 	assert.Equalf(t, props, checkProps, "Did not return expected properties.")
-	// Cleanup
-	n0.Delete()
 }
 
 //
@@ -191,6 +186,7 @@ func TestDeleteAllPropertiesFromNode(t *testing.T) {
 		rndStr(t): rndStr(t),
 	}
 	n0, _ := db.Nodes.Create(props)
+	defer n0.Delete()
 	// Delete properties
 	err := n0.DeleteProperties()
 	if err != nil {
@@ -199,8 +195,6 @@ func TestDeleteAllPropertiesFromNode(t *testing.T) {
 	// Confirm deletion
 	checkProps, _ := n0.Properties()
 	assert.Equalf(t, EmptyProps, checkProps, "Properties should be empty after call to DeleteProperties()")
-	// Cleanup
-	n0.Delete()
 }
 
 // 18.7.7. Delete a named property from a node
@@ -210,6 +204,7 @@ func TestDeleteNamedPropertyFromNode(t *testing.T) {
 	props0 := Properties{"foo": "bar"}
 	props1 := Properties{"foo": "bar", "spam": "eggs"}
 	n0, _ := db.Nodes.Create(props1)
+	defer n0.Delete()
 	// Delete
 	err := n0.DeleteProperty("spam")
 	if err != nil {
@@ -218,6 +213,4 @@ func TestDeleteNamedPropertyFromNode(t *testing.T) {
 	// Confirm
 	checkProps, _ := n0.Properties()
 	assert.Equalf(t, props0, checkProps, "Failed to remove named property with DeleteProperty().")
-	// Cleanup
-	n0.Delete()
 }
