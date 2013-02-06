@@ -106,5 +106,5 @@ func Connect(uri string) (*Database, error) {
 
 // Do executes a REST request.
 func (db *Database) Do(r *restclient.RestRequest) (status int, err error) {
-	return db.Do(r)
+	return db.rc.Do(r)
 }
