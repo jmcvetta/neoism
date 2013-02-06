@@ -45,6 +45,7 @@ type serviceRoot struct {
 	Version       string      `json:"neo4j_version"`
 }
 
+// Connect opens a connection to the Neo4j server.
 func Connect(uri string) (*Database, error) {
 	var sr serviceRoot
 	var e neoError
@@ -72,7 +73,7 @@ func Connect(uri string) (*Database, error) {
 		Result: &sr,
 		Error:  &e,
 	}
-	status, err := db.rc.Do(&req)
+	status, err := db.Do(&req)
 	if err != nil {
 		logPretty(req)
 		return db, err
@@ -101,4 +102,9 @@ func Connect(uri string) (*Database, error) {
 	db.Relationships.Indexes.HrefIndex = sr.HrefRelIndex
 	// Success!
 	return db, nil
+}
+
+// Do executes a REST request.
+func (db *Database) Do(r *restclient.RestRequest) (status int, err error) {
+	return db.Do(r)
 }

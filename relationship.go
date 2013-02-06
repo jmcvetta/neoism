@@ -15,11 +15,6 @@ type RelationshipManager struct {
 	Indexes *RelationshipIndexManager
 }
 
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (m *RelationshipManager) do(rr *restclient.RestRequest) (status int, err error) {
-	return m.db.rc.Do(rr)
-}
-
 // GetRelationship fetches a Relationship from the DB by id.
 func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 	rel := Relationship{}
@@ -33,7 +28,7 @@ func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := m.do(&rr)
+	status, err := m.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return &rel, err
@@ -64,7 +59,7 @@ func (m *RelationshipManager) Types() ([]string, error) {
 		Result: &reltypes,
 		Error:  &ne,
 	}
-	status, err := m.db.rc.Do(&c)
+	status, err := m.db.Do(&c)
 	if err != nil {
 		logPretty(ne)
 		return reltypes, err

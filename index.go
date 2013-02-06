@@ -22,11 +22,6 @@ type RelationshipIndexManager struct {
 	indexManager
 }
 
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (im *indexManager) do(rr *restclient.RestRequest) (status int, err error) {
-	return im.db.rc.Do(rr)
-}
-
 // CreateIndex creates a new Index with the supplied name.
 func (im *indexManager) Create(name string) (*index, error) {
 	type s struct {
@@ -45,7 +40,7 @@ func (im *indexManager) Create(name string) (*index, error) {
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := im.do(&rr)
+	status, err := im.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return idx, err
@@ -88,7 +83,7 @@ func (im *indexManager) CreateWithConf(name, indexType, provider string) (*index
 		Result: res,
 		Error:  ne,
 	}
-	status, err := im.do(&rr)
+	status, err := im.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return idx, err
@@ -112,7 +107,7 @@ func (im *indexManager) All() ([]*index, error) {
 		Result: &res,
 		Error:  ne,
 	}
-	status, err := im.do(&req)
+	status, err := im.db.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return nis, err
@@ -150,7 +145,7 @@ func (im *indexManager) Get(name string) (*index, error) {
 		Method: restclient.GET,
 		Error:  ne,
 	}
-	status, err := im.do(&req)
+	status, err := im.db.Do(&req)
 	if err != nil {
 		logPretty(req)
 		return idx, err
@@ -224,7 +219,7 @@ func (idx *index) Delete() error {
 		Method: restclient.DELETE,
 		Error:  ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Do(&req)
 	if err != nil {
 		logPretty(req)
 		return err
@@ -260,7 +255,7 @@ func (idx *index) Add(n *Node, key, value string) error {
 		Data:   data,
 		Error:  ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -294,7 +289,7 @@ func (idx *index) Remove(n *Node, key, value string) error {
 		Method: restclient.DELETE,
 		Error:  ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -330,7 +325,7 @@ func (idx *index) Find(key, value string) (NodeMap, error) {
 		Result: &resp,
 		Error:  ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return nm, err
@@ -368,7 +363,7 @@ func (idx *index) Query(query string) (NodeMap, error) {
 		Method: restclient.GET,
 		Result: &result,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Do(&req)
 	if err != nil {
 		return nm, err
 	}

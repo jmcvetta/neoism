@@ -14,11 +14,6 @@ type NodeManager struct {
 	Indexes *NodeIndexManager
 }
 
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (nm *NodeManager) do(rr *restclient.RestRequest) (status int, err error) {
-	return nm.db.rc.Do(rr)
-}
-
 // CreateNode creates a Node in the database.
 func (m *NodeManager) Create(p Properties) (*Node, error) {
 	n := Node{}
@@ -32,7 +27,7 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 		Result: res,
 		Error:  ne,
 	}
-	status, err := m.do(&rr)
+	status, err := m.db.Do(&rr)
 	if err != nil || status != 201 {
 		logPretty(ne)
 		return &n, err
@@ -63,7 +58,7 @@ func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 		Result: res,
 		Error:  ne,
 	}
-	status, err := m.do(&rr)
+	status, err := m.db.Do(&rr)
 	switch {
 	case status == 404:
 		return &n, NotFound
@@ -162,7 +157,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 		Result: &resArray,
 		Error:  &ne,
 	}
-	status, err := n.do(&rr)
+	status, err := n.db.Do(&rr)
 	if err != nil {
 		return m, err
 	}
@@ -217,7 +212,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := n.db.rc.Do(&c)
+	status, err := n.db.Do(&c)
 	if err != nil {
 		logPretty(ne)
 		return &rel, err

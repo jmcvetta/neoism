@@ -31,11 +31,6 @@ type baseEntity struct {
 	db             *Database
 }
 
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (e *baseEntity) do(rr *restclient.RestRequest) (status int, err error) {
-	return e.db.rc.Do(rr)
-}
-
 // Properties is a bag of key/value pairs that describe an baseEntity.
 type Properties map[string]string
 
@@ -55,7 +50,7 @@ func (e *baseEntity) SetProperty(key string, value string) error {
 		Data:   &value,
 		Error:  new(neoError),
 	}
-	status, err := e.do(&rr)
+	status, err := e.db.Do(&rr)
 	if err != nil {
 		return err
 	}
@@ -80,7 +75,7 @@ func (e *baseEntity) Property(key string) (string, error) {
 		Result: &val,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return val, err
@@ -107,7 +102,7 @@ func (e *baseEntity) DeleteProperty(key string) error {
 		Method: restclient.DELETE,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -133,7 +128,7 @@ func (e *baseEntity) Delete() error {
 		Method: restclient.DELETE,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.db.Do(&rr)
 	switch {
 	case err != nil:
 		logPretty(ne)
@@ -161,7 +156,7 @@ func (e *baseEntity) Properties() (Properties, error) {
 		Result: &props,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return props, err
@@ -185,7 +180,7 @@ func (e *baseEntity) SetProperties(p Properties) error {
 		Data:   &p,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -208,7 +203,7 @@ func (e *baseEntity) DeleteProperties() error {
 		Method: "DELETE",
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.db.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return err

@@ -44,7 +44,7 @@ func (db *Database) Cypher(query string, params map[string]string) (*CypherResul
 		Result: result,
 		Error:  ne,
 	}
-	status, err := db.rc.Do(&req)
+	status, err := db.Do(&req)
 	if err != nil {
 		return result, err
 	}
