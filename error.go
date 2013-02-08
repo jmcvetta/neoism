@@ -23,3 +23,8 @@ type neoError struct {
 	Exception  string   `json:"exception"`
 	Stacktrace []string `json:"stacktrace"`
 }
+
+// Batch system
+var (
+	BatchNotExecuted = errors.New("Cannot perform action: Batch has not yet been executed.")
+)
