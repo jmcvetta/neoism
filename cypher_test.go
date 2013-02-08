@@ -20,9 +20,9 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	idx0.Add(n0, "name", "I")
 	n1, _ := db.Nodes.Create(Properties{"name": "you"})
 	defer n1.Delete()
-	r0, _ := n0.Relate("know", n1.Id(), nil)
+	r0, _ := n0.Relate("know", n1, nil)
 	defer r0.Delete()
-	r1, _ := n0.Relate("love", n1.Id(), nil)
+	r1, _ := n0.Relate("love", n1, nil)
 	defer r1.Delete()
 	// Query
 	query := "START x = node:name_index(name={startName}) MATCH path = (x-[r]-friend) WHERE friend.name = {name} RETURN TYPE(r)"
@@ -55,7 +55,7 @@ func TestCypherSendQuery(t *testing.T) {
 	idx0.Add(n0, "name", "I")
 	n1, _ := db.Nodes.Create(Properties{"name": "you", "age": "69"})
 	defer n1.Delete()
-	r0, _ := n0.Relate("know", n1.Id(), nil)
+	r0, _ := n0.Relate("know", n1, nil)
 	defer r0.Delete()
 	// Query
 	query := "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?"

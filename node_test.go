@@ -103,7 +103,7 @@ func TestDeleteNodeWithRelationships(t *testing.T) {
 	defer n0.Delete()
 	n1, _ := db.Nodes.Create(EmptyProps)
 	defer n1.Delete()
-	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, _ := n0.Relate("knows", n1, EmptyProps)
 	defer r0.Delete()
 	// Attempt to delete node without deleting relationship
 	err := n0.Delete()
