@@ -111,6 +111,10 @@ func (n *Node) populate(r *nodeResponse) {
 	n.HrefIncomingTypedRels = r.HrefIncomingTypedRels
 }
 
+type NodeIdentifier interface {
+	NodeIdentity() string
+}
+
 // A node in a Neo4j database
 type Node struct {
 	baseEntity
@@ -123,6 +127,10 @@ type Node struct {
 	HrefPagedTraverse     string
 	HrefAllRels           string
 	HrefIncomingTypedRels string
+}
+
+func (n *Node) NodeIdentity() string {
+	return n.HrefSelf
 }
 
 // Id gets the ID number of this Node.
@@ -191,15 +199,14 @@ func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 
 // Relate creates a relationship of relType, with specified properties, 
 // from this Node to the node identified by destId.
-func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
+func (n *Node) Relate(relType string, dest NodeIdentifier, p Properties) (*Relationship, error) {
 	rel := Relationship{}
 	rel.db = n.db
 	res := new(relationshipResponse)
 	ne := new(neoError)
 	srcUri := join(n.HrefSelf, "relationships")
-	destUri := join(n.db.HrefNode, strconv.Itoa(destId))
 	content := map[string]interface{}{
-		"to":   destUri,
+		"to":   dest.NodeIdentity(),
 		"type": relType,
 	}
 	if p != nil {
