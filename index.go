@@ -335,10 +335,8 @@ func (idx *index) Find(key, value string) (NodeMap, error) {
 		return nm, BadResponse
 	}
 	for _, r := range resp {
-		n := Node{}
-		n.db = idx.db
-		n.populate(&r)
-		nm[n.Id()] = &n
+		n := r.Node(idx.db)
+		nm[n.Id()] = n
 	}
 	return nm, nil
 }
@@ -372,10 +370,8 @@ func (idx *index) Query(query string) (NodeMap, error) {
 		return nm, BadResponse
 	}
 	for _, r := range result {
-		n := Node{}
-		n.db = idx.db
-		n.populate(&r)
-		nm[n.Id()] = &n
+		n := r.Node(idx.db)
+		nm[n.Id()] = n
 	}
 	return nm, nil
 }

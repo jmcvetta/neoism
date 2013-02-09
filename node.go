@@ -16,8 +16,6 @@ type NodeManager struct {
 
 // CreateNode creates a Node in the database.
 func (m *NodeManager) Create(p Properties) (*Node, error) {
-	n := Node{}
-	n.db = m.db
 	res := new(nodeResponse)
 	ne := new(neoError)
 	rr := restclient.RestRequest{
@@ -30,14 +28,14 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 	status, err := m.db.Do(&rr)
 	if err != nil || status != 201 {
 		logPretty(ne)
-		return &n, err
+		return nil, err
 	}
 	if res.HrefSelf == "" {
 		logPretty(ne)
-		return &n, BadResponse
+		return nil, BadResponse
 	}
-	n.populate(res)
-	return &n, nil
+	n := res.Node(m.db)
+	return n, nil
 }
 
 // GetNode fetches a Node from the database
@@ -50,8 +48,6 @@ func (m *NodeManager) Get(id int) (*Node, error) {
 func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	res := new(nodeResponse)
 	ne := new(neoError)
-	n := Node{}
-	n.db = m.db
 	rr := restclient.RestRequest{
 		Url:    uri,
 		Method: restclient.GET,
@@ -61,17 +57,18 @@ func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	status, err := m.db.Do(&rr)
 	switch {
 	case status == 404:
-		return &n, NotFound
+		return nil, NotFound
 	case status != 200 || res.HrefSelf == "":
 		logPretty(ne)
-		return &n, BadResponse
+		return nil, BadResponse
 	}
 	if err != nil {
 		logPretty(ne)
-		return &n, err
+		return nil, err
 	}
-	n.populate(res)
-	return &n, nil
+	// n.populate(res)
+	n := res.Node(m.db)
+	return n, nil
 }
 
 type nodeResponse struct {
@@ -94,7 +91,10 @@ type nodeResponse struct {
 
 // populate uses the values from a nodeResponse object to populate the fields on
 // this Node.
-func (n *Node) populate(r *nodeResponse) {
+//func (n *Node) populate(r *nodeResponse) {
+func (r *nodeResponse) Node(db *Database) *Node {
+	n := new(Node)
+	n.db = db
 	n.HrefProperty = r.HrefProperty
 	n.HrefProperties = r.HrefProperties
 	n.HrefSelf = r.HrefSelf
@@ -109,6 +109,7 @@ func (n *Node) populate(r *nodeResponse) {
 	n.HrefPagedTraverse = r.HrefPagedTraverse
 	n.HrefAllRels = r.HrefAllRels
 	n.HrefIncomingTypedRels = r.HrefIncomingTypedRels
+	return n
 }
 
 type NodeIdentifier interface {
