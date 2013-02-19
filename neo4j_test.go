@@ -42,6 +42,11 @@ func connectTest(t *testing.T) *Database {
 	return db
 }
 
+func batchTest(t *testing.T) *Batch {
+	db := connectTest(t)
+	return db.NewBatch()
+}
+
 func rndStr(t *testing.T) string {
 	name, err := randutil.AlphaString(12)
 	if err != nil {

@@ -18,7 +18,7 @@ import (
 // carried out as part of a Batch operation.
 type BatchRelationship struct {
 	batch *Batch
-	job   *job
+	op   *operation
 }
 
 /*

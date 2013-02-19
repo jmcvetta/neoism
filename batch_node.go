@@ -6,19 +6,31 @@ package neo4j
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"github.com/jmcvetta/restclient"
 )
 
+// CreateNode creates a new Node as part of a Batch
 func (b *Batch) CreateNode(p *Properties) *BatchNode {
 	bn := new(BatchNode)
 	bn.batch = b
-	j := job{
+	op := operation{
 		Url:    b.db.HrefNode,
 		Method: restclient.POST,
 		Body:   p,
 	}
-	bn.id = b.Add(&j)
+	bn.id = b.add(&op)
 	return bn
+}
+
+// DeleteNode deletes the specified Node as part of a Batch
+func (b *Batch) DeleteNode(id int) {
+	u := join(b.db.HrefNode, strconv.Itoa(id))
+	op := operation{
+		Url:    u,
+		Method: restclient.DELETE,
+	}
+	b.add(&op)
 }
 
 // A BatchNode represents a Node created as part of a Batch job, which has not
@@ -27,7 +39,7 @@ func (b *Batch) CreateNode(p *Properties) *BatchNode {
 type BatchNode struct {
 	batch *Batch
 	id    int // ID within this batch
-	job   *job
+	op   *operation
 }
 
 // NodeIdentity returns a string notation for referring to this BatchNode in
@@ -38,12 +50,12 @@ func (bn *BatchNode) NodeIdentity() string {
 
 // Node returns a Node object if the batch has been executed, or an error.
 func (bn *BatchNode) Node() (*Node, error) {
-	j := bn.job.resultJson
-	if j == nil {
+	op := bn.op.resultJson
+	if op == nil {
 		return nil, BatchNotExecuted
 	}
 	nr := new(nodeResponse)
-	err := json.Unmarshal([]byte(*j), nr)
+	err := json.Unmarshal([]byte(*op), nr)
 	if err != nil {
 		return nil, err
 	}
@@ -51,29 +63,3 @@ func (bn *BatchNode) Node() (*Node, error) {
 	return n, nil
 }
 
-/*
-// Relate creates a relationship of relType, with specified properties, 
-// from this Node to the node identified by destId.
-func (bn *BatchNode) Relate(relType string, dest NodeIdentifier, p Properties) *BatchRelationship {
-	targetUri := join(bn.NodeIdentity(), "relationships")
-	body := map[string]interface{}{
-		"to":   dest.NodeIdentity(),
-		"type": relType,
-	}
-	if p != nil {
-		body["data"] = &p
-	}
-	j := job{
-		Url:            targetUri,
-		Method:         restclient.POST,
-		Body:           body,
-		resultTemplate: relationshipResponse{},
-	}
-	bn.batch.Add(&j)
-	r := BatchRelationship{
-		batch: bn.batch,
-		job:   &j,
-	}
-	return &r
-}
-*/

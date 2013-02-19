@@ -9,37 +9,49 @@ import (
 	"sync"
 )
 
-type job struct {
-	BatchId    int               `json:"id"`     // Identifies this job within its Batch
-	Method     restclient.Method `json:"method"` // HTTP Method to use for this job
-	Url        string            `json:"to"`     // Target URL
-	Body       interface{}       `json:"body"`   // Request body
-	resultJson *json.RawMessage  // JSON describing result of this job.  Should this be a pointer?
-	// resultId       int                    // Identifies DB object created by executing this job
-	// resultTemplate interface{}
-	// resultEntity interface{}
+// NewBatch returns a new, empty Batch
+func (db *Database) NewBatch() *Batch {
+	b := Batch{
+		db: db,
+		lock: new(sync.Mutex),
+		queue: []*operation{},
+		ops: make(map[int]*operation),
+		executed: false,
+	}
+	return &b
 }
 
 type Batch struct {
 	db       *Database
 	lock     *sync.Mutex  // lock protects queue
-	queue    []*job       // Orderd queue of jobs
-	jobs     map[int]*job // Map associating a job with its batchId value
+	queue    []*operation       // Orderd queue of jobs
+	ops     map[int]*operation // Map associating a job with its batchId value
 	executed bool         // Has his batch been executed?
 }
 
-// Add puts a job in the queue.
-func (b *Batch) Add(j *job) int {
+type operation struct {
+	BatchId    int               `json:"id"`     // Identifies this operation within its Batch
+	Method     restclient.Method `json:"method"` // HTTP Method to use for this operation
+	Url        string            `json:"to"`     // Target URL
+	Body       interface{}       `json:"body"`   // Request body
+	resultJson *json.RawMessage  // JSON describing result of this operation.  Should this be a pointer?
+	// resultId       int                    // Identifies DB object created by executing this operation
+	// resultTemplate interface{}
+	// resultEntity interface{}
+}
+
+// add puts an operations in the queue.
+func (b *Batch) add(op *operation) int {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	nextId := len(b.queue)
-	j.BatchId = nextId
-	b.jobs[nextId] = j
-	b.queue = append(b.queue, j)
+	op.BatchId = nextId
+	b.ops[nextId] = op
+	b.queue = append(b.queue, op)
 	return nextId
 }
 
-// Execute sends all jobs in the queue to the DB as a single operation.
+// Execute sends all operations in the queue to the DB as a single operation.
 func (b *Batch) Execute() (result map[int]*entity, err error) {
 	type respItem struct {
 		BatchId  int              `json:"id"`
@@ -65,8 +77,8 @@ func (b *Batch) Execute() (result map[int]*entity, err error) {
 	}
 	result = make(map[int]*entity, len(resp))
 	for _, item := range resp {
-		job := b.jobs[item.BatchId]
-		job.resultJson = item.Body
+		op := b.ops[item.BatchId]
+		op.resultJson = item.Body
 	}
 	return result, nil
 }
