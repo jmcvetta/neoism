@@ -16,7 +16,7 @@ type RelationshipManager struct {
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
-func (m *RelationshipManager) do(rr *restclient.RestRequest) (status int, err error) {
+func (m *RelationshipManager) do(rr *restclient.RequestResponse) (status int, err error) {
 	return m.db.rc.Do(rr)
 }
 
@@ -27,7 +27,7 @@ func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 	res := new(relationshipResponse)
 	uri := join(m.db.url.String(), "relationship", strconv.Itoa(id))
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.GET,
 		Result: &res,
@@ -58,7 +58,7 @@ func (m *RelationshipManager) Types() ([]string, error) {
 		return reltypes, FeatureUnavailable
 	}
 	ne := new(neoError)
-	c := restclient.RestRequest{
+	c := restclient.RequestResponse{
 		Url:    m.db.HrefRelTypes,
 		Method: restclient.GET,
 		Result: &reltypes,

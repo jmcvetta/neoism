@@ -23,7 +23,7 @@ type RelationshipIndexManager struct {
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
-func (im *indexManager) do(rr *restclient.RestRequest) (status int, err error) {
+func (im *indexManager) do(rr *restclient.RequestResponse) (status int, err error) {
 	return im.db.rc.Do(rr)
 }
 
@@ -38,7 +38,7 @@ func (im *indexManager) Create(name string) (*index, error) {
 	idx := new(index)
 	idx.db = im.db
 	idx.Name = name
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    im.HrefIndex,
 		Method: restclient.POST,
 		Data:   &data,
@@ -81,7 +81,7 @@ func (im *indexManager) CreateWithConf(name, indexType, provider string) (*index
 	}
 	res := new(indexResponse)
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    im.HrefIndex,
 		Method: restclient.POST,
 		Data:   &data,
@@ -106,7 +106,7 @@ func (im *indexManager) All() ([]*index, error) {
 	res := map[string]indexResponse{}
 	nis := []*index{}
 	ne := new(neoError)
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    im.HrefIndex,
 		Method: restclient.GET,
 		Result: &res,
@@ -145,7 +145,7 @@ func (im *indexManager) Get(name string) (*index, error) {
 		return idx, err
 	}
 	ne := new(neoError)
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: restclient.GET,
 		Error:  ne,
@@ -219,7 +219,7 @@ func (idx *index) Delete() error {
 		return err
 	}
 	ne := new(neoError)
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.DELETE,
 		Error:  ne,
@@ -254,7 +254,7 @@ func (idx *index) Add(n *Node, key, value string) error {
 		Key:   key,
 		Value: value,
 	}
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.POST,
 		Data:   data,
@@ -289,7 +289,7 @@ func (idx *index) Remove(n *Node, key, value string) error {
 	}
 	uri = join(uri, strconv.Itoa(n.Id()))
 	ne := new(neoError)
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.DELETE,
 		Error:  ne,
@@ -324,7 +324,7 @@ func (idx *index) Find(key, value string) (NodeMap, error) {
 	}
 	ne := new(neoError)
 	resp := []nodeResponse{}
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: restclient.GET,
 		Result: &resp,
@@ -363,7 +363,7 @@ func (idx *index) Query(query string) (NodeMap, error) {
 		return nm, err
 	}
 	result := []nodeResponse{}
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: restclient.GET,
 		Result: &result,

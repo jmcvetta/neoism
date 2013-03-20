@@ -37,7 +37,7 @@ func (db *Database) Cypher(query string, params map[string]string) (*CypherResul
 			Query: query,
 		}
 	}
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    db.HrefCypher,
 		Method: restclient.POST,
 		Data:   data,

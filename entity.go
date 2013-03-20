@@ -32,7 +32,7 @@ type baseEntity struct {
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
-func (e *baseEntity) do(rr *restclient.RestRequest) (status int, err error) {
+func (e *baseEntity) do(rr *restclient.RequestResponse) (status int, err error) {
 	return e.db.rc.Do(rr)
 }
 
@@ -49,7 +49,7 @@ func (e *baseEntity) SetProperty(key string, value string) error {
 	}
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.PUT,
 		Data:   &value,
@@ -74,7 +74,7 @@ func (e *baseEntity) Property(key string) (string, error) {
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
 		Result: &val,
@@ -102,7 +102,7 @@ func (e *baseEntity) DeleteProperty(key string) error {
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.DELETE,
 		Error:  &ne,
@@ -128,7 +128,7 @@ func (e *baseEntity) Delete() error {
 		return FeatureUnavailable
 	}
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    e.HrefSelf,
 		Method: restclient.DELETE,
 		Error:  &ne,
@@ -155,7 +155,7 @@ func (e *baseEntity) Properties() (Properties, error) {
 		return props, FeatureUnavailable
 	}
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
 		Method: restclient.GET,
 		Result: &props,
@@ -179,7 +179,7 @@ func (e *baseEntity) SetProperties(p Properties) error {
 		return FeatureUnavailable
 	}
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
 		Method: restclient.PUT,
 		Data:   &p,
@@ -203,7 +203,7 @@ func (e *baseEntity) DeleteProperties() error {
 		return FeatureUnavailable
 	}
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
 		Method: "DELETE",
 		Error:  &ne,

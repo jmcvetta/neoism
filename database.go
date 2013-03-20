@@ -66,7 +66,7 @@ func Connect(uri string) (*Database, error) {
 		db:      db,
 		Indexes: &RelationshipIndexManager{},
 	}
-	req := restclient.RestRequest{
+	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: restclient.GET,
 		Result: &sr,

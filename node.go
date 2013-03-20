@@ -15,7 +15,7 @@ type NodeManager struct {
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
-func (nm *NodeManager) do(rr *restclient.RestRequest) (status int, err error) {
+func (nm *NodeManager) do(rr *restclient.RequestResponse) (status int, err error) {
 	return nm.db.rc.Do(rr)
 }
 
@@ -25,7 +25,7 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 	n.db = m.db
 	res := new(nodeResponse)
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    m.db.HrefNode,
 		Method: restclient.POST,
 		Data:   &p,
@@ -57,7 +57,7 @@ func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	ne := new(neoError)
 	n := Node{}
 	n.db = m.db
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.GET,
 		Result: res,
@@ -156,7 +156,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 	}
 	resArray := []relationshipResponse{}
 	ne := new(neoError)
-	rr := restclient.RestRequest{
+	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: restclient.GET,
 		Result: &resArray,
@@ -210,7 +210,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	if p != nil {
 		content["data"] = &p
 	}
-	c := restclient.RestRequest{
+	c := restclient.RequestResponse{
 		Url:    srcUri,
 		Method: restclient.POST,
 		Data:   content,
