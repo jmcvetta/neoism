@@ -1,2 +1,8 @@
 language: go
 services: neo4j
+notificaitons:
+  email:
+    recipients:
+      jason.mcvetta@gmail.com
+    on_success: change
+    on_failure: always
