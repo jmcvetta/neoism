@@ -14,6 +14,8 @@ documentation.
 
 [![Build Status](https://travis-ci.org/jmcvetta/neo4j.png)](https://travis-ci.org/jmcvetta/neo4j)
 
+[![Coverage Status](https://coveralls.io/repos/jmcvetta/neo4j/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neo4j)
+
 This driver is a work in progress.  It is not yet complete, but may now be
 suitable for use by others.  The code has an extensive set of integration
 tests, but very little real-world testing.  YMMV; use in production at your own
