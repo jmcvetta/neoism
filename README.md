@@ -14,6 +14,8 @@ documentation.
 
 [![Build Status](https://travis-ci.org/jmcvetta/neo4j.png)](https://travis-ci.org/jmcvetta/neo4j)
 
+[![Build Status](https://drone.io/github.com/jmcvetta/neo4j/status.png)](https://drone.io/github.com/jmcvetta/neo4j/latest)
+
 [![Coverage Status](https://coveralls.io/repos/jmcvetta/neo4j/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neo4j)
 
 This driver is a work in progress.  It is not yet complete, but may now be
