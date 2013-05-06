@@ -27,7 +27,7 @@ func (m *NodeManager) Create(p Properties) (*Node, error) {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    m.db.HrefNode,
-		Method: restclient.POST,
+		Method: "POST",
 		Data:   &p,
 		Result: res,
 		Error:  ne,
@@ -59,7 +59,7 @@ func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
 	n.db = m.db
 	rr := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.GET,
+		Method: "GET",
 		Result: res,
 		Error:  ne,
 	}
@@ -158,7 +158,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &resArray,
 		Error:  &ne,
 	}
@@ -212,7 +212,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	}
 	c := restclient.RequestResponse{
 		Url:    srcUri,
-		Method: restclient.POST,
+		Method: "POST",
 		Data:   content,
 		Result: &res,
 		Error:  &ne,

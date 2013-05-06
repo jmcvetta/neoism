@@ -29,7 +29,7 @@ func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &res,
 		Error:  &ne,
 	}
@@ -60,7 +60,7 @@ func (m *RelationshipManager) Types() ([]string, error) {
 	ne := new(neoError)
 	c := restclient.RequestResponse{
 		Url:    m.db.HrefRelTypes,
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &reltypes,
 		Error:  &ne,
 	}

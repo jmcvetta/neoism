@@ -68,7 +68,7 @@ func Connect(uri string) (*Database, error) {
 	}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &sr,
 		Error:  &e,
 	}

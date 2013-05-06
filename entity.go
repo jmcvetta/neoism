@@ -51,7 +51,7 @@ func (e *baseEntity) SetProperty(key string, value string) error {
 	uri := strings.Join(parts, "/")
 	rr := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.PUT,
+		Method: "PUT",
 		Data:   &value,
 		Error:  new(neoError),
 	}
@@ -104,7 +104,7 @@ func (e *baseEntity) DeleteProperty(key string) error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.DELETE,
+		Method: "DELETE",
 		Error:  &ne,
 	}
 	status, err := e.do(&rr)
@@ -130,7 +130,7 @@ func (e *baseEntity) Delete() error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefSelf,
-		Method: restclient.DELETE,
+		Method: "DELETE",
 		Error:  &ne,
 	}
 	status, err := e.do(&rr)
@@ -157,7 +157,7 @@ func (e *baseEntity) Properties() (Properties, error) {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &props,
 		Error:  &ne,
 	}
@@ -181,7 +181,7 @@ func (e *baseEntity) SetProperties(p Properties) error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
-		Method: restclient.PUT,
+		Method: "PUT",
 		Data:   &p,
 		Error:  &ne,
 	}

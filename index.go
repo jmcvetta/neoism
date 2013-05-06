@@ -40,7 +40,7 @@ func (im *indexManager) Create(name string) (*index, error) {
 	idx.Name = name
 	rr := restclient.RequestResponse{
 		Url:    im.HrefIndex,
-		Method: restclient.POST,
+		Method: "POST",
 		Data:   &data,
 		Result: &res,
 		Error:  &ne,
@@ -83,7 +83,7 @@ func (im *indexManager) CreateWithConf(name, indexType, provider string) (*index
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    im.HrefIndex,
-		Method: restclient.POST,
+		Method: "POST",
 		Data:   &data,
 		Result: res,
 		Error:  ne,
@@ -108,7 +108,7 @@ func (im *indexManager) All() ([]*index, error) {
 	ne := new(neoError)
 	req := restclient.RequestResponse{
 		Url:    im.HrefIndex,
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &res,
 		Error:  ne,
 	}
@@ -147,7 +147,7 @@ func (im *indexManager) Get(name string) (*index, error) {
 	ne := new(neoError)
 	req := restclient.RequestResponse{
 		Url:    u.String(),
-		Method: restclient.GET,
+		Method: "GET",
 		Error:  ne,
 	}
 	status, err := im.do(&req)
@@ -221,7 +221,7 @@ func (idx *index) Delete() error {
 	ne := new(neoError)
 	req := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.DELETE,
+		Method: "DELETE",
 		Error:  ne,
 	}
 	status, err := idx.db.rc.Do(&req)
@@ -256,7 +256,7 @@ func (idx *index) Add(n *Node, key, value string) error {
 	}
 	req := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.POST,
+		Method: "POST",
 		Data:   data,
 		Error:  ne,
 	}
@@ -291,7 +291,7 @@ func (idx *index) Remove(n *Node, key, value string) error {
 	ne := new(neoError)
 	req := restclient.RequestResponse{
 		Url:    uri,
-		Method: restclient.DELETE,
+		Method: "DELETE",
 		Error:  ne,
 	}
 	status, err := idx.db.rc.Do(&req)
@@ -326,7 +326,7 @@ func (idx *index) Find(key, value string) (NodeMap, error) {
 	resp := []nodeResponse{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &resp,
 		Error:  ne,
 	}
@@ -365,7 +365,7 @@ func (idx *index) Query(query string) (NodeMap, error) {
 	result := []nodeResponse{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
-		Method: restclient.GET,
+		Method: "GET",
 		Result: &result,
 	}
 	status, err := idx.db.rc.Do(&req)
