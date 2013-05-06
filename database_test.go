@@ -49,3 +49,20 @@ func rndStr(t *testing.T) string {
 	}
 	return name
 }
+
+func TestConnectInvalidUrl(t *testing.T) {
+	//
+	//  Missing protocol scheme - url.Parse should fail
+	//
+	_, err := Connect("://foobar.com")
+	if err == nil {
+		t.Fatal("Expected error due to missing protocol scheme")
+	}
+	//
+	// Unsupported protocol scheme - restclient.Do should fail
+	//
+	_, err = Connect("foo://bar.com")
+	if err == nil {
+		t.Fatal("Expected error due to unsupported protocol scheme")
+	}
+}
