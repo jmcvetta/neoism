@@ -2,7 +2,7 @@
 // the terms of the GPL v3.  See http://www.gnu.org/copyleft/gpl.html for details.
 
 //
-// The Neo4j Manual section numbers quoted herein refer to the manual for 
+// The Neo4j Manual section numbers quoted herein refer to the manual for
 // milestone release 1.8.  http://docs.neo4j.org/chunked/1.8/
 
 package neo4j
@@ -317,4 +317,26 @@ func TestGetRelationshipTypes(t *testing.T) {
 		assert.Tf(t, sort.SearchStrings(foundRelTypes, rt) < len(foundRelTypes),
 			"Could not find expected relationship type: "+rt)
 	}
+}
+
+func TestRelationshipStartEnd(t *testing.T) {
+	db := connectTest(t)
+	// Create
+	start, _ := db.Nodes.Create(EmptyProps)
+	defer start.Delete()
+	end, _ := db.Nodes.Create(EmptyProps)
+	defer end.Delete()
+	r0, _ := start.Relate("knows", end.Id(), EmptyProps)
+	defer r0.Delete()
+	//
+	n, err := r0.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, start, n)
+	n, err = r0.End()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, end, n)
 }
