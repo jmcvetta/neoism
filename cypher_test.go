@@ -73,3 +73,23 @@ func TestCypherSendQuery(t *testing.T) {
 	assert.Equal(t, expCol, result.Columns)
 	assert.Equal(t, expDat, result.Data)
 }
+
+func TestCypherBadQuery(t *testing.T) {
+	db := connectTest(t)
+	// Create
+	idx0, _ := db.Nodes.Indexes.Create("name_index")
+	defer idx0.Delete()
+	n0, _ := db.Nodes.Create(Properties{"name": "I"})
+	defer n0.Delete()
+	idx0.Add(n0, "name", "I")
+	n1, _ := db.Nodes.Create(Properties{"name": "you", "age": "69"})
+	defer n1.Delete()
+	r0, _ := n0.Relate("know", n1.Id(), nil)
+	defer r0.Delete()
+	// Query
+	query := "foobar("
+	_, err := db.Cypher(query, nil)
+	if err != BadResponse {
+		t.Error(err)
+	}
+}
