@@ -270,7 +270,7 @@ func (idx *index) Add(n *Node, key, value string) error {
 	return BadResponse
 }
 
-// Remove removes all entries with a given node, key and value from an index. 
+// Remove removes all entries with a given node, key and value from an index.
 // If value or both key and value are the blank string, they are ignored.
 func (idx *index) Remove(n *Node, key, value string) error {
 	uri, err := idx.uri()

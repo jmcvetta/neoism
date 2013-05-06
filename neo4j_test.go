@@ -11,7 +11,7 @@ for milestone release 1.8.  http://docs.neo4j.org/chunked/1.8/
 /*
 
 To run these tests, a Neo4j 1.8 instance must be running on localhost on the
-default port.  
+default port.
 
 If the test suite complete successfully, all new nodes & relationships created
 for testing will have been deleted in cleanup.  However if the test suite fails

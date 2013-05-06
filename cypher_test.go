@@ -37,7 +37,7 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	// Check result
 	expCol := []string{"TYPE(r)"}
 	// Our test only passes if Neo4j returns "know" and "love" in this order.  Is
-	// there any guarantee about order?  Can we modify the query to ensure order? 
+	// there any guarantee about order?  Can we modify the query to ensure order?
 	// Or is there a convenient way to sort result.Data here before checking it?
 	expDat := [][]string{[]string{"know"}, []string{"love"}}
 	assert.Equal(t, expCol, result.Columns)
@@ -66,7 +66,7 @@ func TestCypherSendQuery(t *testing.T) {
 	}
 	// Check result
 	//
-	// Our test only passes if Neo4j returns columns in the expected order - is 
+	// Our test only passes if Neo4j returns columns in the expected order - is
 	// there any guarantee about order?
 	expCol := []string{"type(r)", "n.name?", "n.age?"}
 	expDat := [][]string{[]string{"know", "you", "69"}}

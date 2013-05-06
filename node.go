@@ -142,7 +142,7 @@ func (n *Node) Id() int {
 	return id
 }
 
-// getRelationships makes an api call to the supplied uri and returns a map 
+// getRelationships makes an api call to the supplied uri and returns a map
 // keying relationship IDs to Relationship objects.
 func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationship, error) {
 	m := map[int]Relationship{}
@@ -175,7 +175,7 @@ func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationsh
 	return m, BadResponse
 }
 
-// Relationships gets all Relationships for this Node, optionally filtered by 
+// Relationships gets all Relationships for this Node, optionally filtered by
 // type, returning them as a map keyed on Relationship ID.
 func (n *Node) Relationships(types ...string) (map[int]Relationship, error) {
 	return n.getRelationships(n.HrefAllRels, types...)
@@ -191,7 +191,7 @@ func (n *Node) Outgoing(types ...string) (map[int]Relationship, error) {
 	return n.getRelationships(n.HrefOutgoingRels, types...)
 }
 
-// Relate creates a relationship of relType, with specified properties, 
+// Relate creates a relationship of relType, with specified properties,
 // from this Node to the node identified by destId.
 func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, error) {
 	rel := Relationship{}

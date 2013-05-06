@@ -2,7 +2,7 @@
 // the terms of the GPL v3.  See http://www.gnu.org/copyleft/gpl.html for details.
 
 //
-// The Neo4j Manual section numbers quoted herein refer to the manual for 
+// The Neo4j Manual section numbers quoted herein refer to the manual for
 // milestone release 1.8.  http://docs.neo4j.org/chunked/1.8/
 
 package neo4j
@@ -98,7 +98,7 @@ func TestDeleteNode(t *testing.T) {
 // 18.4.6. Nodes with relationships can not be deleted;
 func TestDeleteNodeWithRelationships(t *testing.T) {
 	db := connectTest(t)
-	// Create 
+	// Create
 	n0, _ := db.Nodes.Create(EmptyProps)
 	defer n0.Delete()
 	n1, _ := db.Nodes.Create(EmptyProps)
