@@ -136,9 +136,6 @@ func (im *indexManager) Get(name string) (*index, error) {
 	resp := new(indexResponse)
 	idx.Name = name
 	baseUri := im.HrefIndex
-	if baseUri == "" {
-		return idx, FeatureUnavailable
-	}
 	rawurl := join(baseUri, name)
 	u, err := url.ParseRequestURI(rawurl)
 	if err != nil {

@@ -13,7 +13,6 @@ var (
 	InvalidDatabase    = errors.New("Invalid database.  Check URI.")
 	BadResponse        = errors.New("Bad response from Neo4j server.")
 	NotFound           = errors.New("Cannot find in database.")
-	FeatureUnavailable = errors.New("Feature unavailable")
 	CannotDelete       = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
 )
 

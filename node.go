@@ -146,9 +146,6 @@ func (n *Node) Id() int {
 // keying relationship IDs to Relationship objects.
 func (n *Node) getRelationships(uri string, types ...string) (map[int]Relationship, error) {
 	m := map[int]Relationship{}
-	if uri == "" {
-		return m, FeatureUnavailable
-	}
 	if types != nil {
 		fragment := strings.Join(types, "&")
 		parts := []string{uri, fragment}

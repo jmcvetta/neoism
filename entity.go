@@ -44,9 +44,6 @@ var EmptyProps = Properties{}
 
 // SetProperty sets the single property key to value.
 func (e *baseEntity) SetProperty(key string, value string) error {
-	if e.HrefProperties == "" {
-		return FeatureUnavailable
-	}
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
 	rr := restclient.RequestResponse{
@@ -68,9 +65,6 @@ func (e *baseEntity) SetProperty(key string, value string) error {
 // GetProperty fetches the value of property key.
 func (e *baseEntity) Property(key string) (string, error) {
 	var val string
-	if e.HrefProperties == "" {
-		return val, FeatureUnavailable
-	}
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
 	ne := new(neoError)
@@ -96,9 +90,6 @@ func (e *baseEntity) Property(key string) (string, error) {
 
 // DeleteProperty deletes property key
 func (e *baseEntity) DeleteProperty(key string) error {
-	if e.HrefProperties == "" {
-		return FeatureUnavailable
-	}
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
 	ne := new(neoError)
@@ -124,9 +115,6 @@ func (e *baseEntity) DeleteProperty(key string) error {
 
 // Delete removes the object from the DB.
 func (e *baseEntity) Delete() error {
-	if e.HrefSelf == "" {
-		return FeatureUnavailable
-	}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefSelf,
@@ -151,9 +139,6 @@ func (e *baseEntity) Delete() error {
 // Properties fetches all properties
 func (e *baseEntity) Properties() (Properties, error) {
 	props := make(map[string]string)
-	if e.HrefProperties == "" {
-		return props, FeatureUnavailable
-	}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
@@ -175,9 +160,6 @@ func (e *baseEntity) Properties() (Properties, error) {
 
 // SetProperties updates all properties, overwriting any existing properties.
 func (e *baseEntity) SetProperties(p Properties) error {
-	if e.HrefProperties == "" {
-		return FeatureUnavailable
-	}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
@@ -199,9 +181,6 @@ func (e *baseEntity) SetProperties(p Properties) error {
 
 // DeleteProperties deletes all properties.
 func (e *baseEntity) DeleteProperties() error {
-	if e.HrefProperties == "" {
-		return FeatureUnavailable
-	}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
