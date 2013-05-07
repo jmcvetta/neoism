@@ -23,7 +23,8 @@ func TestCreateNodeIndex(t *testing.T) {
 	//
 	// Create new index
 	//
-	idx0, err := db.Nodes.Indexes.Create(name)
+	// idx0, err := db.Nodes.Indexes.Create(name)
+	idx0, err := db.CreateNodeIndex(name, "", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -33,7 +34,7 @@ func TestCreateNodeIndex(t *testing.T) {
 	//
 	// Get the index we just created
 	//
-	idx1, err := db.Nodes.Indexes.Get(name)
+	idx1, err := db.NodeIndex(name)
 	if err != nil {
 		t.Error(err)
 	}
@@ -50,7 +51,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	//
 	// Create new index
 	//
-	idx0, err := db.Nodes.Indexes.CreateWithConf(name, indexType, provider)
+	idx0, err := db.CreateNodeIndex(name, indexType, provider)
 	if err != nil {
 		t.Error(err)
 	}
@@ -62,7 +63,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	//
 	// Get the index we just created
 	//
-	idx1, err := db.Nodes.Indexes.Get(name)
+	idx1, err := db.NodeIndex(name)
 	if err != nil {
 		t.Error(err)
 	}
@@ -74,12 +75,12 @@ func TestDeleteNodeIndex(t *testing.T) {
 	db := connectTest(t)
 	// Include a space in the name to ensure correct URL escaping.
 	name := rndStr(t) + " " + rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(name)
+	idx0, _ := db.CreateNodeIndex(name, "", "")
 	err := idx0.Delete()
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = db.Nodes.Indexes.Get(name)
+	_, err = db.NodeIndex(name)
 	assert.Equal(t, err, NotFound)
 }
 
@@ -87,9 +88,10 @@ func TestDeleteNodeIndex(t *testing.T) {
 func TestListNodeIndexes(t *testing.T) {
 	db := connectTest(t)
 	name := rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(name)
+	// idx0, _ := db.Nodes.Indexes.Create(name)
+	idx0, _ := db.CreateNodeIndex(name, "", "")
 	defer idx0.Delete()
-	indexes, err := db.Nodes.Indexes.All()
+	indexes, err := db.NodeIndexes()
 	if err != nil {
 		t.Error(err)
 	}
@@ -108,7 +110,8 @@ func TestAddNodeToIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(name)
+	// idx0, _ := db.Nodes.Indexes.Create(name)
+	idx0, _ := db.CreateNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
 	defer n0.Delete()
@@ -124,7 +127,8 @@ func TestRemoveNodeFromIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(name)
+	// idx0, _ := db.Nodes.Indexes.Create(name)
+	idx0, _ := db.CreateNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
 	defer n0.Delete()
@@ -141,7 +145,8 @@ func TestRemoveNodeAndKeyFromIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(name)
+	// idx0, _ := db.Nodes.Indexes.Create(name)
+	idx0, _ := db.CreateNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
 	defer n0.Delete()
@@ -158,7 +163,8 @@ func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(name)
+	// idx0, _ := db.Nodes.Indexes.Create(name)
+	idx0, _ := db.CreateNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
 	defer n0.Delete()
@@ -178,7 +184,8 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	key1 := rndStr(t)
 	value0 := rndStr(t)
 	value1 := rndStr(t)
-	idx0, _ := db.Nodes.Indexes.Create(idxName)
+	// idx0, _ := db.Nodes.Indexes.Create(idxName)
+	idx0, _ := db.CreateNodeIndex(idxName, "", "")
 	defer idx0.Delete()
 	n0, _ := db.Nodes.Create(EmptyProps)
 	defer n0.Delete()
@@ -209,7 +216,8 @@ func TestFindNodeByExactMatch(t *testing.T) {
 func TestFindNodeByQuery(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	idx0, _ := db.Nodes.Indexes.Create("test index")
+	// idx0, _ := db.Nodes.Indexes.Create("test index")
+	idx0, _ := db.CreateNodeIndex("test index", "", "")
 	defer idx0.Delete()
 	key0 := rndStr(t)
 	key1 := rndStr(t)

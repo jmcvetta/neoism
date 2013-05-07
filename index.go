@@ -5,114 +5,87 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
+	"log"
 	"net/url"
 	"strconv"
 )
 
-type indexManager struct {
-	HrefIndex string
-	db        *Database
-}
-
-type NodeIndexManager struct {
-	indexManager
-}
-
-type RelationshipIndexManager struct {
-	indexManager
-}
-
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (im *indexManager) do(rr *restclient.RequestResponse) (status int, err error) {
-	return im.db.rc.Do(rr)
-}
-
-// CreateIndex creates a new Index with the supplied name.
-func (im *indexManager) Create(name string) (*index, error) {
-	type s struct {
-		Name string `json:"name"`
-	}
-	data := s{Name: name}
-	res := new(indexResponse)
-	ne := new(neoError)
-	idx := new(index)
-	idx.db = im.db
-	idx.Name = name
-	rr := restclient.RequestResponse{
-		Url:    im.HrefIndex,
-		Method: "POST",
-		Data:   &data,
-		Result: &res,
-		Error:  &ne,
-	}
-	status, err := im.do(&rr)
+func (db *Database) CreateNodeIndex(name, idxType, provider string) (*NodeIndex, error) {
+	idx, err := db.createIndex(db.HrefNodeIndex, name, idxType, provider)
 	if err != nil {
-		logPretty(ne)
-		return idx, err
+		return nil, err
 	}
-	if status != 201 {
-		logPretty(ne)
-		return idx, BadResponse
-	}
-	idx.populate(res)
-	idx.HrefIndex = im.HrefIndex
-	return idx, nil
+	return &NodeIndex{*idx}, nil
 }
 
-// CreateIndexWithConf creates a new Index with the supplied name and configuration.
-func (im *indexManager) CreateWithConf(name, indexType, provider string) (*index, error) {
+// CreateIndexWithConf creates a new Index with the supplied name and
+// optional indexType and provider.
+func (db *Database) createIndex(href, name, idxType, provider string) (*index, error) {
 	idx := new(index)
-	idx.db = im.db
+	idx.db = db
 	idx.Name = name
-	type conf struct {
-		Type     string `json:"type"`
-		Provider string `json:"provider"`
+	type c struct {
+		Type     string `json:"type,omitempty"`
+		Provider string `json:"provider,omitempty"`
 	}
-	type s struct {
+	type p struct {
 		Name   string `json:"name"`
-		Config conf   `json:"config"`
+		Config c      `json:"config,omitempty"`
 	}
-	data := s{
+	payload := p{
 		Name: name,
-		Config: conf{
-			Type:     indexType,
+	}
+	if idxType != "" || provider != "" {
+		config := c{
+			Type:     idxType,
 			Provider: provider,
-		},
+		}
+		payload.Config = config
 	}
 	res := new(indexResponse)
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
-		Url:    im.HrefIndex,
-		Method: "POST",
-		Data:   &data,
-		Result: res,
-		Error:  ne,
+		Url:            href,
+		Method:         "POST",
+		Data:           &payload,
+		Result:         res,
+		Error:          ne,
+		ExpectedStatus: 201,
 	}
-	status, err := im.do(&rr)
+	status, err := db.rc.Do(&rr)
 	if err != nil {
+		log.Println(status)
 		logPretty(ne)
 		return idx, err
 	}
-	if status != 201 {
-		logPretty(ne)
-		return idx, BadResponse
-	}
 	idx.populate(res)
-	idx.HrefIndex = im.HrefIndex
+	idx.HrefIndex = href
 	return idx, nil
 }
 
-func (im *indexManager) All() ([]*index, error) {
+func (db *Database) NodeIndexes() ([]*NodeIndex, error) {
+	indexes, err := db.indexes(db.HrefNodeIndex)
+	if err != nil {
+		return nil, err
+	}
+	nis := make([]*NodeIndex, len(indexes))
+	for i, idx := range indexes {
+		nis[i] = &NodeIndex{*idx}
+	}
+	return nis, nil
+}
+
+func (db *Database) indexes(href string) ([]*index, error) {
 	res := map[string]indexResponse{}
 	nis := []*index{}
 	ne := new(neoError)
 	req := restclient.RequestResponse{
-		Url:    im.HrefIndex,
+		Url:    href,
 		Method: "GET",
 		Result: &res,
 		Error:  ne,
 	}
-	status, err := im.do(&req)
+	status, err := db.rc.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return nis, err
@@ -123,7 +96,7 @@ func (im *indexManager) All() ([]*index, error) {
 	}
 	for name, r := range res {
 		n := index{}
-		n.db = im.db
+		n.db = db
 		n.Name = name
 		n.populate(&r)
 		nis = append(nis, &n)
@@ -131,11 +104,20 @@ func (im *indexManager) All() ([]*index, error) {
 	return nis, nil
 }
 
-func (im *indexManager) Get(name string) (*index, error) {
+func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
+	idx, err := db.index(db.HrefNodeIndex, name)
+	if err != nil {
+		return nil, err
+	}
+	return &NodeIndex{*idx}, nil
+
+}
+
+func (db *Database) index(href, name string) (*index, error) {
 	idx := new(index)
 	resp := new(indexResponse)
 	idx.Name = name
-	baseUri := im.HrefIndex
+	baseUri := href
 	rawurl := join(baseUri, name)
 	u, err := url.ParseRequestURI(rawurl)
 	if err != nil {
@@ -147,7 +129,7 @@ func (im *indexManager) Get(name string) (*index, error) {
 		Method: "GET",
 		Error:  ne,
 	}
-	status, err := im.do(&req)
+	status, err := db.rc.Do(&req)
 	if err != nil {
 		logPretty(req)
 		return idx, err

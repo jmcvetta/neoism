@@ -57,10 +57,8 @@ func Connect(uri string) (*Database, error) {
 	}
 	db.url = u
 	db.Nodes = &NodeManager{
-		db:      db,
-		Indexes: &NodeIndexManager{},
+		db: db,
 	}
-	db.Nodes.Indexes.db = db
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
@@ -90,9 +88,6 @@ func Connect(uri string) (*Database, error) {
 	db.HrefBatch = sr.HrefBatch
 	db.HrefCypher = sr.HrefCypher
 	db.Version = sr.Version
-	// Set HrefIndex so the generic indexManager knows what URL to use when
-	// creating a NodeIndex.
-	db.Nodes.Indexes.HrefIndex = sr.HrefNodeIndex
 	// Success!
 	return db, nil
 }

@@ -10,8 +10,7 @@ import (
 )
 
 type NodeManager struct {
-	db      *Database
-	Indexes *NodeIndexManager
+	db *Database
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
