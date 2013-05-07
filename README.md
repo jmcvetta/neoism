@@ -21,6 +21,13 @@ suitable for use by others.  The code has an extensive set of integration
 tests, but very little real-world testing.  YMMV; use in production at your own
 risk.
 
+## Production Note
+
+If you decide to use `neo4j` in a production system, please send me a message
+and I will try to give you a heads up when there are API changes.  The API is
+*not* promised to be stable at this time.
+
+
 ## Completed:
 
 * Node (create/edit/relate/delete/properties)
