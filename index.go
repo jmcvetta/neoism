@@ -10,24 +10,6 @@ import (
 	"strconv"
 )
 
-func (db *Database) CreateNodeIndex(name, idxType, provider string) (*NodeIndex, error) {
-	idx, err := db.createIndex(db.HrefNodeIndex, name, idxType, provider)
-	if err != nil {
-		return nil, err
-	}
-	return &NodeIndex{*idx}, nil
-}
-
-func (db *Database) CreateRelIndex(name, idxType, provider string) (*RelationshipIndex, error) {
-	idx, err := db.createIndex(db.HrefRelIndex, name, idxType, provider)
-	if err != nil {
-		return nil, err
-	}
-	return &RelationshipIndex{*idx}, nil
-}
-
-// CreateIndexWithConf creates a new Index with the supplied name and
-// optional indexType and provider.
 func (db *Database) createIndex(href, name, idxType, provider string) (*index, error) {
 	idx := new(index)
 	idx.db = db
@@ -71,30 +53,6 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 	return idx, nil
 }
 
-func (db *Database) NodeIndexes() ([]*NodeIndex, error) {
-	indexes, err := db.indexes(db.HrefNodeIndex)
-	if err != nil {
-		return nil, err
-	}
-	nis := make([]*NodeIndex, len(indexes))
-	for i, idx := range indexes {
-		nis[i] = &NodeIndex{*idx}
-	}
-	return nis, nil
-}
-
-func (db *Database) RelationshipIndexes() ([]*RelationshipIndex, error) {
-	indexes, err := db.indexes(db.HrefRelIndex)
-	if err != nil {
-		return nil, err
-	}
-	ris := make([]*RelationshipIndex, len(indexes))
-	for i, idx := range indexes {
-		ris[i] = &RelationshipIndex{*idx}
-	}
-	return ris, nil
-}
-
 func (db *Database) indexes(href string) ([]*index, error) {
 	res := map[string]indexResponse{}
 	nis := []*index{}
@@ -122,23 +80,6 @@ func (db *Database) indexes(href string) ([]*index, error) {
 		nis = append(nis, &n)
 	}
 	return nis, nil
-}
-
-func (db *Database) RelationshipIndex(name string) (*RelationshipIndex, error) {
-	idx, err := db.index(db.HrefRelIndex, name)
-	if err != nil {
-		return nil, err
-	}
-	return &RelationshipIndex{*idx}, nil
-}
-
-func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
-	idx, err := db.index(db.HrefNodeIndex, name)
-	if err != nil {
-		return nil, err
-	}
-	return &NodeIndex{*idx}, nil
-
 }
 
 func (db *Database) index(href, name string) (*index, error) {
@@ -184,14 +125,14 @@ type index struct {
 	HrefIndex     string
 }
 
-func (ni *index) populate(res *indexResponse) {
-	ni.HrefTemplate = res.HrefTemplate
-	ni.Provider = res.Provider
-	ni.IndexType = res.IndexType
+func (idx *index) populate(res *indexResponse) {
+	idx.HrefTemplate = res.HrefTemplate
+	idx.Provider = res.Provider
+	idx.IndexType = res.IndexType
 	if res.LowerCase == "true" {
-		ni.CaseSensitive = false
+		idx.CaseSensitive = false
 	} else {
-		ni.CaseSensitive = true
+		idx.CaseSensitive = true
 	}
 }
 
@@ -200,16 +141,6 @@ type indexResponse struct {
 	Provider     string `json:"provider"`      // Not always populated by server
 	IndexType    string `json:"type"`          // Not always populated by server
 	LowerCase    string `json:"to_lower_case"` // Not always populated by server
-}
-
-// A NodeIndex is an index for searching Nodes.
-type NodeIndex struct {
-	index
-}
-
-// A RelationshipIndex is an index for searching Relationships.
-type RelationshipIndex struct {
-	index
 }
 
 // uri returns the URI for this Index.
@@ -242,10 +173,6 @@ func (idx *index) Delete() error {
 	}
 	logPretty(ne)
 	return BadResponse
-}
-
-func (nix *NodeIndex) Add(n *Node, key, value string) error {
-	return nix.add(n, key, value)
 }
 
 // Add associates a Node with the given key/value pair in the given index.
@@ -284,12 +211,6 @@ func (idx *index) add(e entity, key, value string) error {
 	return BadResponse
 }
 
-func (nix *NodeIndex) Remove(n *Node, key, value string) error {
-	return nix.remove(n, key, value)
-}
-
-// Remove removes all entries with a given node, key and value from an index.
-// If value or both key and value are the blank string, they are ignored.
 func (idx *index) remove(e entity, key, value string) error {
 	uri, err := idx.uri()
 	if err != nil {
@@ -322,80 +243,3 @@ func (idx *index) remove(e entity, key, value string) error {
 	return BadResponse
 }
 
-// A NodeMap associates Node objects with their integer IDs.
-type NodeMap map[int]*Node
-
-// Find locates Nodes in the index by exact key/value match.
-func (idx *NodeIndex) Find(key, value string) (NodeMap, error) {
-	nm := make(NodeMap)
-	rawurl, err := idx.uri()
-	if err != nil {
-		return nm, err
-	}
-	rawurl = join(rawurl, key, value)
-	u, err := url.ParseRequestURI(rawurl)
-	if err != nil {
-		return nm, err
-	}
-	ne := new(neoError)
-	resp := []nodeResponse{}
-	req := restclient.RequestResponse{
-		Url:    u.String(),
-		Method: "GET",
-		Result: &resp,
-		Error:  ne,
-	}
-	status, err := idx.db.rc.Do(&req)
-	if err != nil {
-		logPretty(ne)
-		return nm, err
-	}
-	if status != 200 {
-		logPretty(req)
-		return nm, BadResponse
-	}
-	for _, r := range resp {
-		n := Node{}
-		n.db = idx.db
-		n.populate(&r)
-		nm[n.Id()] = &n
-	}
-	return nm, nil
-}
-
-// Query locatess Nodes by query, in the query language appropriate for a given Index.
-func (idx *index) Query(query string) (NodeMap, error) {
-	nm := make(NodeMap)
-	rawurl, err := idx.uri()
-	if err != nil {
-		return nm, err
-	}
-	v := make(url.Values)
-	v.Add("query", query)
-	rawurl += "?" + v.Encode()
-	u, err := url.ParseRequestURI(rawurl)
-	if err != nil {
-		return nm, err
-	}
-	result := []nodeResponse{}
-	req := restclient.RequestResponse{
-		Url:    u.String(),
-		Method: "GET",
-		Result: &result,
-	}
-	status, err := idx.db.rc.Do(&req)
-	if err != nil {
-		return nm, err
-	}
-	if status != 200 {
-		logPretty(req)
-		return nm, BadResponse
-	}
-	for _, r := range result {
-		n := Node{}
-		n.db = idx.db
-		n.populate(&r)
-		nm[n.Id()] = &n
-	}
-	return nm, nil
-}

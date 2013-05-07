@@ -242,38 +242,3 @@ func TestFindNodeByQuery(t *testing.T) {
 	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n1.Id()))
 }
 
-// The underlying functions are used for node and relationship indexes.  For
-// now we will test only the pieces of code that are relationship-specific.
-func TestRelationshipIndexes(t *testing.T) {
-	db := connectTest(t)
-	name := rndStr(t)
-	template := join(db.HrefRelIndex, name, "{key}/{value}")
-	//
-	// Create new index
-	//
-	idx0, err := db.CreateRelIndex(name, "", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer idx0.Delete()
-	assert.Equal(t, idx0.Name, name)
-	assert.Equal(t, idx0.HrefTemplate, template)
-	//
-	// Get the index we just created
-	//
-	idx1, err := db.RelationshipIndex(name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, idx0.Name, idx1.Name)
-	//
-	// See if we get this index, and only this index
-	//
-	indexes, err := db.RelationshipIndexes()
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, 1, len(indexes))
-	idx2 := indexes[0]
-	assert.Equal(t, idx0.Name, idx2.Name)
-}
