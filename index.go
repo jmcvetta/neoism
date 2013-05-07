@@ -242,4 +242,3 @@ func (idx *index) remove(e entity, key, value string) error {
 	logPretty(req)
 	return BadResponse
 }
-

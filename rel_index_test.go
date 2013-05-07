@@ -27,7 +27,7 @@ func TestRelationshipIndexes(t *testing.T) {
 	//
 	// Get the index we just created
 	//
-	idx1, err := db.RelationshipIndex(name)
+	idx1, err := db.RelIndex(name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestRelationshipIndexes(t *testing.T) {
 	//
 	// See if we get this index, and only this index
 	//
-	indexes, err := db.RelationshipIndexes()
+	indexes, err := db.RelIndexes()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,6 +8,12 @@ import (
 	"net/url"
 )
 
+// A NodeIndex is a searchable index for nodes.
+type NodeIndex struct {
+	index
+}
+
+// CreateNodeIndex creates a new node index with optional type and provider.
 func (db *Database) CreateNodeIndex(name, idxType, provider string) (*NodeIndex, error) {
 	idx, err := db.createIndex(db.HrefNodeIndex, name, idxType, provider)
 	if err != nil {
@@ -16,6 +22,7 @@ func (db *Database) CreateNodeIndex(name, idxType, provider string) (*NodeIndex,
 	return &NodeIndex{*idx}, nil
 }
 
+// NodeIndexes returns all node indexes.
 func (db *Database) NodeIndexes() ([]*NodeIndex, error) {
 	indexes, err := db.indexes(db.HrefNodeIndex)
 	if err != nil {
@@ -28,6 +35,7 @@ func (db *Database) NodeIndexes() ([]*NodeIndex, error) {
 	return nis, nil
 }
 
+// NodeIndex returns the named relationship index.
 func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
 	idx, err := db.index(db.HrefNodeIndex, name)
 	if err != nil {
@@ -37,12 +45,7 @@ func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
 
 }
 
-// A NodeIndex is an index for searching Nodes.
-type NodeIndex struct {
-	index
-}
-
-// Add associates a Node with the given key/value pair in the given index.
+// Add indexes a node with a key/value pair.
 func (nix *NodeIndex) Add(n *Node, key, value string) error {
 	return nix.add(n, key, value)
 }
@@ -91,7 +94,7 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 	return nm, nil
 }
 
-// Query locatess Nodes by query, in the query language appropriate for a given Index.
+// Query finds nodes with a query.
 func (idx *index) Query(query string) (map[int]*Node, error) {
 	nm := make(map[int]*Node)
 	rawurl, err := idx.uri()

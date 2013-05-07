@@ -241,4 +241,3 @@ func TestFindNodeByQuery(t *testing.T) {
 	_, present = nodes1[n1.Id()]
 	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n1.Id()))
 }
-

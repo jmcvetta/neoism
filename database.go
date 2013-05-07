@@ -43,6 +43,7 @@ type serviceRoot struct {
 	Version       string      `json:"neo4j_version"`
 }
 
+// Connect establishes a connection to the Neo4j server.
 func Connect(uri string) (*Database, error) {
 	var sr serviceRoot
 	var e neoError
