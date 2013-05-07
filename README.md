@@ -25,7 +25,7 @@ risk.
 
 If you decide to use `neo4j` in a production system, please send me a message
 and I will try to give you a heads up when there are API changes.  The API is
-*not* promised to be stable at this time.
+**not** promised to be stable at this time.
 
 
 ## Completed:
