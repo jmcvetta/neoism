@@ -253,7 +253,7 @@ func TestRelationshipIndexes(t *testing.T) {
 	//
 	idx0, err := db.CreateRelIndex(name, "", "")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	defer idx0.Delete()
 	assert.Equal(t, idx0.Name, name)
@@ -263,7 +263,17 @@ func TestRelationshipIndexes(t *testing.T) {
 	//
 	idx1, err := db.RelationshipIndex(name)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	assert.Equal(t, idx0.Name, idx1.Name)
+	//
+	// See if we get this index, and only this index
+	//
+	indexes, err := db.RelationshipIndexes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(indexes))
+	idx2 := indexes[0]
+	assert.Equal(t, idx0.Name, idx2.Name)
 }
