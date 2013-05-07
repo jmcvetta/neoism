@@ -73,14 +73,14 @@ type Relationship struct {
 	HrefEnd   string
 }
 
-func (r *Relationship) HrefSelf() string {
-	return r.hrefSelf
+func (r *Relationship) hrefSelf() string {
+	return r.HrefSelf
 }
 
 // populate uses the values from a relationshipResponse object to populate the
 // fields on this Relationship.
 func (r *Relationship) populate(res *relationshipResponse) {
-	r.hrefSelf = res.HrefSelf
+	r.HrefSelf = res.HrefSelf
 	//
 	r.HrefProperty = res.HrefProperty
 	r.HrefProperties = res.HrefProperties
@@ -105,7 +105,7 @@ type relationshipResponse struct {
 
 // Id gets the ID number of this Relationship
 func (r *Relationship) Id() int {
-	parts := strings.Split(r.HrefSelf(), "/")
+	parts := strings.Split(r.HrefSelf, "/")
 	s := parts[len(parts)-1]
 	id, err := strconv.Atoi(s)
 	if err != nil {

@@ -88,7 +88,7 @@ type nodeResponse struct {
 // populate uses the values from a nodeResponse object to populate the fields on
 // this Node.
 func (n *Node) populate(r *nodeResponse) {
-	n.hrefSelf = r.HrefSelf
+	n.HrefSelf = r.HrefSelf
 	//
 	n.HrefProperty = r.HrefProperty
 	n.HrefProperties = r.HrefProperties
@@ -119,14 +119,14 @@ type Node struct {
 	HrefIncomingTypedRels string
 }
 
-func (n *Node) HrefSelf() string {
-	return n.hrefSelf
+func (n *Node) hrefSelf() string {
+	return n.HrefSelf
 }
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
 	l := len(n.db.HrefNode)
-	s := n.HrefSelf()[l:]
+	s := n.hrefSelf()[l:]
 	s = strings.Trim(s, "/")
 	id, err := strconv.Atoi(s)
 	if err != nil {
@@ -191,7 +191,7 @@ func (n *Node) Relate(relType string, destId int, p Properties) (*Relationship, 
 	rel.db = n.db
 	res := new(relationshipResponse)
 	ne := new(neoError)
-	srcUri := join(n.HrefSelf(), "relationships")
+	srcUri := join(n.HrefSelf, "relationships")
 	destUri := join(n.db.HrefNode, strconv.Itoa(destId))
 	content := map[string]interface{}{
 		"to":   destUri,

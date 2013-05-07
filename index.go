@@ -187,8 +187,9 @@ func (idx *index) add(e entity, key, value string) error {
 		Key   string `json:"key"`
 		Value string `json:"value"`
 	}
+	log.Println(e.hrefSelf())
 	data := s{
-		Uri:   e.HrefSelf(),
+		Uri:   e.hrefSelf(),
 		Key:   key,
 		Value: value,
 	}
