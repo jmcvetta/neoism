@@ -18,6 +18,14 @@ func (db *Database) CreateNodeIndex(name, idxType, provider string) (*NodeIndex,
 	return &NodeIndex{*idx}, nil
 }
 
+func (db *Database) CreateRelIndex(name, idxType, provider string) (*RelationshipIndex, error) {
+	idx, err := db.createIndex(db.HrefRelIndex, name, idxType, provider)
+	if err != nil {
+		return nil, err
+	}
+	return &RelationshipIndex{*idx}, nil
+}
+
 // CreateIndexWithConf creates a new Index with the supplied name and
 // optional indexType and provider.
 func (db *Database) createIndex(href, name, idxType, provider string) (*index, error) {
@@ -75,6 +83,18 @@ func (db *Database) NodeIndexes() ([]*NodeIndex, error) {
 	return nis, nil
 }
 
+func (db *Database) RelationshipIndexes() ([]*RelationshipIndex, error) {
+	indexes, err := db.indexes(db.HrefRelIndex)
+	if err != nil {
+		return nil, err
+	}
+	ris := make([]*RelationshipIndex, len(indexes))
+	for i, idx := range indexes {
+		ris[i] = &RelationshipIndex{*idx}
+	}
+	return ris, nil
+}
+
 func (db *Database) indexes(href string) ([]*index, error) {
 	res := map[string]indexResponse{}
 	nis := []*index{}
@@ -102,6 +122,14 @@ func (db *Database) indexes(href string) ([]*index, error) {
 		nis = append(nis, &n)
 	}
 	return nis, nil
+}
+
+func (db *Database) RelationshipIndex(name string) (*RelationshipIndex, error) {
+	idx, err := db.index(db.HrefRelIndex, name)
+	if err != nil {
+		return nil, err
+	}
+	return &RelationshipIndex{*idx}, nil
 }
 
 func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
@@ -216,8 +244,12 @@ func (idx *index) Delete() error {
 	return BadResponse
 }
 
+func (nix *NodeIndex) Add(n *Node, key, value string) error {
+	return nix.add(n, key, value)
+}
+
 // Add associates a Node with the given key/value pair in the given index.
-func (idx *index) Add(n *Node, key, value string) error {
+func (idx *index) add(e entity, key, value string) error {
 	uri, err := idx.uri()
 	if err != nil {
 		return err
@@ -229,7 +261,7 @@ func (idx *index) Add(n *Node, key, value string) error {
 		Value string `json:"value"`
 	}
 	data := s{
-		Uri:   n.HrefSelf,
+		Uri:   e.HrefSelf(),
 		Key:   key,
 		Value: value,
 	}
@@ -252,9 +284,13 @@ func (idx *index) Add(n *Node, key, value string) error {
 	return BadResponse
 }
 
+func (nix *NodeIndex) Remove(n *Node, key, value string) error {
+	return nix.remove(n, key, value)
+}
+
 // Remove removes all entries with a given node, key and value from an index.
 // If value or both key and value are the blank string, they are ignored.
-func (idx *index) Remove(n *Node, key, value string) error {
+func (idx *index) remove(e entity, key, value string) error {
 	uri, err := idx.uri()
 	if err != nil {
 		return err
@@ -266,7 +302,7 @@ func (idx *index) Remove(n *Node, key, value string) error {
 	if key != "" {
 		uri = join(uri, key, value)
 	}
-	uri = join(uri, strconv.Itoa(n.Id()))
+	uri = join(uri, strconv.Itoa(e.Id()))
 	ne := new(neoError)
 	req := restclient.RequestResponse{
 		Url:    uri,
@@ -290,7 +326,7 @@ func (idx *index) Remove(n *Node, key, value string) error {
 type NodeMap map[int]*Node
 
 // Find locates Nodes in the index by exact key/value match.
-func (idx *index) Find(key, value string) (NodeMap, error) {
+func (idx *NodeIndex) Find(key, value string) (NodeMap, error) {
 	nm := make(NodeMap)
 	rawurl, err := idx.uri()
 	if err != nil {

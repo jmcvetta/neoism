@@ -15,19 +15,22 @@ type entity interface {
 	// HrefProperty()   string
 	// HrefProperties() string
 	// HrefSelf()       string
+	Property(key string) (string, error)
 	SetProperty(key string, value string) error
-	GetProperty(key string) (string, error)
 	DeleteProperty(key string) error
 	Delete() error
 	Properties() (Properties, error)
 	SetProperties(p Properties) error
 	DeleteProperties() error
+	HrefSelf() string
+	Id() int
 }
 
 type baseEntity struct {
+	entity
 	HrefProperty   string
 	HrefProperties string
-	HrefSelf       string
+	hrefSelf       string
 	db             *Database
 }
 
@@ -117,7 +120,7 @@ func (e *baseEntity) DeleteProperty(key string) error {
 func (e *baseEntity) Delete() error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
-		Url:    e.HrefSelf,
+		Url:    e.hrefSelf,
 		Method: "DELETE",
 		Error:  &ne,
 	}
