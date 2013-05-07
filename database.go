@@ -17,7 +17,6 @@ type Database struct {
 	url    *url.URL // Root URL for REST API
 	client *http.Client
 	rc     *restclient.Client
-	Nodes  *NodeManager
 	//
 	HrefNode      string
 	HrefRefNode   string
@@ -56,9 +55,6 @@ func Connect(uri string) (*Database, error) {
 		return db, err
 	}
 	db.url = u
-	db.Nodes = &NodeManager{
-		db: db,
-	}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",

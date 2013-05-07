@@ -19,13 +19,13 @@ import (
 func TestCreateNode(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, err := db.Nodes.Create(EmptyProps)
+	n0, err := db.CreateNode(EmptyProps)
 	if err != nil {
 		t.Error(err)
 	}
 	defer n0.Delete()
 	// Confirm creation
-	_, err = db.Nodes.Get(n0.Id())
+	_, err = db.Node(n0.Id())
 	if err != nil {
 		t.Error(err)
 	}
@@ -38,13 +38,13 @@ func TestCreateNodeWithProperties(t *testing.T) {
 	props0 := Properties{}
 	props0["foo"] = "bar"
 	props0["spam"] = "eggs"
-	n0, err := db.Nodes.Create(props0)
+	n0, err := db.CreateNode(props0)
 	if err != nil {
 		t.Error(err)
 	}
 	defer n0.Delete()
 	// Confirm creation
-	_, err = db.Nodes.Get(n0.Id())
+	_, err = db.Node(n0.Id())
 	if err != nil {
 		t.Error(err)
 	}
@@ -57,10 +57,10 @@ func TestCreateNodeWithProperties(t *testing.T) {
 func TestGetNode(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.Nodes.Create(EmptyProps)
+	n0, _ := db.CreateNode(EmptyProps)
 	defer n0.Delete()
 	// Get Node
-	n1, err := db.Nodes.Get(n0.Id())
+	n1, err := db.Node(n0.Id())
 	if err != nil {
 		t.Error(err)
 	}
@@ -72,11 +72,11 @@ func TestGetNode(t *testing.T) {
 func TestGetNonexistentNode(t *testing.T) {
 	db := connectTest(t)
 	// Create a node
-	n0, _ := db.Nodes.Create(EmptyProps)
+	n0, _ := db.CreateNode(EmptyProps)
 	defer n0.Delete()
 	// Try to get non-existent node with next Id
 	implausible := n0.Id() + 1000
-	_, err := db.Nodes.Get(implausible)
+	_, err := db.Node(implausible)
 	assert.Equal(t, err, NotFound)
 }
 
@@ -84,14 +84,14 @@ func TestGetNonexistentNode(t *testing.T) {
 func TestDeleteNode(t *testing.T) {
 	db := connectTest(t)
 	// Create then delete a node
-	n0, _ := db.Nodes.Create(EmptyProps)
+	n0, _ := db.CreateNode(EmptyProps)
 	id := n0.Id()
 	err := n0.Delete()
 	if err != nil {
 		t.Error(err)
 	}
 	// Check that node is no longer in db
-	_, err = db.Nodes.Get(id)
+	_, err = db.Node(id)
 	assert.Equal(t, err, NotFound)
 }
 
@@ -99,9 +99,9 @@ func TestDeleteNode(t *testing.T) {
 func TestDeleteNodeWithRelationships(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.Nodes.Create(EmptyProps)
+	n0, _ := db.CreateNode(EmptyProps)
 	defer n0.Delete()
-	n1, _ := db.Nodes.Create(EmptyProps)
+	n1, _ := db.CreateNode(EmptyProps)
 	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	defer r0.Delete()
@@ -114,7 +114,7 @@ func TestDeleteNodeWithRelationships(t *testing.T) {
 func TestSetPropertyOnNode(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.Nodes.Create(EmptyProps)
+	n0, _ := db.CreateNode(EmptyProps)
 	defer n0.Delete()
 	key := rndStr(t)
 	value := rndStr(t)
@@ -135,7 +135,7 @@ func TestUpdatePropertyOnNode(t *testing.T) {
 	// Create
 	props0 := Properties{rndStr(t): rndStr(t)}
 	props1 := Properties{rndStr(t): rndStr(t)}
-	n0, _ := db.Nodes.Create(props0)
+	n0, _ := db.CreateNode(props0)
 	defer n0.Delete()
 	// Update
 	err := n0.SetProperties(props1)
@@ -152,7 +152,7 @@ func TestGetPropertiesForNode(t *testing.T) {
 	db := connectTest(t)
 	// Create
 	props := Properties{rndStr(t): rndStr(t)}
-	n0, _ := db.Nodes.Create(props)
+	n0, _ := db.CreateNode(props)
 	defer n0.Delete()
 	// Get properties & confirm
 	checkProps, err := n0.Properties()
@@ -185,7 +185,7 @@ func TestDeleteAllPropertiesFromNode(t *testing.T) {
 		rndStr(t): rndStr(t),
 		rndStr(t): rndStr(t),
 	}
-	n0, _ := db.Nodes.Create(props)
+	n0, _ := db.CreateNode(props)
 	defer n0.Delete()
 	// Delete properties
 	err := n0.DeleteProperties()
@@ -203,7 +203,7 @@ func TestDeleteNamedPropertyFromNode(t *testing.T) {
 	// Create
 	props0 := Properties{"foo": "bar"}
 	props1 := Properties{"foo": "bar", "spam": "eggs"}
-	n0, _ := db.Nodes.Create(props1)
+	n0, _ := db.CreateNode(props1)
 	defer n0.Delete()
 	// Delete
 	err := n0.DeleteProperty("spam")

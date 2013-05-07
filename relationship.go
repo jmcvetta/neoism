@@ -113,12 +113,12 @@ func (r *Relationship) Id() int {
 // Start gets the starting Node of this Relationship.
 func (r *Relationship) Start() (*Node, error) {
 	// log.Println("INFO", r.Info)
-	return r.db.Nodes.getNodeByUri(r.HrefStart)
+	return r.db.getNodeByUri(r.HrefStart)
 }
 
 // End gets the ending Node of this Relationship.
 func (r *Relationship) End() (*Node, error) {
-	return r.db.Nodes.getNodeByUri(r.HrefEnd)
+	return r.db.getNodeByUri(r.HrefEnd)
 }
 
 // Type gets the type of this relationship

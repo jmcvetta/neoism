@@ -9,60 +9,49 @@ import (
 	"strings"
 )
 
-type NodeManager struct {
-	db *Database
-}
-
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (nm *NodeManager) do(rr *restclient.RequestResponse) (status int, err error) {
-	return nm.db.rc.Do(rr)
-}
-
 // CreateNode creates a Node in the database.
-func (m *NodeManager) Create(p Properties) (*Node, error) {
+func (db *Database) CreateNode(p Properties) (*Node, error) {
 	n := Node{}
-	n.db = m.db
+	n.db = db
 	res := new(nodeResponse)
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
-		Url:    m.db.HrefNode,
-		Method: "POST",
-		Data:   &p,
-		Result: res,
-		Error:  ne,
+		Url:            db.HrefNode,
+		Method:         "POST",
+		Data:           &p,
+		Result:         res,
+		Error:          ne,
+		ExpectedStatus: 201,
 	}
-	status, err := m.do(&rr)
-	if err != nil || status != 201 {
+	status, err := db.rc.Do(&rr)
+	if err != nil {
+		logPretty(status)
 		logPretty(ne)
 		return &n, err
-	}
-	if res.HrefSelf == "" {
-		logPretty(ne)
-		return &n, BadResponse
 	}
 	n.populate(res)
 	return &n, nil
 }
 
-// GetNode fetches a Node from the database
-func (m *NodeManager) Get(id int) (*Node, error) {
-	uri := join(m.db.HrefNode, strconv.Itoa(id))
-	return m.getNodeByUri(uri)
+// Node fetches a Node from the database
+func (db *Database) Node(id int) (*Node, error) {
+	uri := join(db.HrefNode, strconv.Itoa(id))
+	return db.getNodeByUri(uri)
 }
 
 // getNodeByUri fetches a Node from the database based on its URI.
-func (m *NodeManager) getNodeByUri(uri string) (*Node, error) {
+func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	res := new(nodeResponse)
 	ne := new(neoError)
 	n := Node{}
-	n.db = m.db
+	n.db = db
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
 		Result: res,
 		Error:  ne,
 	}
-	status, err := m.do(&rr)
+	status, err := db.rc.Do(&rr)
 	switch {
 	case status == 404:
 		return &n, NotFound

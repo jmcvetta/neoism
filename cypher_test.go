@@ -13,13 +13,12 @@ import (
 func TestCypherSendQueryWithParameters(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	// idx0, _ := db.Nodes.Indexes.Create("name_index")
 	idx0, _ := db.CreateNodeIndex("name_index", "", "")
 	defer idx0.Delete()
-	n0, _ := db.Nodes.Create(Properties{"name": "I"})
+	n0, _ := db.CreateNode(Properties{"name": "I"})
 	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
-	n1, _ := db.Nodes.Create(Properties{"name": "you"})
+	n1, _ := db.CreateNode(Properties{"name": "you"})
 	defer n1.Delete()
 	r0, _ := n0.Relate("know", n1.Id(), nil)
 	defer r0.Delete()
@@ -49,13 +48,12 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 func TestCypherSendQuery(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	// idx0, _ := db.Nodes.Indexes.Create("name_index")
 	idx0, _ := db.CreateNodeIndex("name_index", "", "")
 	defer idx0.Delete()
-	n0, _ := db.Nodes.Create(Properties{"name": "I"})
+	n0, _ := db.CreateNode(Properties{"name": "I"})
 	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
-	n1, _ := db.Nodes.Create(Properties{"name": "you", "age": "69"})
+	n1, _ := db.CreateNode(Properties{"name": "you", "age": "69"})
 	defer n1.Delete()
 	r0, _ := n0.Relate("know", n1.Id(), nil)
 	defer r0.Delete()
@@ -79,13 +77,12 @@ func TestCypherSendQuery(t *testing.T) {
 func TestCypherBadQuery(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	// idx0, _ := db.Nodes.Indexes.Create("name_index")
 	idx0, _ := db.CreateNodeIndex("name_index", "", "")
 	defer idx0.Delete()
-	n0, _ := db.Nodes.Create(Properties{"name": "I"})
+	n0, _ := db.CreateNode(Properties{"name": "I"})
 	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
-	n1, _ := db.Nodes.Create(Properties{"name": "you", "age": "69"})
+	n1, _ := db.CreateNode(Properties{"name": "you", "age": "69"})
 	defer n1.Delete()
 	r0, _ := n0.Relate("know", n1.Id(), nil)
 	defer r0.Delete()
