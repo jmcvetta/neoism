@@ -53,6 +53,5 @@ and I will try to give you a heads up when there are API changes.  The API is
 # License
 
 This is Free Software, released under the terms of the [GPL
-v3](http://www.gnu.org/copyleft/gpl.html).  Resist intellectual serfdom - the
-ownership of ideas is akin to slavery.  
+v3](http://www.gnu.org/copyleft/gpl.html).
 
