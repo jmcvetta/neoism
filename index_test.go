@@ -11,10 +11,6 @@ import (
 	"testing"
 )
 
-func init() {
-	log.SetFlags(log.Ltime | log.Lshortfile)
-}
-
 // 18.9.1. Create node index
 func TestCreateNodeIndex(t *testing.T) {
 	db := connectTest(t)

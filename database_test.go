@@ -30,11 +30,8 @@ import (
 	"testing"
 )
 
-func init() {
-	log.SetFlags(log.Ltime | log.Lshortfile)
-}
-
 func connectTest(t *testing.T) *Database {
+	log.SetFlags(log.Ltime | log.Lshortfile)
 	db, err := Connect("http://localhost:7474/db/data")
 	if err != nil {
 		t.Fatal(err)
