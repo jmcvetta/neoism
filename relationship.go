@@ -10,22 +10,12 @@ import (
 	"strings"
 )
 
-type RelationshipManager struct {
-	db      *Database
-	Indexes *RelationshipIndexManager
-}
-
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (m *RelationshipManager) do(rr *restclient.RequestResponse) (status int, err error) {
-	return m.db.rc.Do(rr)
-}
-
-// GetRelationship fetches a Relationship from the DB by id.
-func (m *RelationshipManager) Get(id int) (*Relationship, error) {
+// Relationship fetches a Relationship from by id.
+func (db *Database) Relationship(id int) (*Relationship, error) {
 	rel := Relationship{}
-	rel.db = m.db
+	rel.db = db
 	res := new(relationshipResponse)
-	uri := join(m.db.url.String(), "relationship", strconv.Itoa(id))
+	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    uri,
@@ -33,7 +23,7 @@ func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := m.do(&rr)
+	status, err := db.rc.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return &rel, err
@@ -52,16 +42,16 @@ func (m *RelationshipManager) Get(id int) (*Relationship, error) {
 }
 
 // Types lists all existing relationship types
-func (m *RelationshipManager) Types() ([]string, error) {
+func (db *Database) RelTypes() ([]string, error) {
 	reltypes := []string{}
 	ne := new(neoError)
 	c := restclient.RequestResponse{
-		Url:    m.db.HrefRelTypes,
+		Url:    db.HrefRelTypes,
 		Method: "GET",
 		Result: &reltypes,
 		Error:  &ne,
 	}
-	status, err := m.db.rc.Do(&c)
+	status, err := db.rc.Do(&c)
 	if err != nil {
 		logPretty(ne)
 		return reltypes, err

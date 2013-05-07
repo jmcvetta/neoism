@@ -24,7 +24,7 @@ func TestGetRelationshipById(t *testing.T) {
 	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
 	defer r0.Delete()
 	// Get relationship
-	r1, err := db.Relationships.Get(r0.Id())
+	r1, err := db.Relationship(r0.Id())
 	if err != nil {
 		t.Error(err)
 	}
@@ -86,7 +86,7 @@ func TestDeleteRelationship(t *testing.T) {
 	}
 	// Delete and confirm
 	r0.Delete()
-	_, err = db.Relationships.Get(r0.Id())
+	_, err = db.Relationship(r0.Id())
 	assert.Equalf(t, err, NotFound, "Should not be able to Get() a deleted relationship.")
 }
 
@@ -309,7 +309,7 @@ func TestGetRelationshipTypes(t *testing.T) {
 	// Get all relationship types, and confirm the list of types contains at least
 	// all those randomly-generated values in relTypes.  It cannot be guaranteed
 	// that the database will not contain other relationship types beyond these.
-	foundRelTypes, err := db.Relationships.Types()
+	foundRelTypes, err := db.RelTypes()
 	if err != nil {
 		t.Error(err)
 	}

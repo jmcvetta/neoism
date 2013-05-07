@@ -14,11 +14,10 @@ import (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	url           *url.URL // Root URL for REST API
-	client        *http.Client
-	rc            *restclient.Client
-	Nodes         *NodeManager
-	Relationships *RelationshipManager
+	url    *url.URL // Root URL for REST API
+	client *http.Client
+	rc     *restclient.Client
+	Nodes  *NodeManager
 	//
 	HrefNode      string
 	HrefRefNode   string
@@ -62,10 +61,6 @@ func Connect(uri string) (*Database, error) {
 		Indexes: &NodeIndexManager{},
 	}
 	db.Nodes.Indexes.db = db
-	db.Relationships = &RelationshipManager{
-		db:      db,
-		Indexes: &RelationshipIndexManager{},
-	}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
@@ -98,7 +93,6 @@ func Connect(uri string) (*Database, error) {
 	// Set HrefIndex so the generic indexManager knows what URL to use when
 	// creating a NodeIndex.
 	db.Nodes.Indexes.HrefIndex = sr.HrefNodeIndex
-	db.Relationships.Indexes.HrefIndex = sr.HrefRelIndex
 	// Success!
 	return db, nil
 }
