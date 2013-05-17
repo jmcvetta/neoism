@@ -114,6 +114,22 @@ func TestAddNodeToIndex(t *testing.T) {
 	}
 }
 
+func TestAddNodeToExistingIndex(t *testing.T) {
+	db := connectTest(t)
+	name := rndStr(t)
+	key := rndStr(t)
+	value := rndStr(t)
+	idx0, _ := db.CreateNodeIndex(name, "", "")
+	defer idx0.Delete()
+	idx1, _ := db.NodeIndex(name)
+	n0, _ := db.CreateNode(EmptyProps)
+	defer n0.Delete()
+	err := idx1.Add(n0, key, value)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 // 18.9.6. Remove all entries with a given node from an index
 func TestRemoveNodeFromIndex(t *testing.T) {
 	db := connectTest(t)
