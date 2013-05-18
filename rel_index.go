@@ -38,7 +38,8 @@ func (db *Database) RelIndex(name string) (*RelationshipIndex, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &RelationshipIndex{*idx}, nil
+	ri := RelationshipIndex{*idx}
+	return &ri, nil
 }
 
 // Remove deletes all entries with a given node, key and value from the index.

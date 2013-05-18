@@ -42,7 +42,8 @@ func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &NodeIndex{*idx}, nil
+	ni := NodeIndex{*idx}
+	return &ni, nil
 
 }
 

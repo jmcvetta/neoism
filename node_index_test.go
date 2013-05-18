@@ -15,7 +15,6 @@ import (
 func TestCreateNodeIndex(t *testing.T) {
 	db := connectTest(t)
 	name := rndStr(t)
-	template := join(db.HrefNodeIndex, name, "{key}/{value}")
 	//
 	// Create new index
 	//
@@ -25,7 +24,6 @@ func TestCreateNodeIndex(t *testing.T) {
 	}
 	defer idx0.Delete()
 	assert.Equal(t, idx0.Name, name)
-	assert.Equal(t, idx0.HrefTemplate, template)
 	//
 	// Get the index we just created
 	//
@@ -34,6 +32,7 @@ func TestCreateNodeIndex(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equal(t, idx0.Name, idx1.Name)
+	assert.Equal(t, idx0.HrefIndex, idx1.HrefIndex)
 }
 
 // 18.9.2. Create node index with configuration
@@ -42,7 +41,6 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	name := rndStr(t)
 	indexType := "fulltext"
 	provider := "lucene"
-	template := join(db.HrefNodeIndex, name, "{key}/{value}")
 	//
 	// Create new index
 	//
@@ -53,7 +51,6 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	defer idx0.Delete()
 	assert.Equal(t, idx0.IndexType, indexType)
 	assert.Equal(t, idx0.Provider, provider)
-	assert.Equal(t, idx0.HrefTemplate, template)
 	assert.Equal(t, idx0.Name, name)
 	//
 	// Get the index we just created
@@ -126,7 +123,7 @@ func TestAddNodeToExistingIndex(t *testing.T) {
 	defer n0.Delete()
 	err := idx1.Add(n0, key, value)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 }
 
