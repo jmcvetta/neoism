@@ -85,8 +85,9 @@ func (db *Database) indexes(href string) ([]*index, error) {
 
 func (db *Database) index(href, name string) (*index, error) {
 	idx := new(index)
-	resp := new(indexResponse)
+	idx.db = db
 	idx.Name = name
+	idx.HrefIndex = href
 	baseUri := href
 	rawurl := join(baseUri, name)
 	u, err := url.ParseRequestURI(rawurl)
@@ -101,13 +102,13 @@ func (db *Database) index(href, name string) (*index, error) {
 	}
 	status, err := db.rc.Do(&req)
 	if err != nil {
+		log.Println(err)
 		logPretty(req)
 		return idx, err
 	}
 	switch status {
 	// Success!
 	case 200:
-		idx.populate(resp)
 		return idx, nil
 	case 404:
 		return idx, NotFound
@@ -119,7 +120,6 @@ func (db *Database) index(href, name string) (*index, error) {
 type index struct {
 	db            *Database
 	Name          string
-	HrefTemplate  string
 	Provider      string
 	IndexType     string
 	CaseSensitive bool
@@ -127,7 +127,6 @@ type index struct {
 }
 
 func (idx *index) populate(res *indexResponse) {
-	idx.HrefTemplate = res.HrefTemplate
 	idx.Provider = res.Provider
 	idx.IndexType = res.IndexType
 	if res.LowerCase == "true" {

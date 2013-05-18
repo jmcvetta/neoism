@@ -14,7 +14,6 @@ import (
 func TestRelationshipIndexes(t *testing.T) {
 	db := connectTest(t)
 	name := rndStr(t)
-	template := join(db.HrefRelIndex, name, "{key}/{value}")
 	//
 	// Create new index
 	//
@@ -24,7 +23,6 @@ func TestRelationshipIndexes(t *testing.T) {
 	}
 	defer idx0.Delete()
 	assert.Equal(t, idx0.Name, name)
-	assert.Equal(t, idx0.HrefTemplate, template)
 	//
 	// Get the index we just created
 	//
