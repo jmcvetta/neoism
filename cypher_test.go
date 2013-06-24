@@ -25,8 +25,16 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	defer r0.Delete()
 	r1, _ := n0.Relate("love", n1.Id(), nil)
 	defer r1.Delete()
-	// Query
-	query := "START x = node:name_index(name={startName}) MATCH path = (x-[r]-friend) WHERE friend.name = {name} RETURN TYPE(r)"
+	//
+	// Query with string parameters
+	//
+	query := `
+		START x = node:name_index(name={startName})
+		MATCH path = (x-[r]-friend)
+		WHERE friend.name = {name}
+		RETURN TYPE(r)
+		ORDER BY TYPE(r)
+		`
 	params := map[string]string{
 		"startName": "I",
 		"name":      "you",
@@ -37,9 +45,6 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	}
 	// Check result
 	expCol := []string{"TYPE(r)"}
-	// Our test only passes if Neo4j returns "know" and "love" in this order.  Is
-	// there any guarantee about order?  Can we modify the query to ensure order?
-	// Or is there a convenient way to sort result.Data here before checking it?
 	expDat := [][]string{[]string{"know"}, []string{"love"}}
 	assert.Equal(t, expCol, result.Columns)
 	assert.Equal(t, expDat, result.Data)
