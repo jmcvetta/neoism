@@ -8,16 +8,14 @@ package neo4j
 import (
 	"github.com/jmcvetta/restclient"
 	"log"
-	"net/http"
 	"net/url"
 	"strconv"
 )
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	url    *url.URL // Root URL for REST API
-	client *http.Client
-	rc     *restclient.Client
+	url *url.URL // Root URL for REST API
+	rc  *restclient.Client
 	//
 	HrefNode      string
 	HrefRefNode   string
@@ -49,8 +47,7 @@ func Connect(uri string) (*Database, error) {
 	var sr serviceRoot
 	var e neoError
 	db := &Database{
-		client: new(http.Client),
-		rc:     restclient.New(),
+		rc: restclient.New(),
 	}
 	u, err := url.Parse(uri)
 	if err != nil {
