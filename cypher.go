@@ -13,8 +13,8 @@ type cypherRequest struct {
 }
 
 type cypherRequestParams struct {
-	Query  string            `json:"query"`
-	Params map[string]string `json:"params"`
+	Query  string                 `json:"query"`
+	Params map[string]interface{} `json:"params"`
 }
 
 // A CypherResult is returned when a cypher query is executed.
@@ -24,7 +24,7 @@ type CypherResult struct {
 }
 
 // Cypher executes a db query written in the cypher language.
-func (db *Database) Cypher(query string, params map[string]string) (*CypherResult, error) {
+func (db *Database) Cypher(query string, params map[string]interface{}) (*CypherResult, error) {
 	result := new(CypherResult)
 	ne := new(neoError)
 	var data interface{}

@@ -12,7 +12,8 @@ import (
 
 // 18.3.1. Send queries with parameters
 func TestCypherSendQueryWithParameters(t *testing.T) {
-	db := connectTest(t)
+	var db *Database
+	db = connectTest(t)
 	// Create
 	idx0, _ := db.CreateNodeIndex("name_index", "", "")
 	defer idx0.Delete()
@@ -35,7 +36,7 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 		RETURN TYPE(r)
 		ORDER BY TYPE(r)
 		`
-	params := map[string]string{
+	params := map[string]interface{}{
 		"startName": "I",
 		"name":      "you",
 	}
@@ -46,6 +47,24 @@ func TestCypherSendQueryWithParameters(t *testing.T) {
 	// Check result
 	expCol := []string{"TYPE(r)"}
 	expDat := [][]string{[]string{"know"}, []string{"love"}}
+	assert.Equal(t, expCol, result.Columns)
+	assert.Equal(t, expDat, result.Data)
+	//
+	// Query with numeric parameter
+	//
+	query = `
+		START n = node({id})
+		MATCH path = (n-[r]-friend)
+		RETURN TYPE(r)
+		ORDER BY TYPE(r)
+		`
+	params = map[string]interface{}{
+		"id": n0.Id(),
+	}
+	result, err = db.Cypher(query, params)
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, expCol, result.Columns)
 	assert.Equal(t, expDat, result.Data)
 }
