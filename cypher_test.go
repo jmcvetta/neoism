@@ -97,6 +97,26 @@ func TestCypherParameters(t *testing.T) {
 	expDat = [][]string{[]string{"float"}}
 	assert.Equal(t, expCol, result.Columns)
 	assert.Equal(t, expDat, result.Data)
+	//
+	// Query with array parameter
+	//
+	query = `
+		START n=node(*)
+		WHERE id(n) IN {arr}
+		RETURN n.name
+		ORDER BY id(n)
+		`
+	params = map[string]interface{}{
+		"arr": []int{n0.Id(), n1.Id()},
+	}
+	result, err = db.Cypher(query, params)
+	if err != nil {
+		t.Error(err)
+	}
+	expCol = []string{"n.name"}
+	expDat = [][]string{[]string{"I"}, []string{"you"}}
+	assert.Equal(t, expCol, result.Columns)
+	assert.Equal(t, expDat, result.Data)
 }
 
 // 18.3.2. Send a Query
