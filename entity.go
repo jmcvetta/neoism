@@ -41,7 +41,7 @@ func (e *baseEntity) do(rr *restclient.RequestResponse) (status int, err error) 
 }
 
 // Properties is a bag of key/value pairs that describe an baseEntity.
-type Properties map[string]string
+type Properties map[string]interface{}
 
 // EmptyProps is an empty Properties map.
 var EmptyProps = Properties{}
@@ -142,7 +142,7 @@ func (e *baseEntity) Delete() error {
 
 // Properties fetches all properties
 func (e *baseEntity) Properties() (Properties, error) {
-	props := make(map[string]string)
+	props := Properties{}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
@@ -157,7 +157,7 @@ func (e *baseEntity) Properties() (Properties, error) {
 	}
 	// Status code 204 indicates no properties on this node
 	if status == 204 {
-		props = map[string]string{}
+		props = Properties{}
 	}
 	return props, nil
 }
