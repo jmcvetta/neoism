@@ -176,16 +176,16 @@ func (idx *index) Delete() error {
 }
 
 // Add associates a Node with the given key/value pair in the given index.
-func (idx *index) add(e entity, key, value string) error {
+func (idx *index) add(e entity, key string, value interface{}) error {
 	uri, err := idx.uri()
 	if err != nil {
 		return err
 	}
 	ne := new(neoError)
 	type s struct {
-		Uri   string `json:"uri"`
-		Key   string `json:"key"`
-		Value string `json:"value"`
+		Uri   string      `json:"uri"`
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
 	}
 	data := s{
 		Uri:   e.hrefSelf(),

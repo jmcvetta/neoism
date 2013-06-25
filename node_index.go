@@ -48,7 +48,7 @@ func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
 }
 
 // Add indexes a node with a key/value pair.
-func (nix *NodeIndex) Add(n *Node, key, value string) error {
+func (nix *NodeIndex) Add(n *Node, key string, value interface{}) error {
 	return nix.add(n, key, value)
 }
 
