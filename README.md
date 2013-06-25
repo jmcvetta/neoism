@@ -23,9 +23,9 @@ risk.
 
 ## Production Note
 
-If you decide to use `neo4j` in a production system, please send me a message
-and I will try to give you a heads up when there are API changes.  The API is
-**not** promised to be stable at this time.
+If you decide to use `neo4j` in a production system, please let me know.  All
+API changes will be made via Pull Request, so it's highly recommended you Watch
+the repo Issues.  The API is **not** promised to be stable at this time.
 
 
 ## Completed:
