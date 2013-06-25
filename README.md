@@ -6,8 +6,10 @@ Neo4j client for [Go](http://golang.org).
 
 # Documentation
 
-See [GoDoc](http://godoc.org/github.com/jmcvetta/neo4j) for automatic
+See [Go Walker](http://gowalker.org/github.com/jmcvetta/neo4j) or
+[GoDoc](http://godoc.org/github.com/jmcvetta/neo4j) for automatic
 documentation.
+
 
 
 # Status
