@@ -52,15 +52,16 @@ func TestCypherParameters(t *testing.T) {
 		"startName": "I",
 		"name":      "you",
 	}
-	result, err := db.Cypher(query, params)
+	result := [][]string{}
+	columns, err := db.Cypher(query, params, &result)
 	if err != nil {
 		t.Error(err)
 	}
 	// Check result
 	expCol := []string{"TYPE(r)"}
 	expDat := [][]string{[]string{"knows"}, []string{"loves"}}
-	assert.Equal(t, expCol, result.Columns)
-	assert.Equal(t, expDat, result.Data)
+	assert.Equal(t, expCol, columns)
+	assert.Equal(t, expDat, result)
 	//
 	// Query with integer parameter
 	//
@@ -71,14 +72,15 @@ func TestCypherParameters(t *testing.T) {
 	params = map[string]interface{}{
 		"num": 42,
 	}
-	result, err = db.Cypher(query, params)
+	result = [][]string{}
+	columns, err = db.Cypher(query, params, &result)
 	if err != nil {
 		t.Error(err)
 	}
 	expCol = []string{"n.name"}
 	expDat = [][]string{[]string{"num"}}
-	assert.Equal(t, expCol, result.Columns)
-	assert.Equal(t, expDat, result.Data)
+	assert.Equal(t, expCol, columns)
+	assert.Equal(t, expDat, result)
 	//
 	// Query with float parameter
 	//
@@ -89,14 +91,15 @@ func TestCypherParameters(t *testing.T) {
 	params = map[string]interface{}{
 		"float": 3.14,
 	}
-	result, err = db.Cypher(query, params)
+	result = [][]string{}
+	columns, err = db.Cypher(query, params, &result)
 	if err != nil {
 		t.Error(err)
 	}
 	expCol = []string{"n.name"}
 	expDat = [][]string{[]string{"float"}}
-	assert.Equal(t, expCol, result.Columns)
-	assert.Equal(t, expDat, result.Data)
+	assert.Equal(t, expCol, columns)
+	assert.Equal(t, expDat, result)
 	//
 	// Query with array parameter
 	//
@@ -109,14 +112,15 @@ func TestCypherParameters(t *testing.T) {
 	params = map[string]interface{}{
 		"arr": []int{n0.Id(), n1.Id()},
 	}
-	result, err = db.Cypher(query, params)
+	result = [][]string{}
+	columns, err = db.Cypher(query, params, &result)
 	if err != nil {
 		t.Error(err)
 	}
 	expCol = []string{"n.name"}
 	expDat = [][]string{[]string{"I"}, []string{"you"}}
-	assert.Equal(t, expCol, result.Columns)
-	assert.Equal(t, expDat, result.Data)
+	assert.Equal(t, expCol, columns)
+	assert.Equal(t, expDat, result)
 }
 
 // 18.3.2. Send a Query
@@ -135,7 +139,8 @@ func TestCypher(t *testing.T) {
 	// Query
 	query := "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?"
 	// query := "START x = node:name_index(name=I) MATCH path = (x-[r]-friend) WHERE friend.name = you RETURN TYPE(r)"
-	result, err := db.Cypher(query, nil)
+	result := [][]string{}
+	columns, err := db.Cypher(query, nil, &result)
 	if err != nil {
 		t.Error(err)
 	}
@@ -145,8 +150,8 @@ func TestCypher(t *testing.T) {
 	// there any guarantee about order?
 	expCol := []string{"type(r)", "n.name?", "n.age?"}
 	expDat := [][]string{[]string{"know", "you", "69"}}
-	assert.Equal(t, expCol, result.Columns)
-	assert.Equal(t, expDat, result.Data)
+	assert.Equal(t, expCol, columns)
+	assert.Equal(t, expDat, result)
 }
 
 func TestCypherBadQuery(t *testing.T) {
@@ -163,7 +168,8 @@ func TestCypherBadQuery(t *testing.T) {
 	defer r0.Delete()
 	// Query
 	query := "foobar("
-	_, err := db.Cypher(query, nil)
+	result := new(interface{})
+	_, err := db.Cypher(query, nil, result)
 	if err != BadResponse {
 		t.Error(err)
 	}

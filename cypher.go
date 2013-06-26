@@ -19,13 +19,19 @@ type cypherRequestParams struct {
 
 // A CypherResult is returned when a cypher query is executed.
 type CypherResult struct {
-	Columns []string   `json:"columns"`
-	Data    [][]string `json:"data"`
+	Columns *[]string   `json:"columns"`
+	Data    interface{} `json:"data"`
 }
 
-// Cypher executes a db query written in the cypher language.
-func (db *Database) Cypher(query string, params map[string]interface{}) (*CypherResult, error) {
-	result := new(CypherResult)
+// Cypher executes a db query written in the Cypher language.  Data returned
+// from the db is used to populate `result`, which should be a pointer to a
+// slice of structs.  TODO:  Or a pointer to a two-dimensional array of structs?
+func (db *Database) Cypher(query string, params map[string]interface{}, result interface{}) (columns []string, err error) {
+	columns = []string{}
+	result = CypherResult{
+		Columns: &columns,
+		Data:    &result,
+	}
 	ne := new(neoError)
 	var data interface{}
 	if params != nil {
@@ -42,16 +48,16 @@ func (db *Database) Cypher(query string, params map[string]interface{}) (*Cypher
 		Url:    db.HrefCypher,
 		Method: "POST",
 		Data:   data,
-		Result: result,
+		Result: &result,
 		Error:  ne,
 	}
 	status, err := db.rc.Do(&req)
 	if err != nil {
-		return result, err
+		return columns, err
 	}
 	if status != 200 {
 		logPretty(req)
-		return result, BadResponse
+		return columns, BadResponse
 	}
-	return result, nil
+	return columns, nil
 }
