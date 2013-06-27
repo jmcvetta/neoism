@@ -188,7 +188,7 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 		Value interface{} `json:"value"`
 	}
 	data := s{
-		Uri:   e.hrefSelf(),
+		Uri:   e.HrefSelf(),
 		Key:   key,
 		Value: value,
 	}

@@ -71,7 +71,7 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 		return nm, err
 	}
 	ne := new(neoError)
-	resp := []nodeResponse{}
+	resp := []Node{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
@@ -87,10 +87,8 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 		logPretty(req)
 		return nm, BadResponse
 	}
-	for _, r := range resp {
-		n := Node{}
-		n.db = idx.db
-		n.populate(&r)
+	for _, n := range resp {
+		n.Db = idx.db
 		nm[n.Id()] = &n
 	}
 	return nm, nil
@@ -110,7 +108,7 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 	if err != nil {
 		return nm, err
 	}
-	result := []nodeResponse{}
+	result := []Node{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
@@ -124,10 +122,8 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		logPretty(req)
 		return nm, BadResponse
 	}
-	for _, r := range result {
-		n := Node{}
-		n.db = idx.db
-		n.populate(&r)
+	for _, n := range result {
+		n.Db = idx.db
 		nm[n.Id()] = &n
 	}
 	return nm, nil

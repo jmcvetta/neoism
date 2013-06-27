@@ -13,31 +13,18 @@ import (
 // database.  An entity may optinally be assigned an arbitrary set of key:value
 // properties.
 type entity interface {
-	// HrefProperty()   string
-	// HrefProperties() string
-	// HrefSelf()       string
-	Property(key string) (string, error)
-	SetProperty(key string, value string) error
-	DeleteProperty(key string) error
-	Delete() error
-	Properties() (Properties, error)
-	SetProperties(p Properties) error
-	DeleteProperties() error
 	Id() int
-	hrefSelf() string // Returns the implementing object's HrefSelf
-}
-
-type baseEntity struct {
-	entity
-	HrefProperty   string
-	HrefProperties string
-	HrefSelf       string
-	db             *Database
-}
-
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (e *baseEntity) do(rr *restclient.RequestResponse) (status int, err error) {
-	return e.db.rc.Do(rr)
+	Do(rr *restclient.RequestResponse) (int, error)
+	HrefProperty() string
+	HrefProperties() string
+	HrefSelf() string
+	// Property(key string) (string, error)
+	// SetProperty(key string, value string) error
+	// DeleteProperty(key string) error
+	// Delete() error
+	// Properties() (Properties, error)
+	// SetProperties(p Properties) error
+	// DeleteProperties() error
 }
 
 // Properties is a bag of key/value pairs that describe an baseEntity.
@@ -47,8 +34,8 @@ type Properties map[string]interface{}
 var EmptyProps = Properties{}
 
 // SetProperty sets the single property key to value.
-func (e *baseEntity) SetProperty(key string, value string) error {
-	parts := []string{e.HrefProperties, key}
+func setProperty(e entity, key string, value string) error {
+	parts := []string{e.HrefProperties(), key}
 	uri := strings.Join(parts, "/")
 	rr := restclient.RequestResponse{
 		Url:    uri,
@@ -56,7 +43,7 @@ func (e *baseEntity) SetProperty(key string, value string) error {
 		Data:   &value,
 		Error:  new(neoError),
 	}
-	status, err := e.do(&rr)
+	status, err := e.Do(&rr)
 	if err != nil {
 		return err
 	}
@@ -67,9 +54,9 @@ func (e *baseEntity) SetProperty(key string, value string) error {
 }
 
 // GetProperty fetches the value of property key.
-func (e *baseEntity) Property(key string) (string, error) {
+func property(e entity, key string) (string, error) {
 	var val string
-	parts := []string{e.HrefProperties, key}
+	parts := []string{e.HrefProperties(), key}
 	uri := strings.Join(parts, "/")
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
@@ -78,7 +65,7 @@ func (e *baseEntity) Property(key string) (string, error) {
 		Result: &val,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return val, err
@@ -93,8 +80,8 @@ func (e *baseEntity) Property(key string) (string, error) {
 }
 
 // DeleteProperty deletes property key
-func (e *baseEntity) DeleteProperty(key string) error {
-	parts := []string{e.HrefProperties, key}
+func deleteProperty(e entity, key string) error {
+	parts := []string{e.HrefProperties(), key}
 	uri := strings.Join(parts, "/")
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
@@ -102,7 +89,7 @@ func (e *baseEntity) DeleteProperty(key string) error {
 		Method: "DELETE",
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -118,14 +105,14 @@ func (e *baseEntity) DeleteProperty(key string) error {
 }
 
 // Delete removes the object from the DB.
-func (e *baseEntity) Delete() error {
+func delete(e entity) error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
-		Url:    e.HrefSelf,
+		Url:    e.HrefSelf(),
 		Method: "DELETE",
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.Do(&rr)
 	switch {
 	case err != nil:
 		logPretty(ne)
@@ -141,16 +128,16 @@ func (e *baseEntity) Delete() error {
 }
 
 // Properties fetches all properties
-func (e *baseEntity) Properties() (Properties, error) {
+func properties(e entity) (Properties, error) {
 	props := Properties{}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
-		Url:    e.HrefProperties,
+		Url:    e.HrefProperties(),
 		Method: "GET",
 		Result: &props,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return props, err
@@ -163,15 +150,15 @@ func (e *baseEntity) Properties() (Properties, error) {
 }
 
 // SetProperties updates all properties, overwriting any existing properties.
-func (e *baseEntity) SetProperties(p Properties) error {
+func setProperties(e entity, p Properties) error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
-		Url:    e.HrefProperties,
+		Url:    e.HrefProperties(),
 		Method: "PUT",
 		Data:   &p,
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return err
@@ -184,14 +171,14 @@ func (e *baseEntity) SetProperties(p Properties) error {
 }
 
 // DeleteProperties deletes all properties.
-func (e *baseEntity) DeleteProperties() error {
+func deleteProperties(e entity) error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
-		Url:    e.HrefProperties,
+		Url:    e.HrefProperties(),
 		Method: "DELETE",
 		Error:  &ne,
 	}
-	status, err := e.do(&rr)
+	status, err := e.Do(&rr)
 	if err != nil {
 		logPretty(ne)
 		return err
