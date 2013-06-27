@@ -28,9 +28,9 @@ type CypherResult struct {
 // slice of structs.  TODO:  Or a pointer to a two-dimensional array of structs?
 func (db *Database) Cypher(query string, params map[string]interface{}, result interface{}) (columns []string, err error) {
 	columns = []string{}
-	result = CypherResult{
+	cr := CypherResult{
 		Columns: &columns,
-		Data:    &result,
+		Data:    result,
 	}
 	ne := new(neoError)
 	var data interface{}
@@ -48,7 +48,7 @@ func (db *Database) Cypher(query string, params map[string]interface{}, result i
 		Url:    db.HrefCypher,
 		Method: "POST",
 		Data:   data,
-		Result: &result,
+		Result: &cr,
 		Error:  ne,
 	}
 	status, err := db.rc.Do(&req)
