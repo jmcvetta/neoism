@@ -40,6 +40,7 @@ the repo Issues.  The API is **not** promised to be stable at this time.
 
 ## To Do:
 
+* Update for Neo4j 2.0
 * Unique Indexes
 * Automatic Indexes - Not sure how much there is to do here, but these are a
   seperate section in the REST API manual, that I have not yet read.
