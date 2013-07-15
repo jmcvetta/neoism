@@ -12,42 +12,20 @@ import (
 // An entity is an object - either a Node or a Relationship - in a Neo4j graph
 // database.  An entity may optinally be assigned an arbitrary set of key:value
 // properties.
-type entity interface {
-	// HrefProperty()   string
-	// HrefProperties() string
-	// HrefSelf()       string
-	Property(key string) (string, error)
-	SetProperty(key string, value string) error
-	DeleteProperty(key string) error
-	Delete() error
-	Properties() (Properties, error)
-	SetProperties(p Properties) error
-	DeleteProperties() error
-	Id() int
-	hrefSelf() string // Returns the implementing object's HrefSelf
-}
-
-type baseEntity struct {
-	entity
-	HrefProperty   string
-	HrefProperties string
-	HrefSelf       string
+type entity struct {
 	db             *Database
+	HrefSelf       string `json:"self"`
+	HrefProperty   string `json:"property"`
+	HrefProperties string `json:"properties"`
 }
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
-func (e *baseEntity) do(rr *restclient.RequestResponse) (status int, err error) {
+func (e *entity) do(rr *restclient.RequestResponse) (status int, err error) {
 	return e.db.rc.Do(rr)
 }
 
-// Properties is a bag of key/value pairs that describe an baseEntity.
-type Properties map[string]interface{}
-
-// EmptyProps is an empty Properties map.
-var EmptyProps = Properties{}
-
 // SetProperty sets the single property key to value.
-func (e *baseEntity) SetProperty(key string, value string) error {
+func (e *entity) SetProperty(key string, value string) error {
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
 	rr := restclient.RequestResponse{
@@ -67,7 +45,7 @@ func (e *baseEntity) SetProperty(key string, value string) error {
 }
 
 // GetProperty fetches the value of property key.
-func (e *baseEntity) Property(key string) (string, error) {
+func (e *entity) Property(key string) (string, error) {
 	var val string
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
@@ -93,7 +71,7 @@ func (e *baseEntity) Property(key string) (string, error) {
 }
 
 // DeleteProperty deletes property key
-func (e *baseEntity) DeleteProperty(key string) error {
+func (e *entity) DeleteProperty(key string) error {
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
 	ne := new(neoError)
@@ -118,7 +96,7 @@ func (e *baseEntity) DeleteProperty(key string) error {
 }
 
 // Delete removes the object from the DB.
-func (e *baseEntity) Delete() error {
+func (e *entity) Delete() error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefSelf,
@@ -141,8 +119,8 @@ func (e *baseEntity) Delete() error {
 }
 
 // Properties fetches all properties
-func (e *baseEntity) Properties() (Properties, error) {
-	props := Properties{}
+func (e *entity) Properties() (Props, error) {
+	props := Props{}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
@@ -157,13 +135,13 @@ func (e *baseEntity) Properties() (Properties, error) {
 	}
 	// Status code 204 indicates no properties on this node
 	if status == 204 {
-		props = Properties{}
+		props = Props{}
 	}
 	return props, nil
 }
 
 // SetProperties updates all properties, overwriting any existing properties.
-func (e *baseEntity) SetProperties(p Properties) error {
+func (e *entity) SetProperties(p Props) error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
@@ -184,7 +162,7 @@ func (e *baseEntity) SetProperties(p Properties) error {
 }
 
 // DeleteProperties deletes all properties.
-func (e *baseEntity) DeleteProperties() error {
+func (e *entity) DeleteProperties() error {
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
