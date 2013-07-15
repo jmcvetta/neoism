@@ -18,13 +18,43 @@ func BenchmarkTale(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
+	idx, err := db.CreateNodeIndex("words", "", "")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer idx.Delete()
+	findOrCreate := func(word string) *Node {
+		nodes, err := idx.Find("word", word)
+		if err != nil {
+			b.Fatal(err)
+		}
+		var n *Node
+		for _, n = range nodes {
+			continue
+		}
+		if n != nil {
+			return n
+		}
+		n, err = db.CreateNode(Properties{"word": word})
+		if err != nil {
+			b.Fatal(err)
+		}
+		err = idx.Add(n, "word", word)
+		if err != nil {
+			b.Fatal(err)
+		}
+		return n
+	}
+	//
+	// Read book file
+	//
 	file, err := os.Open("tale-of-two-cities.txt")
 	if err != nil {
 		b.Fatal(err)
 	}
 	scanner := bufio.NewScanner(file)
-	var prev, cur, next string
-	// db.rc.Log = true
+	var s0, s1 string
+	var n0, n1 *Node
 	//
 	// Start Benchmark
 	//
@@ -32,44 +62,33 @@ func BenchmarkTale(b *testing.B) {
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
 		for _, word := range fields {
-			prev = cur
-			cur = next
-			next = word
-			fmt.Println(prev, cur, next)
-			if cur == "" {
+			s0 = s1
+			s1 = strings.Trim(word, ",-;!?/")
+			if s0 == "" {
 				continue
 			}
-			curNode, err := db.CreateNode(Properties{"word": cur})
+		    if n1 != nil {
+				n0 = n1
+			} else {
+				n0 = findOrCreate(s0)
+				defer n0.Delete()
+			}
+			if s1 == "" {
+				continue
+			}
+			n1 = findOrCreate(s1)
+			defer n1.Delete()
+			r0, err := n0.Relate("precedes", n1.Id(), nil)
 			if err != nil {
 				b.Fatal(err)
 			}
-			defer curNode.Delete()
-			if prev != "" {
-				prevNode, err := db.CreateNode(Properties{"word": prev})
-				if err != nil {
-					b.Fatal(err)
-				}
-				defer prevNode.Delete()
-				r, err := curNode.Relate("follows", prevNode.Id(), nil)
-				if err != nil {
-					b.Fatal(err)
-				}
-				defer r.Delete()
-				fmt.Println(prev, "--follows-->", cur)
+			defer r0.Delete()
+			r1, err := n1.Relate("follows", n0.Id(), nil)
+			if err != nil {
+				b.Fatal(err)
 			}
-			if next != "" {
-				nextNode, err := db.CreateNode(Properties{"word": next})
-				if err != nil {
-					b.Fatal(err)
-				}
-				defer nextNode.Delete()
-				r, err := curNode.Relate("precedes", nextNode.Id(), nil)
-				if err != nil {
-					b.Fatal(err)
-				}
-				defer r.Delete()
-				fmt.Println(cur, "--precedes-->", next)
-			}
+			defer r1.Delete()
+			fmt.Println(s0, "-->", s1)
 		}
 	}
 	b.StopTimer() // Stop timer before return, so deferred deletes are not timed
