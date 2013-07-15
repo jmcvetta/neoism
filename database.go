@@ -14,8 +14,8 @@ import (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	url *url.URL // Root URL for REST API
-	rc  *restclient.Client
+	url           *url.URL // Root URL for REST API
+	rc            *restclient.Client
 	Extensions    interface{} `json:"extensions"`
 	HrefNode      string      `json:"node"`
 	HrefRefNode   string      `json:"reference_node"`
@@ -60,3 +60,6 @@ func Connect(uri string) (*Database, error) {
 	}
 	return db, nil
 }
+
+// A Props is a set of key/value properties.
+type Props map[string]string
