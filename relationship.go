@@ -63,7 +63,6 @@ func (db *Database) RelTypes() ([]string, error) {
 	return reltypes, BadResponse
 }
 
-type Rels []*Relationship
 
 // A Relationship is a directional connection between two Nodes, with an
 // optional set of arbitrary properties.
@@ -106,4 +105,15 @@ func (r *Relationship) End() (*Node, error) {
 // Type gets the type of this relationship
 func (r *Relationship) Type() string {
 	return r.HrefType
+}
+
+// A Rels is a collection of relationships.
+type Rels []*Relationship
+
+func (r *Rels) Map() map[int]*Relationship {
+	m := make(map[int]*Relationship, len(*r))
+	for _, rel := range *r {
+		m[rel.Id()] = rel
+	}
+	return m
 }

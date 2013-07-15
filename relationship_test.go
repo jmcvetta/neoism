@@ -14,11 +14,11 @@ import (
 func TestGetRelationshipById(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r0.Delete()
 	// Get relationship
 	r1, err := db.Relationship(r0.Id())
@@ -32,21 +32,21 @@ func TestGetRelationshipById(t *testing.T) {
 func TestCreateRelationship(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, err := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, err := n0.Relate("knows", n1.Id(), Props{})
 	if err != nil {
 		t.Error(err)
 	}
 	defer r0.Delete()
 	// Confirm relationship exists on both nodes
 	rels, _ := n0.Outgoing("knows")
-	_, present := rels[r0.Id()]
+	_, present := rels.Map()[r0.Id()]
 	assert.Tf(t, present, "Outgoing relationship not present on origin node.")
 	rels, _ = n1.Incoming("knows")
-	_, present = rels[r0.Id()]
+	_, present = rels.Map()[r0.Id()]
 	assert.Tf(t, present, "Incoming relationship not present on destination node.")
 }
 
@@ -54,10 +54,10 @@ func TestCreateRelationship(t *testing.T) {
 func TestCreateRelationshipWithProperties(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	props0 := Properties{"foo": "bar", "spam": "eggs"}
-	n0, _ := db.CreateNode(EmptyProps)
+	props0 := Props{"foo": "bar", "spam": "eggs"}
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
 	r0, err := n0.Relate("knows", n1.Id(), props0)
 	if err != nil {
@@ -73,11 +73,11 @@ func TestCreateRelationshipWithProperties(t *testing.T) {
 func TestDeleteRelationship(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, err := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, err := n0.Relate("knows", n1.Id(), Props{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -91,10 +91,10 @@ func TestDeleteRelationship(t *testing.T) {
 func TestGetAllPropertiesOnRelationship(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	props0 := Properties{"foo": "bar", "spam": "eggs"}
-	n0, _ := db.CreateNode(EmptyProps)
+	props0 := Props{"foo": "bar", "spam": "eggs"}
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), props0)
 	defer r0.Delete()
@@ -110,12 +110,12 @@ func TestGetAllPropertiesOnRelationship(t *testing.T) {
 // 18.5.6. Set all properties on a relationship
 func TestSetAllPropertiesOnRelationship(t *testing.T) {
 	db := connectTest(t)
-	props0 := Properties{"foo": "bar"}
-	props1 := Properties{"spam": "eggs"}
+	props0 := Props{"foo": "bar"}
+	props1 := Props{"spam": "eggs"}
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), props0)
 	defer r0.Delete()
@@ -130,10 +130,10 @@ func TestSetAllPropertiesOnRelationship(t *testing.T) {
 func TestGetSinglePropertyOnRelationship(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	props := Properties{"foo": "bar"}
-	n0, _ := db.CreateNode(EmptyProps)
+	props := Props{"foo": "bar"}
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), props)
 	defer r0.Delete()
@@ -149,16 +149,16 @@ func TestGetSinglePropertyOnRelationship(t *testing.T) {
 func TestSetSinglePropertyOnRelationship(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r0.Delete()
 	// Set property
 	r0.SetProperty("foo", "bar")
 	// Confirm
-	expected := Properties{"foo": "bar"}
+	expected := Props{"foo": "bar"}
 	props, _ := r0.Properties()
 	assert.Equalf(t, props, expected, "Failed to set single property on relationship.")
 }
@@ -167,15 +167,15 @@ func TestSetSinglePropertyOnRelationship(t *testing.T) {
 func TestGetAllRelationships(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r0.Delete()
-	r1, _ := n1.Relate("knows", n0.Id(), EmptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), Props{})
 	defer r1.Delete()
-	r2, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r2.Delete()
 	// Check relationships
 	rels, err := n0.Relationships()
@@ -184,7 +184,7 @@ func TestGetAllRelationships(t *testing.T) {
 	}
 	assert.Equalf(t, len(rels), 3, "Wrong number of relationships")
 	for _, r := range []*Relationship{r0, r1, r2} {
-		_, present := rels[r.Id()]
+		_, present := rels.Map()[r.Id()]
 		assert.Tf(t, present, "Missing expected relationship")
 	}
 }
@@ -193,15 +193,15 @@ func TestGetAllRelationships(t *testing.T) {
 func TestGetIncomingRelationships(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r0.Delete()
-	r1, _ := n1.Relate("knows", n0.Id(), EmptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), Props{})
 	defer r1.Delete()
-	r2, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r2.Delete()
 	// Check relationships
 	rels, err := n0.Incoming()
@@ -209,7 +209,7 @@ func TestGetIncomingRelationships(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equalf(t, len(rels), 1, "Wrong number of relationships")
-	_, present := rels[r1.Id()]
+	_, present := rels.Map()[r1.Id()]
 	assert.Tf(t, present, "Missing expected relationship")
 }
 
@@ -217,15 +217,15 @@ func TestGetIncomingRelationships(t *testing.T) {
 func TestGetOutgoingRelationships(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r0, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r0.Delete()
-	r1, _ := n1.Relate("knows", n0.Id(), EmptyProps)
+	r1, _ := n1.Relate("knows", n0.Id(), Props{})
 	defer r1.Delete()
-	r2, _ := n0.Relate("knows", n1.Id(), EmptyProps)
+	r2, _ := n0.Relate("knows", n1.Id(), Props{})
 	defer r2.Delete()
 	// Check relationships
 	rels, err := n0.Outgoing()
@@ -234,7 +234,7 @@ func TestGetOutgoingRelationships(t *testing.T) {
 	}
 	assert.Equalf(t, len(rels), 2, "Wrong number of relationships")
 	for _, r := range []*Relationship{r0, r2} {
-		_, present := rels[r.Id()]
+		_, present := rels.Map()[r.Id()]
 		assert.Tf(t, present, "Missing expected relationship")
 	}
 }
@@ -245,13 +245,13 @@ func TestGetTypedRelationships(t *testing.T) {
 	// Create
 	relType0 := rndStr(t)
 	relType1 := rndStr(t)
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
-	r0, _ := n0.Relate(relType0, n1.Id(), EmptyProps)
+	r0, _ := n0.Relate(relType0, n1.Id(), Props{})
 	defer r0.Delete()
-	r1, _ := n0.Relate(relType1, n1.Id(), EmptyProps)
+	r1, _ := n0.Relate(relType1, n1.Id(), Props{})
 	defer r1.Delete()
 	// Check one type of relationship
 	rels, err := n0.Relationships(relType0)
@@ -259,7 +259,7 @@ func TestGetTypedRelationships(t *testing.T) {
 		t.Error(err)
 	}
 	assert.Equalf(t, len(rels), 1, "Wrong number of relationships")
-	_, present := rels[r0.Id()]
+	_, present := rels.Map()[r0.Id()]
 	assert.Tf(t, present, "Missing expected relationship")
 	// Check two types of relationship together
 	rels, err = n0.Relationships(relType0, relType1)
@@ -268,7 +268,7 @@ func TestGetTypedRelationships(t *testing.T) {
 	}
 	assert.Equalf(t, len(rels), 2, "Wrong number of relationships")
 	for _, r := range []*Relationship{r0, r1} {
-		_, present := rels[r.Id()]
+		_, present := rels.Map()[r.Id()]
 		assert.Tf(t, present, "Missing expected relationship")
 	}
 }
@@ -276,7 +276,7 @@ func TestGetTypedRelationships(t *testing.T) {
 // 18.5.13. Get relationships on a node without relationships
 func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
 	db := connectTest(t)
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
 	rels, err := n0.Relationships()
 	if err != nil {
@@ -293,13 +293,13 @@ func TestGetRelationshipTypes(t *testing.T) {
 		relTypes = append(relTypes, rndStr(t))
 	}
 	// Create relationships
-	n0, _ := db.CreateNode(EmptyProps)
+	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
-	n1, _ := db.CreateNode(EmptyProps)
+	n1, _ := db.CreateNode(Props{})
 	defer n1.Delete()
 	rels := []*Relationship{}
 	for _, rt := range relTypes {
-		aRel, _ := n0.Relate(rt, n1.Id(), EmptyProps)
+		aRel, _ := n0.Relate(rt, n1.Id(), Props{})
 		rels = append(rels, aRel)
 		defer aRel.Delete()
 	}
@@ -319,11 +319,11 @@ func TestGetRelationshipTypes(t *testing.T) {
 func TestRelationshipStartEnd(t *testing.T) {
 	db := connectTest(t)
 	// Create
-	start, _ := db.CreateNode(EmptyProps)
+	start, _ := db.CreateNode(Props{})
 	defer start.Delete()
-	end, _ := db.CreateNode(EmptyProps)
+	end, _ := db.CreateNode(Props{})
 	defer end.Delete()
-	r0, _ := start.Relate("knows", end.Id(), EmptyProps)
+	r0, _ := start.Relate("knows", end.Id(), Props{})
 	defer r0.Delete()
 	//
 	n, err := r0.Start()

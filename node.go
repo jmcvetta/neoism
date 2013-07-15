@@ -137,7 +137,7 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 
 // Rels gets all Rels for this Node, optionally filtered by
 // type, returning them as a map keyed on Rel ID.
-func (n *Node) Rels(types ...string) (Rels, error) {
+func (n *Node) Relationships(types ...string) (Rels, error) {
 	return n.getRels(n.HrefAllRels, types...)
 }
 
