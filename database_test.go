@@ -48,6 +48,11 @@ func rndStr(t *testing.T) string {
 	return name
 }
 
+func TestConnect(t *testing.T) {
+	db := connectTest(t)
+	logPretty(db)
+}
+
 func TestConnectInvalidUrl(t *testing.T) {
 	//
 	//  Missing protocol scheme - url.Parse should fail
