@@ -16,20 +16,6 @@ import (
 type Database struct {
 	url *url.URL // Root URL for REST API
 	rc  *restclient.Client
-	//
-	HrefNode      string
-	HrefRefNode   string
-	HrefNodeIndex string
-	HrefRelIndex  string
-	HrefExtInfo   string
-	HrefRelTypes  string
-	HrefBatch     string
-	HrefCypher    string
-	Version       string
-}
-
-// A serviceRoot describes services available on the Neo4j server
-type serviceRoot struct {
 	Extensions    interface{} `json:"extensions"`
 	HrefNode      string      `json:"node"`
 	HrefRefNode   string      `json:"reference_node"`
@@ -44,7 +30,6 @@ type serviceRoot struct {
 
 // Connect establishes a connection to the Neo4j server.
 func Connect(uri string) (*Database, error) {
-	var sr serviceRoot
 	var e neoError
 	db := &Database{
 		rc: restclient.New(),
@@ -57,7 +42,7 @@ func Connect(uri string) (*Database, error) {
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
-		Result: &sr,
+		Result: &db,
 		Error:  &e,
 	}
 	status, err := db.rc.Do(&req)
@@ -68,21 +53,10 @@ func Connect(uri string) (*Database, error) {
 	switch {
 	case status == 404:
 		return db, InvalidDatabase
-	case status != 200 || sr.Version == "":
+	case status != 200 || db.Version == "":
 		log.Println("Status " + strconv.Itoa(status) + " trying to cconnect to " + u.String())
 		logPretty(req)
 		return db, BadResponse
 	}
-	// Populate Database struct
-	db.HrefNode = sr.HrefNode
-	db.HrefRefNode = sr.HrefRefNode
-	db.HrefNodeIndex = sr.HrefNodeIndex
-	db.HrefRelIndex = sr.HrefRelIndex
-	db.HrefExtInfo = sr.HrefExtInfo
-	db.HrefRelTypes = sr.HrefRelTypes
-	db.HrefBatch = sr.HrefBatch
-	db.HrefCypher = sr.HrefCypher
-	db.Version = sr.Version
-	// Success!
 	return db, nil
 }
