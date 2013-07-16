@@ -63,7 +63,6 @@ func (db *Database) RelTypes() ([]string, error) {
 	return reltypes, BadResponse
 }
 
-
 // A Relationship is a directional connection between two Nodes, with an
 // optional set of arbitrary properties.
 type Relationship struct {
