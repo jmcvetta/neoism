@@ -4,6 +4,11 @@ neo4j
 Neo4j client for [Go](http://golang.org).
 
 
+# Requirements
+
+Package `neo4j` requires [Go 1.1](http://golang.org/doc/go1.1).
+
+
 # Documentation
 
 See [Go Walker](http://gowalker.org/github.com/jmcvetta/neo4j) or
