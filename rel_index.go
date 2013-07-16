@@ -4,6 +4,8 @@
 
 package neo4j
 
+import "strconv"
+
 // A RelationshipIndex is an index for searching Relationships.
 type RelationshipIndex struct {
 	index
@@ -45,5 +47,6 @@ func (db *Database) RelIndex(name string) (*RelationshipIndex, error) {
 // Remove deletes all entries with a given node, key and value from the index.
 // If value or both key and value are the blank string, they are ignored.
 func (rix *RelationshipIndex) Remove(r *Relationship, key, value string) error {
-	return rix.remove(r, key, value)
+	id := strconv.Itoa(r.Id())
+	return rix.remove(r.entity, id, key, value)
 }
