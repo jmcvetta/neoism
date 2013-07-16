@@ -6,7 +6,9 @@ Neo4j client for [Go](http://golang.org).
 
 # Requirements
 
-Package `neo4j` requires [Go 1.1](http://golang.org/doc/go1.1).
+Package `neo4j` requires [Go 1.1](http://golang.org/doc/go1.1).  Earlier
+versions of Go cannot be used, as they can't unmarshall JSON into an embedded
+struct.
 
 
 # Documentation
