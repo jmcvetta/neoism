@@ -62,4 +62,4 @@ func Connect(uri string) (*Database, error) {
 }
 
 // A Props is a set of key/value properties.
-type Props map[string]string
+type Props map[string]interface{}
