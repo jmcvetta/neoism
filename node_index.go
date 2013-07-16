@@ -7,6 +7,7 @@ package neo4j
 import (
 	"github.com/jmcvetta/restclient"
 	"net/url"
+	"strconv"
 )
 
 // A NodeIndex is a searchable index for nodes.
@@ -49,13 +50,14 @@ func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
 
 // Add indexes a node with a key/value pair.
 func (nix *NodeIndex) Add(n *Node, key string, value interface{}) error {
-	return nix.add(n, key, value)
+	return nix.add(n.entity, key, value)
 }
 
 // Remove deletes all entries with a given node, key and value from the index.
 // If value or both key and value are the blank string, they are ignored.
 func (nix *NodeIndex) Remove(n *Node, key, value string) error {
-	return nix.remove(n, key, value)
+	id := strconv.Itoa(n.Id())
+	return nix.remove(n.entity, id, key, value)
 }
 
 // Find locates Nodes in the index by exact key/value match.
@@ -71,7 +73,7 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 		return nm, err
 	}
 	ne := new(neoError)
-	resp := []nodeResponse{}
+	resp := []Node{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
@@ -87,10 +89,8 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 		logPretty(req)
 		return nm, BadResponse
 	}
-	for _, r := range resp {
-		n := Node{}
+	for _, n := range resp {
 		n.db = idx.db
-		n.populate(&r)
 		nm[n.Id()] = &n
 	}
 	return nm, nil
@@ -110,7 +110,7 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 	if err != nil {
 		return nm, err
 	}
-	result := []nodeResponse{}
+	result := []Node{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
@@ -124,10 +124,8 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		logPretty(req)
 		return nm, BadResponse
 	}
-	for _, r := range result {
-		n := Node{}
+	for _, n := range result {
 		n.db = idx.db
-		n.populate(&r)
 		nm[n.Id()] = &n
 	}
 	return nm, nil

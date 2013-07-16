@@ -15,13 +15,12 @@ import (
 func (db *Database) Relationship(id int) (*Relationship, error) {
 	rel := Relationship{}
 	rel.db = db
-	res := new(relationshipResponse)
 	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
-		Result: &res,
+		Result: &rel,
 		Error:  &ne,
 	}
 	status, err := db.rc.Do(&rr)
@@ -38,7 +37,6 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 	case 404:
 		err = NotFound
 	}
-	rel.populate(res)
 	return &rel, err
 }
 
@@ -68,40 +66,16 @@ func (db *Database) RelTypes() ([]string, error) {
 // A Relationship is a directional connection between two Nodes, with an
 // optional set of arbitrary properties.
 type Relationship struct {
-	baseEntity
-	HrefStart string
-	HrefType  string
-	HrefEnd   string
+	entity
+	HrefData       interface{} `json:"data"`
+	HrefExtensions interface{} `json:"extensions"`
+	HrefStart      string      `json:"start"`
+	HrefType       string      `json:"type"`
+	HrefEnd        string      `json:"end"`
 }
 
 func (r *Relationship) hrefSelf() string {
 	return r.HrefSelf
-}
-
-// populate uses the values from a relationshipResponse object to populate the
-// fields on this Relationship.
-func (r *Relationship) populate(res *relationshipResponse) {
-	r.HrefSelf = res.HrefSelf
-	//
-	r.HrefProperty = res.HrefProperty
-	r.HrefProperties = res.HrefProperties
-	r.HrefStart = res.HrefStart
-	r.HrefType = res.HrefType
-	r.HrefEnd = res.HrefEnd
-}
-
-// A relationshipResponse represents data returned by the Neo4j server on a
-// Relationship operation.
-type relationshipResponse struct {
-	HrefProperty   string `json:"property"`
-	HrefProperties string `json:"properties"`
-	HrefSelf       string `json:"self"`
-	// HrefData       interface{} `json:"data"`
-	// HrefExtensions interface{} `json:"extensions"`
-	//
-	HrefStart string `json:"start"`
-	HrefType  string `json:"type"`
-	HrefEnd   string `json:"end"`
 }
 
 // Id gets the ID number of this Relationship
@@ -130,4 +104,15 @@ func (r *Relationship) End() (*Node, error) {
 // Type gets the type of this relationship
 func (r *Relationship) Type() string {
 	return r.HrefType
+}
+
+// A Rels is a collection of relationships.
+type Rels []*Relationship
+
+func (r *Rels) Map() map[int]*Relationship {
+	m := make(map[int]*Relationship, len(*r))
+	for _, rel := range *r {
+		m[rel.Id()] = rel
+	}
+	return m
 }

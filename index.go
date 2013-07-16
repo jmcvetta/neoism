@@ -8,7 +8,6 @@ import (
 	"github.com/jmcvetta/restclient"
 	"log"
 	"net/url"
-	"strconv"
 )
 
 func (db *Database) createIndex(href, name, idxType, provider string) (*index, error) {
@@ -188,7 +187,7 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 		Value interface{} `json:"value"`
 	}
 	data := s{
-		Uri:   e.hrefSelf(),
+		Uri:   e.HrefSelf,
 		Key:   key,
 		Value: value,
 	}
@@ -211,7 +210,7 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 	return BadResponse
 }
 
-func (idx *index) remove(e entity, key, value string) error {
+func (idx *index) remove(e entity, id, key, value string) error {
 	uri, err := idx.uri()
 	if err != nil {
 		return err
@@ -223,7 +222,7 @@ func (idx *index) remove(e entity, key, value string) error {
 	if key != "" {
 		uri = join(uri, key, value)
 	}
-	uri = join(uri, strconv.Itoa(e.Id()))
+	uri = join(uri, id)
 	ne := new(neoError)
 	req := restclient.RequestResponse{
 		Url:    uri,
