@@ -19,19 +19,24 @@ import (
 
 func TestTxBegin(t *testing.T) {
 	db := connectTest(t)
+	type name struct {
+		Name string `json:"name"`
+	}
 	stmts := []*CypherStatement{
 		&CypherStatement{
-			Statement: "CREATE (n:Person {props}) RETURN n",
-			Params:    map[string]interface{}{"props": map[string]string{"name": "James T Kirk"}},
+			Statement:  "CREATE (n:Person {props}) RETURN n",
+			Parameters: map[string]interface{}{"props": map[string]string{"name": "James T Kirk"}},
+			Data:       [][]string{},
 		},
 		&CypherStatement{
 			Statement: "CREATE (m:Person {name: \"dr mccoy\"}) RETURN m",
 		},
 	}
-	tx, err := db.BeginTx(stmts)
+	_, err := db.BeginTx(stmts)
 	if err != nil {
 		t.Fatal(err)
 	}
-	logPretty(tx)
-	logPretty(stmts)
+	for _, s := range stmts {
+		logPretty(s)
+	}
 }

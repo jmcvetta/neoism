@@ -6,12 +6,13 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
-	"time"
+	// "time"
+	"encoding/json"
 )
 
 type CypherStatement struct {
-	Statement string                 `json:"statement"`
-	Params    map[string]interface{} `json:"params"`
+	Statement  string                 `json:"statement"`
+	Parameters map[string]interface{} `json:"parameters"`
 	// Columns and Data are populated with the result from the server.  Data
 	// is a struct into which the query result will be unmarshalled.
 	Columns []string
@@ -22,31 +23,26 @@ type txRequest struct {
 	Statements []*CypherStatement `json:"statements"`
 }
 
-type txInfo struct {
-	Expires time.Time `json:"expires"`
-}
-
-type txResult struct {
-	Columns *[]string   `json:"columns"`
-	Data    interface{} `json:"data"`
-}
-
 type txResponse struct {
-	Commit  string     `json:"commit"`
-	Results []txResult `json:"results"`
+	Commit  string `json:"commit"`
+	Results []struct {
+		Columns []string        `json:"columns"`
+		Data    json.RawMessage `json:"data"`
+	} `json:"results"`
+	Transaction struct {
+		Expires string `json:"expires"` // server returns unparseable timestamp
+	} `json:"transaction"`
+	Errors []struct {
+		Code    int    `json:"code"`
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	} `json:"errors"`
 }
 
 func (db *Database) BeginTx(stmts []*CypherStatement) (*Transaction, error) {
 	ne := new(neoError)
 	payload := txRequest{Statements: stmts}
-	txres := make([]txResult, len(stmts))
-	for i, s := range stmts {
-		txres[i] = txResult{
-			Columns: &s.Columns,
-			Data:    &s.Data,
-		}
-	}
-	res := txResponse{Results: txres}
+	res := txResponse{}
 	rr := restclient.RequestResponse{
 		Url:            db.HrefTransaction,
 		Method:         "POST",
@@ -55,14 +51,23 @@ func (db *Database) BeginTx(stmts []*CypherStatement) (*Transaction, error) {
 		Error:          &ne,
 		ExpectedStatus: 201,
 	}
+	db.rc.Log = true
 	_, err := db.rc.Do(&rr)
 	if err != nil {
 		return nil, err
 	}
+	logPretty(res)
 	tx := Transaction{
 		Location: rr.HttpResponse.Header.Get("location"),
 		Commit:   res.Commit,
 	}
+	logPretty(len(res.Results))
+	logPretty(len(stmts))
+	/*
+		if len(res.Results) != len(stmts) {
+			return nil, errors.New("WTF?")
+		}
+	*/
 	return &tx, nil
 }
 
