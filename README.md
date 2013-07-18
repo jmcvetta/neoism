@@ -2,6 +2,7 @@ neo4j
 =====
 
 ![Neo4j + Gopher Logo](https://raw.github.com/jmcvetta/neo4j/master/neo4j_gopher.png)
+
 Neo4j client for [Go](http://golang.org).
 
 
