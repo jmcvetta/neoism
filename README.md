@@ -1,14 +1,16 @@
-neo4j - Neo4j client for [Go](http://golang.org)
-================================================
+neo4j - Neo4j client for Go
+===========================
 
 ![Neo4j + Gopher Logo](https://raw.github.com/jmcvetta/neo4j/master/neo4j_gopher.png)
+
+Package `neo4j` is a [Go](http://golang.org) client library providing access to
+the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 
 # Requirements
 
-Package `neo4j` requires [Go 1.1](http://golang.org/doc/go1.1).  Earlier
-versions of Go cannot be used, as they can't unmarshall JSON into an embedded
-struct.
+[Go 1.1](http://golang.org/doc/go1.1) or later is required.  Earlier versions
+of Go cannot be used, as they can't unmarshall JSON into an embedded struct.
 
 
 # Documentation
