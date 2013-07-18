@@ -21,7 +21,7 @@ documentation.
 
 # Status
 
-[![Build Status](https://travis-ci.org/jmcvetta/neo4j.png)](https://travis-ci.org/jmcvetta/neo4j)
+[![Build Status](https://travis-ci.org/jmcvetta/neo4j.png?branch=master)](https://travis-ci.org/jmcvetta/neo4j)
 [![Build Status](https://drone.io/github.com/jmcvetta/neo4j/status.png)](https://drone.io/github.com/jmcvetta/neo4j/latest)
 [![Coverage Status](https://coveralls.io/repos/jmcvetta/neo4j/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neo4j)
 
