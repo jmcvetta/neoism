@@ -11,24 +11,26 @@ import (
 	"errors"
 )
 
-type CypherStatement struct {
+type CypherQuery struct {
 	Statement  string                 `json:"statement"`
 	Parameters map[string]interface{} `json:"parameters"`
-	// Columns and Data are populated with the result from the server.  Data
-	// is a struct into which the query result will be unmarshalled.
-	Columns []string    `json:"-"`
-	Data    interface{} `json:"-"`
+	columns []string
+	data []json.RawMessage
+}
+
+func (cq *CypherQuery) Columns() []string {
+	return cq.columns
 }
 
 type txRequest struct {
-	Statements []*CypherStatement `json:"statements"`
+	Statements []*CypherQuery `json:"statements"`
 }
 
 type txResponse struct {
 	Commit  string
 	Results []struct {
 		Columns []string
-		Data    json.RawMessage
+		Data    []json.RawMessage
 	}
 	Transaction struct {
 		Expires string
@@ -40,7 +42,7 @@ type txResponse struct {
 	}
 }
 
-func (db *Database) BeginTx(stmts []*CypherStatement) (*Transaction, error) {
+func (db *Database) BeginTx(stmts []*CypherQuery) (*Transaction, error) {
 	ne := new(neoError)
 	payload := txRequest{Statements: stmts}
 	res := txResponse{}
@@ -66,10 +68,10 @@ func (db *Database) BeginTx(stmts []*CypherStatement) (*Transaction, error) {
 		return nil, errors.New("WTF?")
 	}
 	for i, s := range stmts {
-		if s.Data == nil {
-			s.Data = new(interface{})
-		}
-		json.Unmarshal([]byte(res.Results[i].Data), s.Data)
+		r := res.Results[i]
+		logPretty(r)
+		s.columns = r.Columns
+		s.data = r.Data
 	}
 	logPretty(stmts)
 	return &tx, nil

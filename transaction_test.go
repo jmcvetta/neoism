@@ -13,18 +13,15 @@ func TestTxBegin(t *testing.T) {
 	type name struct {
 		Name string `json:"name"`
 	}
-	stmts := []*CypherStatement{
-		&CypherStatement{
+	stmts := []*CypherQuery{
+		&CypherQuery{
 			Statement:  "CREATE (n:Person {props}) RETURN n",
 			Parameters: map[string]interface{}{"props": map[string]string{"name": "James T Kirk"}},
-			Data: &[][]struct {
-				Name string
-			}{},
 		},
-		&CypherStatement{
+		&CypherQuery{
 			Statement: "CREATE (m:Person {name: \"dr mccoy\"}) RETURN m",
 		},
-		&CypherStatement{
+		&CypherQuery{
 			Statement: `
 				MATCH a:Person, b:Person
 				WHERE a.name = "James T Kirk" AND b.name = "dr mccoy"
