@@ -43,7 +43,7 @@ the repo Issues.  The API is **not** promised to be stable at this time.
 
 * Node (create/edit/relate/delete/properties)
 * Relationship (create/edit/delete/properties)
-* Index (create/edit/delete/add node/remove node/find/query)
+* Legacy Indexing (create/edit/delete/add node/remove node/find/query)
 * Cypher (query with and without parameters) - still under active development,
   API should not be considered stable.
 
