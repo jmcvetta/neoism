@@ -2,7 +2,6 @@ language: go
 go: 
   - 1.1
   - tip
-services: neo4j
 notificaitons:
   email:
     recipients:
