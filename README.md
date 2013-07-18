@@ -47,17 +47,24 @@ the repo Issues.  The API is **not** promised to be stable at this time.
 * Cypher (query with and without parameters) - still under active development,
   API should not be considered stable.
 
+## In Progress:
+
+* Transactional endpoint (Neo4j 2.0)
+
+
 ## To Do:
 
-* Unique Indexes
-* Automatic Indexes - Not sure how much there is to do here, but these are a
-  seperate section in the REST API manual, that I have not yet read.
+* Node labels (Neo4j 2.0)
+* Schema index (Neo4j 2.0)
+* ~~Unique Indexes~~ - probably will not expand support for legacy indexing.
+* ~~Automatic Indexes~~ - "
 * Traversals - May never be supported due to security concerns.  From the
   manual:  "The Traversal REST Endpoint executes arbitrary Groovy code under
   the hood as part of the evaluators definitions. In hosted and open
   environments, this can constitute a security risk."
 * Built-In Graph Algorithms
-* Batch Operations
+* ~~Batch Operations~~ - probably will not implement, preferring transactional
+  endpoint instead.
 * Gremlin
 
 
