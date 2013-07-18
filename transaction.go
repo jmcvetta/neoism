@@ -8,6 +8,7 @@ import (
 	"github.com/jmcvetta/restclient"
 	// "time"
 	"encoding/json"
+	"errors"
 )
 
 type CypherStatement struct {
@@ -15,8 +16,8 @@ type CypherStatement struct {
 	Parameters map[string]interface{} `json:"parameters"`
 	// Columns and Data are populated with the result from the server.  Data
 	// is a struct into which the query result will be unmarshalled.
-	Columns []string
-	Data    interface{}
+	Columns []string    `json:"-"`
+	Data    interface{} `json:"-"`
 }
 
 type txRequest struct {
@@ -24,19 +25,19 @@ type txRequest struct {
 }
 
 type txResponse struct {
-	Commit  string `json:"commit"`
+	Commit  string
 	Results []struct {
-		Columns []string        `json:"columns"`
-		Data    json.RawMessage `json:"data"`
-	} `json:"results"`
+		Columns []string
+		Data    json.RawMessage
+	}
 	Transaction struct {
-		Expires string `json:"expires"` // server returns unparseable timestamp
-	} `json:"transaction"`
+		Expires string
+	}
 	Errors []struct {
-		Code    int    `json:"code"`
-		Status  string `json:"status"`
-		Message string `json:"message"`
-	} `json:"errors"`
+		Code    int
+		Status  string
+		Message string
+	}
 }
 
 func (db *Database) BeginTx(stmts []*CypherStatement) (*Transaction, error) {
@@ -61,13 +62,16 @@ func (db *Database) BeginTx(stmts []*CypherStatement) (*Transaction, error) {
 		Location: rr.HttpResponse.Header.Get("location"),
 		Commit:   res.Commit,
 	}
-	logPretty(len(res.Results))
-	logPretty(len(stmts))
-	/*
-		if len(res.Results) != len(stmts) {
-			return nil, errors.New("WTF?")
+	if len(res.Results) != len(stmts) {
+		return nil, errors.New("WTF?")
+	}
+	for i, s := range stmts {
+		if s.Data == nil {
+			s.Data = new(interface{})
 		}
-	*/
+		json.Unmarshal([]byte(res.Results[i].Data), s.Data)
+	}
+	logPretty(stmts)
 	return &tx, nil
 }
 

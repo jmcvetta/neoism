@@ -8,15 +8,6 @@ import (
 	"testing"
 )
 
-/*
-['CREATE (n:Person {name: "james t kirk"}) RETURN n',
- 'CREATE (m:Person {name: "dr mccoy"}) RETURN m',
- 'CREATE (q:Person {name: "spock"})',
- 'START n=node(*) RETURN n',
- 'START n=node(*) MATCH n-[r]->m RETURN n,r,m']
-
-*/
-
 func TestTxBegin(t *testing.T) {
 	db := connectTest(t)
 	type name struct {
@@ -26,17 +17,28 @@ func TestTxBegin(t *testing.T) {
 		&CypherStatement{
 			Statement:  "CREATE (n:Person {props}) RETURN n",
 			Parameters: map[string]interface{}{"props": map[string]string{"name": "James T Kirk"}},
-			Data:       [][]string{},
+			Data: &[][]struct {
+				Name string
+			}{},
 		},
 		&CypherStatement{
 			Statement: "CREATE (m:Person {name: \"dr mccoy\"}) RETURN m",
+		},
+		&CypherStatement{
+			Statement: `
+				MATCH a:Person, b:Person
+				WHERE a.name = "James T Kirk" AND b.name = "dr mccoy"
+				CREATE a-[r:Commands]->b
+				RETURN a, type(r) AS rel_type, b
+			`,
+			Parameters: map[string]interface{}{
+				"n_name": "James T Kirk",
+				"m_name": "dr mccoy",
+			},
 		},
 	}
 	_, err := db.BeginTx(stmts)
 	if err != nil {
 		t.Fatal(err)
-	}
-	for _, s := range stmts {
-		logPretty(s)
 	}
 }
