@@ -217,3 +217,67 @@ func TestCypherBadQuery(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestCypherBatch(t *testing.T) {
+	db := connectTest(t)
+	type resultStruct0 struct {
+		N Node
+	}
+	type resultStruct2 struct {
+		R Relationship
+	}
+	r0 := []resultStruct0{}
+	r1 := []resultStruct0{}
+	r2 := []resultStruct2{}
+	// n0 := []interface{}{}
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `CREATE (n:Person {name: "Mr Spock"}) RETURN n`,
+			Result:    &r0,
+		},
+		&CypherQuery{
+			Statement: `CREATE (n:Person {name: "Mr Sulu"}) RETURN n`,
+			Result:    &r1,
+		},
+		&CypherQuery{
+			Statement: `
+				MATCH a:Person, b:Person
+				WHERE a.name = 'Mr Spock' AND b.name = 'Mr Sulu'
+				CREATE a-[r:Knows]->b
+				RETURN r
+			`,
+			Result: &r2,
+		},
+	}
+	err := db.CypherBatch(qs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "Mr Spock", r0[0].N.Data["name"])
+	assert.Equal(t, "Mr Sulu", r1[0].N.Data["name"])
+	assert.Equal(t, "Knows", r2[0].R.Type)
+	//
+	// Cleanup
+	//
+	for _, r := range r2 {
+		r.R.db = db
+		err = r.R.Delete()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	for _, n := range r0 {
+		n.N.db = db
+		err = n.N.Delete()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	for _, n := range r1 {
+		n.N.db = db
+		err = n.N.Delete()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+}
