@@ -122,7 +122,6 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 			},
 		}
 	}
-	logPretty(payload)
 	res := []batchCypherResponse{}
 	ne := new(neoError)
 	rr := restclient.RequestResponse{
@@ -135,6 +134,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 	}
 	_, err := db.rc.Do(&rr)
 	if err != nil {
+		logPretty(ne)
 		return err
 	}
 	if len(res) != len(qs) {
