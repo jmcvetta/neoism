@@ -6,6 +6,7 @@ package neo4j
 
 import (
 	"github.com/bmizerany/assert"
+	"strconv"
 	"testing"
 )
 
@@ -148,7 +149,6 @@ func TestCypherParameters(t *testing.T) {
 	assert.Equal(t, expDat3, result3)
 }
 
-/*
 // 18.3.2. Send a Query
 func TestCypher(t *testing.T) {
 	db := connectTest(t)
@@ -158,15 +158,23 @@ func TestCypher(t *testing.T) {
 	n0, _ := db.CreateNode(Props{"name": "I"})
 	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
-	n1, _ := db.CreateNode(Props{"name": "you", "age": "69"})
+	n1, _ := db.CreateNode(Props{"name": "you", "age": 69})
 	defer n1.Delete()
 	r0, _ := n0.Relate("know", n1.Id(), nil)
 	defer r0.Delete()
 	// Query
-	query := "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?"
 	// query := "START x = node:name_index(name=I) MATCH path = (x-[r]-friend) WHERE friend.name = you RETURN TYPE(r)"
-	result := [][]string{}
-	columns, err := db.Cypher(query, nil, &result)
+	type resultStruct struct {
+		Type string `json:"type(r)"`
+		Name string `json:"n.name?"`
+		Age  int    `json:"n.age?"`
+	}
+	result := []resultStruct{}
+	cq := CypherQuery{
+		Statement: "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?",
+		Result:    &result,
+	}
+	err := db.Cypher(&cq)
 	if err != nil {
 		t.Error(err)
 	}
@@ -175,8 +183,14 @@ func TestCypher(t *testing.T) {
 	// Our test only passes if Neo4j returns columns in the expected order - is
 	// there any guarantee about order?
 	expCol := []string{"type(r)", "n.name?", "n.age?"}
-	expDat := [][]string{[]string{"know", "you", "69"}}
-	assert.Equal(t, expCol, columns)
+	expDat := []resultStruct{
+		resultStruct{
+			Type: "know",
+			Name: "you",
+			Age:  69,
+		},
+	}
+	assert.Equal(t, expCol, cq.Columns())
 	assert.Equal(t, expDat, result)
 }
 
@@ -193,11 +207,13 @@ func TestCypherBadQuery(t *testing.T) {
 	r0, _ := n0.Relate("know", n1.Id(), nil)
 	defer r0.Delete()
 	// Query
-	query := "foobar("
 	result := new(interface{})
-	_, err := db.Cypher(query, nil, result)
+	cq := CypherQuery{
+		Statement: "foobar",
+		Result:    &result,
+	}
+	err := db.Cypher(&cq)
 	if err != BadResponse {
 		t.Error(err)
 	}
 }
-*/
