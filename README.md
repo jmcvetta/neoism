@@ -50,7 +50,8 @@ the repo Issues.  The API is **not** promised to be stable at this time.
 ## In Progress:
 
 * Transactional endpoint (Neo4j 2.0)
-
+* Batch Cypher Queries - transactional endpoint does not provide an adequate
+  substitute, as it has no means to reference result of previous statements.
 
 ## To Do:
 
@@ -63,8 +64,6 @@ the repo Issues.  The API is **not** promised to be stable at this time.
   the hood as part of the evaluators definitions. In hosted and open
   environments, this can constitute a security risk."
 * Built-In Graph Algorithms
-* ~~Batch Operations~~ - probably will not implement, preferring transactional
-  endpoint instead.
 * Gremlin
 
 
