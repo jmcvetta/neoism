@@ -67,11 +67,11 @@ func (db *Database) RelTypes() ([]string, error) {
 // optional set of arbitrary properties.
 type Relationship struct {
 	entity
-	HrefData       interface{} `json:"data"`
-	HrefExtensions interface{} `json:"extensions"`
-	HrefStart      string      `json:"start"`
-	HrefType       string      `json:"type"`
-	HrefEnd        string      `json:"end"`
+	HrefStart  string      `json:"start"`
+	HrefEnd    string      `json:"end"`
+	Type       string      `json:"type"`
+	Data       interface{} `json:"data"`
+	Extensions interface{} `json:"extensions"`
 }
 
 func (r *Relationship) hrefSelf() string {
@@ -99,11 +99,6 @@ func (r *Relationship) Start() (*Node, error) {
 // End gets the ending Node of this Relationship.
 func (r *Relationship) End() (*Node, error) {
 	return r.db.getNodeByUri(r.HrefEnd)
-}
-
-// Type gets the type of this relationship
-func (r *Relationship) Type() string {
-	return r.HrefType
 }
 
 // A Rels is a collection of relationships.

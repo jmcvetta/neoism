@@ -41,87 +41,111 @@ func TestCypherParameters(t *testing.T) {
 	//
 	// Query with string parameters and integer results
 	//
-	query := `
-		START n = node:name_index(name={startName})
-		MATCH path = (n)-[r]->(m)
-		WHERE m.name? = {name}
-		RETURN id(n), id(r), id(m)
-		`
-	params := map[string]interface{}{
-		"startName": "I",
-		"name":      "you",
+	type resultStruct0 struct {
+		N int `json:"id(n)"`
+		R int `json:"id(r)"`
+		M int `json:"id(m)"`
 	}
-	result0 := [][]int{}
-	columns, err := db.Cypher(query, params, &result0)
+	result0 := []resultStruct0{}
+	cq := CypherQuery{
+		Statement: `
+			START n = node:name_index(name={startName})
+			MATCH path = (n)-[r]->(m)
+			WHERE m.name? = {name}
+			RETURN id(n), id(r), id(m)
+		`,
+		Parameters: map[string]interface{}{
+			"startName": "I",
+			"name":      "you",
+		},
+		Result: &result0,
+	}
+	err := db.Cypher(&cq)
 	if err != nil {
 		t.Error(err)
 	}
 	// Check result
 	expCol := []string{"id(n)", "id(r)", "id(m)"}
-	expDat0 := [][]int{
-		[]int{n0.Id(), r0.Id(), n1.Id()},
-		[]int{n0.Id(), r1.Id(), n1.Id()},
+	expDat0 := []resultStruct0{
+		resultStruct0{n0.Id(), r0.Id(), n1.Id()},
+		resultStruct0{n0.Id(), r1.Id(), n1.Id()},
 	}
-	assert.Equal(t, expCol, columns)
+	assert.Equal(t, expCol, cq.Columns())
 	assert.Equal(t, expDat0, result0)
 	//
 	// Query with integer parameter and string results
 	//
-	query = `
+	type resultStruct1 struct {
+		Name string `json:"n.name"`
+	}
+	result1 := []resultStruct1{}
+	cq = CypherQuery{
+
+		Statement: `
 		START n = node:num_index(num={num})
 		RETURN n.name
-		`
-	params = map[string]interface{}{
-		"num": 42,
+		`,
+		Parameters: map[string]interface{}{
+			"num": 42,
+		},
+		Result: &result1,
 	}
-	result1 := [][]string{}
-	columns, err = db.Cypher(query, params, &result1)
+	err = db.Cypher(&cq)
 	if err != nil {
 		t.Error(err)
 	}
 	expCol = []string{"n.name"}
-	expDat1 := [][]string{[]string{"num"}}
-	assert.Equal(t, expCol, columns)
+	expDat1 := []resultStruct1{resultStruct1{Name: "num"}}
+	assert.Equal(t, expCol, cq.Columns())
 	assert.Equal(t, expDat1, result1)
 	//
 	// Query with float parameter
 	//
-	query = `
+	result2 := []resultStruct1{}
+	cq = CypherQuery{
+		Statement: `
 		START n = node:float_index(float={float})
 		RETURN n.name
-		`
-	params = map[string]interface{}{
-		"float": 3.14,
+		`,
+		Parameters: map[string]interface{}{
+			"float": 3.14,
+		},
+		Result: &result2,
 	}
-	result2 := [][]string{}
-	columns, err = db.Cypher(query, params, &result2)
+	err = db.Cypher(&cq)
 	if err != nil {
 		t.Error(err)
 	}
 	expCol = []string{"n.name"}
-	expDat2 := [][]string{[]string{"float"}}
-	assert.Equal(t, expCol, columns)
+	expDat2 := []resultStruct1{resultStruct1{Name: "float"}}
+	assert.Equal(t, expCol, cq.Columns())
 	assert.Equal(t, expDat2, result2)
 	//
 	// Query with array parameter
 	//
-	query = `
-		START n=node(*)
-		WHERE id(n) IN {arr}
-		RETURN n.name
-		ORDER BY id(n)
-		`
-	params = map[string]interface{}{
-		"arr": []int{n0.Id(), n1.Id()},
+	result3 := []resultStruct1{}
+	cq = CypherQuery{
+		Statement: `
+			START n=node(*)
+			WHERE id(n) IN {arr}
+			RETURN n.name
+			ORDER BY id(n)
+			`,
+		Parameters: map[string]interface{}{
+			"arr": []int{n0.Id(), n1.Id()},
+		},
+		Result: &result3,
 	}
-	result3 := [][]string{}
-	columns, err = db.Cypher(query, params, &result3)
+	err = db.Cypher(&cq)
 	if err != nil {
 		t.Error(err)
 	}
 	expCol = []string{"n.name"}
-	expDat3 := [][]string{[]string{"I"}, []string{"you"}}
-	assert.Equal(t, expCol, columns)
+	expDat3 := []resultStruct1{
+		resultStruct1{Name: "I"},
+		resultStruct1{Name: "you"},
+	}
+	assert.Equal(t, expCol, cq.Columns())
 	assert.Equal(t, expDat3, result3)
 }
 
@@ -134,15 +158,23 @@ func TestCypher(t *testing.T) {
 	n0, _ := db.CreateNode(Props{"name": "I"})
 	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
-	n1, _ := db.CreateNode(Props{"name": "you", "age": "69"})
+	n1, _ := db.CreateNode(Props{"name": "you", "age": 69})
 	defer n1.Delete()
 	r0, _ := n0.Relate("know", n1.Id(), nil)
 	defer r0.Delete()
 	// Query
-	query := "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?"
 	// query := "START x = node:name_index(name=I) MATCH path = (x-[r]-friend) WHERE friend.name = you RETURN TYPE(r)"
-	result := [][]string{}
-	columns, err := db.Cypher(query, nil, &result)
+	type resultStruct struct {
+		Type string `json:"type(r)"`
+		Name string `json:"n.name?"`
+		Age  int    `json:"n.age?"`
+	}
+	result := []resultStruct{}
+	cq := CypherQuery{
+		Statement: "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?",
+		Result:    &result,
+	}
+	err := db.Cypher(&cq)
 	if err != nil {
 		t.Error(err)
 	}
@@ -151,8 +183,14 @@ func TestCypher(t *testing.T) {
 	// Our test only passes if Neo4j returns columns in the expected order - is
 	// there any guarantee about order?
 	expCol := []string{"type(r)", "n.name?", "n.age?"}
-	expDat := [][]string{[]string{"know", "you", "69"}}
-	assert.Equal(t, expCol, columns)
+	expDat := []resultStruct{
+		resultStruct{
+			Type: "know",
+			Name: "you",
+			Age:  69,
+		},
+	}
+	assert.Equal(t, expCol, cq.Columns())
 	assert.Equal(t, expDat, result)
 }
 
@@ -169,10 +207,77 @@ func TestCypherBadQuery(t *testing.T) {
 	r0, _ := n0.Relate("know", n1.Id(), nil)
 	defer r0.Delete()
 	// Query
-	query := "foobar("
 	result := new(interface{})
-	_, err := db.Cypher(query, nil, result)
+	cq := CypherQuery{
+		Statement: "foobar",
+		Result:    &result,
+	}
+	err := db.Cypher(&cq)
 	if err != BadResponse {
 		t.Error(err)
+	}
+}
+
+func TestCypherBatch(t *testing.T) {
+	db := connectTest(t)
+	type resultStruct0 struct {
+		N Node
+	}
+	type resultStruct2 struct {
+		R Relationship
+	}
+	r0 := []resultStruct0{}
+	r1 := []resultStruct0{}
+	r2 := []resultStruct2{}
+	// n0 := []interface{}{}
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `CREATE (n:Person {name: "Mr Spock"}) RETURN n`,
+			Result:    &r0,
+		},
+		&CypherQuery{
+			Statement: `CREATE (n:Person {name: "Mr Sulu"}) RETURN n`,
+			Result:    &r1,
+		},
+		&CypherQuery{
+			Statement: `
+				MATCH a:Person, b:Person
+				WHERE a.name = 'Mr Spock' AND b.name = 'Mr Sulu'
+				CREATE a-[r:Knows]->b
+				RETURN r
+			`,
+			Result: &r2,
+		},
+	}
+	err := db.CypherBatch(qs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "Mr Spock", r0[0].N.Data["name"])
+	assert.Equal(t, "Mr Sulu", r1[0].N.Data["name"])
+	assert.Equal(t, "Knows", r2[0].R.Type)
+	//
+	// Cleanup
+	//
+	for _, r := range r2 {
+		r.R.db = db
+		err = r.R.Delete()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	for _, n := range r0 {
+		n.N.db = db
+		err = n.N.Delete()
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	for _, n := range r1 {
+		n.N.db = db
+		err = n.N.Delete()
+		if err != nil {
+			t.Error(err)
+		}
 	}
 }

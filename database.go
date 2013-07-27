@@ -14,18 +14,19 @@ import (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	url           *url.URL // Root URL for REST API
-	rc            *restclient.Client
-	Extensions    interface{} `json:"extensions"`
-	HrefNode      string      `json:"node"`
-	HrefRefNode   string      `json:"reference_node"`
-	HrefNodeIndex string      `json:"node_index"`
-	HrefRelIndex  string      `json:"relationship_index"`
-	HrefExtInfo   string      `json:"extensions_info"`
-	HrefRelTypes  string      `json:"relationship_types"`
-	HrefBatch     string      `json:"batch"`
-	HrefCypher    string      `json:"cypher"`
-	Version       string      `json:"neo4j_version"`
+	url             *url.URL // Root URL for REST API
+	rc              *restclient.Client
+	Extensions      interface{} `json:"extensions"`
+	HrefNode        string      `json:"node"`
+	HrefRefNode     string      `json:"reference_node"`
+	HrefNodeIndex   string      `json:"node_index"`
+	HrefRelIndex    string      `json:"relationship_index"`
+	HrefExtInfo     string      `json:"extensions_info"`
+	HrefRelTypes    string      `json:"relationship_types"`
+	HrefBatch       string      `json:"batch"`
+	HrefCypher      string      `json:"cypher"`
+	HrefTransaction string      `json:"transaction"`
+	Version         string      `json:"neo4j_version"`
 }
 
 // Connect establishes a connection to the Neo4j server.
