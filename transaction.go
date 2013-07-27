@@ -29,8 +29,8 @@ func (cq *CypherQuery) Columns() []string {
 }
 
 // Unmarshall decodes result data into v, which must be a pointer to a slice of
-// slices of structs.  Struct fields are matched up with fields returned by the
-// cypher query using the `json:"fieldName"` tag.
+// slices of structs - e.g. &[][]someStruct{}.  Struct fields are matched up
+// with fields returned by the cypher query using the `json:"fieldName"` tag.
 func (cq *CypherQuery) Unmarshall(v interface{}) error {
 	// We do a round-trip thru the JSON marshaller.  A fairly simple way to
 	// do type-safe unmarshalling, but perhaps not the most efficient solution.
