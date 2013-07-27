@@ -46,8 +46,7 @@ the repo Issues.  The API is **not** promised to be stable at this time.
 * Legacy Indexing (create/edit/delete/add node/remove node/find/query)
 * Cypher (query with and without parameters) - still under active development,
   API should not be considered stable.
-* Batched Cypher queries - transactional endpoint does not provide an adequate
-  substitute, as it has no means to reference result of previous statements.
+* Batched Cypher queries
 * Transactional endpoint (Neo4j 2.0)
 
 
