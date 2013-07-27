@@ -6,6 +6,7 @@ package neo4j
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/jmcvetta/restclient"
 )
 
@@ -87,6 +88,66 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	q.cr = cRes
 	if q.Result != nil {
 		q.Unmarshall(q.Result)
+	}
+	return nil
+}
+
+type batchCypherQuery struct {
+	Method string        `json:"method"`
+	To     string        `json:"to"`
+	Id     int           `json:"id"`
+	Body   cypherRequest `json:"body"`
+}
+
+type batchCypherResponse struct {
+	Id       int
+	Location string
+	Body     cypherResult
+}
+
+// CypherBatch executes a set of cypher queries as a batch.  When using the
+// {[JOB ID]} special syntax to inject URIs from created resources into JSON
+// strings in subsequent job descriptions, CypherQuery's batch id will be its
+// index in the slice.
+func (db *Database) CypherBatch(qs []*CypherQuery) error {
+	payload := make([]batchCypherQuery, len(qs))
+	for i, q := range qs {
+		payload[i] = batchCypherQuery{
+			Method: "POST",
+			To:     "/cypher",
+			Id:     i,
+			Body: cypherRequest{
+				Query:      q.Statement,
+				Parameters: q.Parameters,
+			},
+		}
+	}
+	logPretty(payload)
+	res := []batchCypherResponse{}
+	ne := new(neoError)
+	rr := restclient.RequestResponse{
+		Url:            db.HrefBatch,
+		Method:         "POST",
+		Data:           payload,
+		Result:         &res,
+		Error:          &ne,
+		ExpectedStatus: 200,
+	}
+	_, err := db.rc.Do(&rr)
+	if err != nil {
+		return err
+	}
+	if len(res) != len(qs) {
+		return errors.New("Result count does not match query count")
+	}
+	for i, s := range qs {
+		s.cr = res[i].Body
+		if s.Result != nil {
+			err := s.Unmarshall(s.Result)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
