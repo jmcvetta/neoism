@@ -5,59 +5,88 @@
 package neo4j
 
 import (
+	"encoding/json"
 	"github.com/jmcvetta/restclient"
 )
 
+// A CypherQuery is a statement in the Cypher query language, with optional
+// parameters and result.  If Result value is supplied, result data will be
+// unmarshalled into it when the query is executed. Result must be a pointer
+// to a slice of structs - e.g. &[]someStruct{}.
+type CypherQuery struct {
+	Statement  string                 `json:"statement"`
+	Parameters map[string]interface{} `json:"parameters"`
+	Result     interface{}            `json:"-"`
+	cr         cypherResult
+}
+
+// Columns returns the names, in order, of the columns returned for this query.
+// Empty if query has not been executed.
+func (cq *CypherQuery) Columns() []string {
+	return cq.cr.Columns
+}
+
+// Unmarshall decodes result data into v, which must be a pointer to a slice of
+// structs - e.g. &[]someStruct{}.  Struct fields are matched up with fields
+// returned by the cypher query using the `json:"fieldName"` tag.
+func (cq *CypherQuery) Unmarshall(v interface{}) error {
+	// We do a round-trip thru the JSON marshaller.  A fairly simple way to
+	// do type-safe unmarshalling, but perhaps not the most efficient solution.
+	rs := make([]map[string]*json.RawMessage, len(cq.cr.Data))
+	for rowNum, row := range cq.cr.Data {
+		m := map[string]*json.RawMessage{}
+		for colNum, col := range row {
+			name := cq.cr.Columns[colNum]
+			m[name] = col
+		}
+		rs[rowNum] = m
+	}
+	b, err := json.MarshalIndent(rs, "", "  ")
+	if err != nil {
+		logPretty(err)
+		return err
+	}
+	return json.Unmarshal(b, v)
+}
+
 type cypherRequest struct {
-	Query string `json:"query"`
+	Query      string                 `json:"query"`
+	Parameters map[string]interface{} `json:"params"`
 }
 
-type cypherRequestParams struct {
-	Query  string                 `json:"query"`
-	Params map[string]interface{} `json:"params"`
-}
-
-// A CypherResult is returned when a cypher query is executed.
-type CypherResult struct {
-	Columns *[]string   `json:"columns"`
-	Data    interface{} `json:"data"`
+type cypherResult struct {
+	Columns []string
+	Data    [][]*json.RawMessage
 }
 
 // Cypher executes a db query written in the Cypher language.  Data returned
 // from the db is used to populate `result`, which should be a pointer to a
 // slice of structs.  TODO:  Or a pointer to a two-dimensional array of structs?
-func (db *Database) Cypher(query string, params map[string]interface{}, result interface{}) (columns []string, err error) {
-	columns = []string{}
-	cr := CypherResult{
-		Columns: &columns,
-		Data:    result,
+func (db *Database) Cypher(q *CypherQuery) error {
+	cRes := cypherResult{}
+	cReq := cypherRequest{
+		Query:      q.Statement,
+		Parameters: q.Parameters,
 	}
 	ne := new(neoError)
-	var data interface{}
-	if params != nil {
-		data = cypherRequestParams{
-			Query:  query,
-			Params: params,
-		}
-	} else {
-		data = cypherRequest{
-			Query: query,
-		}
-	}
-	req := restclient.RequestResponse{
+	rr := restclient.RequestResponse{
 		Url:    db.HrefCypher,
 		Method: "POST",
-		Data:   data,
-		Result: &cr,
+		Data:   &cReq,
+		Result: &cRes,
 		Error:  ne,
 	}
-	status, err := db.rc.Do(&req)
+	status, err := db.rc.Do(&rr)
 	if err != nil {
-		return columns, err
+		return err
 	}
 	if status != 200 {
-		logPretty(req)
-		return columns, BadResponse
+		logPretty(rr)
+		return BadResponse
 	}
-	return columns, nil
+	q.cr = cRes
+	if q.Result != nil {
+		q.Unmarshall(q.Result)
+	}
+	return nil
 }
