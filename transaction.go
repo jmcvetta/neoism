@@ -13,7 +13,7 @@ import (
 // A CypherQuery is a statement in the Cypher query language, with optional
 // parameters and result.  If Result value is supplied, result data will be
 // unmarshalled into it when the query is executed. Result must be a pointer
-// to a slice  of slices of structs - e.g. &[][]someStruct{}.
+// to a slice of slices of structs - e.g. &[][]someStruct{}.
 type CypherQuery struct {
 	Statement  string                 `json:"statement"`
 	Parameters map[string]interface{} `json:"parameters"`
