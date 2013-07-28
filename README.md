@@ -50,12 +50,6 @@ the repo Issues.  The API is **not** promised to be stable at this time.
 * Transactional endpoint (Neo4j 2.0)
 
 
-## In Progress:
-
-* Transactional endpoint (Neo4j 2.0)
-* Batch Cypher Queries - transactional endpoint does not provide an adequate
-  substitute, as it has no means to reference result of previous statements.
-
 ## To Do:
 
 * Node labels (Neo4j 2.0)
