@@ -26,11 +26,7 @@ func join(fragments ...string) string {
 }
 
 func logPretty(x interface{}) {
-	_, file, line, ok := runtime.Caller(1)
-	if !ok {
-		file = "???"
-		line = 0
-	}
+	_, file, line, _ := runtime.Caller(1)
 	lineNo := strconv.Itoa(line)
 	s := file + ":" + lineNo + ": %# v\n"
 	pretty.Printf(s, x)
