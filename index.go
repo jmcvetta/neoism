@@ -33,20 +33,22 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 		payload.Config = config
 	}
 	res := new(indexResponse)
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:            href,
 		Method:         "POST",
 		Data:           &payload,
 		Result:         res,
-		Error:          ne,
+		Error:          &ne,
 		ExpectedStatus: 201,
 	}
 	status, err := db.rc.Do(&rr)
 	if err != nil {
-		log.Println(status)
-		logPretty(ne)
-		return idx, err
+		logPretty(err)
+		return nil, err
+	}
+	if status != 201 {
+		return nil, ne
 	}
 	idx.populate(res)
 	idx.HrefIndex = href
@@ -56,12 +58,12 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 func (db *Database) indexes(href string) ([]*index, error) {
 	res := map[string]indexResponse{}
 	nis := []*index{}
-	ne := new(neoError)
+	ne := NeoError{}
 	req := restclient.RequestResponse{
 		Url:    href,
 		Method: "GET",
 		Result: &res,
-		Error:  ne,
+		Error:  &ne,
 	}
 	status, err := db.rc.Do(&req)
 	if err != nil {
@@ -70,7 +72,7 @@ func (db *Database) indexes(href string) ([]*index, error) {
 	}
 	if status != 200 {
 		logPretty(ne)
-		return nis, BadResponse
+		return nis, ne
 	}
 	for name, r := range res {
 		n := index{}
@@ -93,11 +95,11 @@ func (db *Database) index(href, name string) (*index, error) {
 	if err != nil {
 		return idx, err
 	}
-	ne := new(neoError)
+	ne := NeoError{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
-		Error:  ne,
+		Error:  &ne,
 	}
 	status, err := db.rc.Do(&req)
 	if err != nil {
@@ -113,7 +115,7 @@ func (db *Database) index(href, name string) (*index, error) {
 		return idx, NotFound
 	}
 	logPretty(ne)
-	return idx, BadResponse
+	return idx, ne
 }
 
 type index struct {
@@ -155,23 +157,22 @@ func (idx *index) Delete() error {
 	if err != nil {
 		return err
 	}
-	ne := new(neoError)
+	ne := NeoError{}
 	req := restclient.RequestResponse{
 		Url:    uri,
 		Method: "DELETE",
-		Error:  ne,
+		Error:  &ne,
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(req)
 		return err
 	}
-	if status == 204 {
-		// Success!
-		return nil
+	if status != 204 {
+		logPretty(ne)
+		return ne
 	}
-	logPretty(ne)
-	return BadResponse
+	return nil // Success!
 }
 
 // Add associates a Node with the given key/value pair in the given index.
@@ -180,7 +181,7 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 	if err != nil {
 		return err
 	}
-	ne := new(neoError)
+	ne := NeoError{}
 	type s struct {
 		Uri   string      `json:"uri"`
 		Key   string      `json:"key"`
@@ -195,19 +196,18 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 		Url:    uri,
 		Method: "POST",
 		Data:   data,
-		Error:  ne,
+		Error:  &ne,
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return err
 	}
-	if status == 201 {
-		// Success!
-		return nil
+	if status != 201 {
+		logPretty(ne)
+		return ne
 	}
-	logPretty(ne)
-	return BadResponse
+	return nil // Success!
 }
 
 func (idx *index) remove(e entity, id, key, value string) error {
@@ -223,21 +223,20 @@ func (idx *index) remove(e entity, id, key, value string) error {
 		uri = join(uri, key, value)
 	}
 	uri = join(uri, id)
-	ne := new(neoError)
+	ne := NeoError{}
 	req := restclient.RequestResponse{
 		Url:    uri,
 		Method: "DELETE",
-		Error:  ne,
+		Error:  &ne,
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
 		logPretty(ne)
 		return err
 	}
-	if status == 204 {
-		// Success!
-		return nil
+	if status != 204 {
+		logPretty(req)
+		return ne
 	}
-	logPretty(req)
-	return BadResponse
+	return nil // Success!
 }

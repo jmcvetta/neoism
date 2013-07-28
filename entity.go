@@ -28,20 +28,21 @@ func (e *entity) do(rr *restclient.RequestResponse) (status int, err error) {
 func (e *entity) SetProperty(key string, value string) error {
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "PUT",
 		Data:   &value,
-		Error:  new(neoError),
+		Error:  &ne,
 	}
 	status, err := e.do(&rr)
 	if err != nil {
 		return err
 	}
-	if status == 204 {
-		return nil // Success!
+	if status != 204 {
+		return ne
 	}
-	return BadResponse
+	return nil // Success!
 }
 
 // GetProperty fetches the value of property key.
@@ -49,7 +50,7 @@ func (e *entity) Property(key string) (string, error) {
 	var val string
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
@@ -63,18 +64,18 @@ func (e *entity) Property(key string) (string, error) {
 	}
 	switch status {
 	case 200:
-		return val, nil
+		return val, nil // Success!
 	case 404:
 		return val, NotFound
 	}
-	return val, BadResponse
+	return val, ne
 }
 
 // DeleteProperty deletes property key
 func (e *entity) DeleteProperty(key string) error {
 	parts := []string{e.HrefProperties, key}
 	uri := strings.Join(parts, "/")
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "DELETE",
@@ -92,12 +93,12 @@ func (e *entity) DeleteProperty(key string) error {
 		return NotFound
 	}
 	logPretty(ne)
-	return BadResponse
+	return ne
 }
 
 // Delete removes the object from the DB.
 func (e *entity) Delete() error {
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    e.HrefSelf,
 		Method: "DELETE",
@@ -115,13 +116,13 @@ func (e *entity) Delete() error {
 		return CannotDelete
 	}
 	logPretty(ne)
-	return BadResponse
+	return ne
 }
 
 // Properties fetches all properties
 func (e *entity) Properties() (Props, error) {
 	props := Props{}
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
 		Method: "GET",
@@ -142,7 +143,7 @@ func (e *entity) Properties() (Props, error) {
 
 // SetProperties updates all properties, overwriting any existing properties.
 func (e *entity) SetProperties(p Props) error {
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
 		Method: "PUT",
@@ -158,12 +159,12 @@ func (e *entity) SetProperties(p Props) error {
 		return nil // Success!
 	}
 	logPretty(ne)
-	return BadResponse
+	return ne
 }
 
 // DeleteProperties deletes all properties.
 func (e *entity) DeleteProperties() error {
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    e.HrefProperties,
 		Method: "DELETE",
@@ -181,5 +182,5 @@ func (e *entity) DeleteProperties() error {
 		return NotFound
 	}
 	logPretty(ne)
-	return BadResponse
+	return ne
 }

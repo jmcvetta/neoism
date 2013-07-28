@@ -14,7 +14,7 @@ import (
 func (db *Database) CreateNode(p Props) (*Node, error) {
 	n := Node{}
 	n.db = db
-	ne := new(neoError)
+	ne := new(NeoError)
 	rr := restclient.RequestResponse{
 		Url:            db.HrefNode,
 		Method:         "POST",
@@ -40,26 +40,25 @@ func (db *Database) Node(id int) (*Node, error) {
 
 // getNodeByUri fetches a Node from the database based on its URI.
 func (db *Database) getNodeByUri(uri string) (*Node, error) {
-	ne := new(neoError)
+	ne := NeoError{}
 	n := Node{}
 	n.db = db
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
 		Result: &n,
-		Error:  ne,
+		Error:  &ne,
 	}
 	status, err := db.rc.Do(&rr)
+	if err != nil {
+		return nil, err
+	}
 	switch {
 	case status == 404:
 		return &n, NotFound
 	case status != 200 || n.HrefSelf == "":
 		logPretty(ne)
-		return &n, BadResponse
-	}
-	if err != nil {
-		logPretty(ne)
-		return &n, err
+		return nil, ne
 	}
 	return &n, nil
 }
@@ -104,7 +103,7 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		uri = strings.Join(parts, "/")
 	}
 	rels := Rels{}
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
@@ -115,10 +114,11 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 	if err != nil {
 		return rels, err
 	}
-	if status == 200 {
-		return rels, nil // Success!
+	if status != 200 {
+		logPretty(ne)
+		return rels, ne
 	}
-	return rels, BadResponse
+	return rels, nil // Success!
 }
 
 // Rels gets all Rels for this Node, optionally filtered by
@@ -142,7 +142,7 @@ func (n *Node) Outgoing(types ...string) (Rels, error) {
 func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error) {
 	rel := Relationship{}
 	rel.db = n.db
-	ne := new(neoError)
+	ne := NeoError{}
 	srcUri := join(n.HrefSelf, "relationships")
 	destUri := join(n.db.HrefNode, strconv.Itoa(destId))
 	content := map[string]interface{}{
@@ -161,12 +161,11 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 	}
 	status, err := n.db.rc.Do(&c)
 	if err != nil {
-		logPretty(ne)
 		return &rel, err
 	}
 	if status != 201 {
 		logPretty(ne)
-		return &rel, BadResponse
+		return &rel, ne
 	}
 	return &rel, nil
 }

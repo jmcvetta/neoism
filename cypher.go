@@ -69,7 +69,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 		Query:      q.Statement,
 		Parameters: q.Parameters,
 	}
-	ne := new(neoError)
+	ne := new(NeoError)
 	rr := restclient.RequestResponse{
 		Url:    db.HrefCypher,
 		Method: "POST",
@@ -82,8 +82,8 @@ func (db *Database) Cypher(q *CypherQuery) error {
 		return err
 	}
 	if status != 200 {
-		logPretty(rr)
-		return BadResponse
+		logPretty(ne)
+		return *ne
 	}
 	q.cr = cRes
 	if q.Result != nil {
@@ -123,19 +123,21 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 		}
 	}
 	res := []batchCypherResponse{}
-	ne := new(neoError)
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
-		Url:            db.HrefBatch,
-		Method:         "POST",
-		Data:           payload,
-		Result:         &res,
-		Error:          &ne,
-		ExpectedStatus: 200,
+		Url:    db.HrefBatch,
+		Method: "POST",
+		Data:   payload,
+		Result: &res,
+		Error:  &ne,
 	}
-	_, err := db.rc.Do(&rr)
+	status, err := db.rc.Do(&rr)
 	if err != nil {
-		logPretty(ne)
 		return err
+	}
+	if status != 200 {
+		logPretty(ne)
+		return ne
 	}
 	if len(res) != len(qs) {
 		return errors.New("Result count does not match query count")

@@ -15,8 +15,8 @@ import (
 func (db *Database) Relationship(id int) (*Relationship, error) {
 	rel := Relationship{}
 	rel.db = db
-	uri := join(db.url.String(), "relationship", strconv.Itoa(id))
-	ne := new(neoError)
+	uri := join(db.Url, "relationship", strconv.Itoa(id))
+	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
@@ -31,7 +31,7 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 	switch status {
 	default:
 		logPretty(ne)
-		err = BadResponse
+		err = ne
 	case 200:
 		err = nil // Success!
 	case 404:
@@ -43,7 +43,7 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 // Types lists all existing relationship types
 func (db *Database) RelTypes() ([]string, error) {
 	reltypes := []string{}
-	ne := new(neoError)
+	ne := NeoError{}
 	c := restclient.RequestResponse{
 		Url:    db.HrefRelTypes,
 		Method: "GET",
@@ -60,16 +60,16 @@ func (db *Database) RelTypes() ([]string, error) {
 		return reltypes, nil // Success!
 	}
 	logPretty(ne)
-	return reltypes, BadResponse
+	return reltypes, ne
 }
 
 // A Relationship is a directional connection between two Nodes, with an
 // optional set of arbitrary properties.
 type Relationship struct {
 	entity
+	Type       string      `json:"type"`
 	HrefStart  string      `json:"start"`
 	HrefEnd    string      `json:"end"`
-	Type       string      `json:"type"`
 	Data       interface{} `json:"data"`
 	Extensions interface{} `json:"extensions"`
 }

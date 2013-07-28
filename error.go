@@ -12,14 +12,17 @@ import (
 // from the server.
 var (
 	InvalidDatabase = errors.New("Invalid database.  Check URI.")
-	BadResponse     = errors.New("Bad response from Neo4j server.")
 	NotFound        = errors.New("Cannot find in database.")
 	CannotDelete    = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
 )
 
-// A neoError is populated by api calls when there is an error.
-type neoError struct {
+// A NeoError is populated by api calls when there is an error.
+type NeoError struct {
 	Message    string   `json:"message"`
 	Exception  string   `json:"exception"`
 	Stacktrace []string `json:"stacktrace"`
+}
+
+func (ne NeoError) Error() string {
+	return ne.Message
 }

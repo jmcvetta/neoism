@@ -72,13 +72,13 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 	if err != nil {
 		return nm, err
 	}
-	ne := new(neoError)
+	ne := NeoError{}
 	resp := []Node{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
 		Result: &resp,
-		Error:  ne,
+		Error:  &ne,
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
@@ -86,8 +86,8 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 		return nm, err
 	}
 	if status != 200 {
-		logPretty(req)
-		return nm, BadResponse
+		logPretty(ne)
+		return nm, ne
 	}
 	for _, n := range resp {
 		n.db = idx.db
@@ -111,10 +111,12 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		return nm, err
 	}
 	result := []Node{}
+	ne := NeoError{}
 	req := restclient.RequestResponse{
 		Url:    u.String(),
 		Method: "GET",
 		Result: &result,
+		Error:  &ne,
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
@@ -122,7 +124,7 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 	}
 	if status != 200 {
 		logPretty(req)
-		return nm, BadResponse
+		return nm, ne
 	}
 	for _, n := range result {
 		n.db = idx.db

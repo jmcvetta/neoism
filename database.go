@@ -14,9 +14,8 @@ import (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	url             *url.URL // Root URL for REST API
 	rc              *restclient.Client
-	Extensions      interface{} `json:"extensions"`
+	Url             string      `json:"-"` // Root URL for REST API
 	HrefNode        string      `json:"node"`
 	HrefRefNode     string      `json:"reference_node"`
 	HrefNodeIndex   string      `json:"node_index"`
@@ -27,21 +26,22 @@ type Database struct {
 	HrefCypher      string      `json:"cypher"`
 	HrefTransaction string      `json:"transaction"`
 	Version         string      `json:"neo4j_version"`
+	Extensions      interface{} `json:"extensions"`
 }
 
 // Connect establishes a connection to the Neo4j server.
 func Connect(uri string) (*Database, error) {
-	var e neoError
+	var e NeoError
 	db := &Database{
 		rc: restclient.New(),
 	}
-	u, err := url.Parse(uri)
+	_, err := url.Parse(uri) // Sanity check
 	if err != nil {
-		return db, err
+		return nil, err
 	}
-	db.url = u
+	db.Url = uri
 	req := restclient.RequestResponse{
-		Url:    u.String(),
+		Url:    db.Url,
 		Method: "GET",
 		Result: &db,
 		Error:  &e,
@@ -55,9 +55,9 @@ func Connect(uri string) (*Database, error) {
 	case status == 404:
 		return db, InvalidDatabase
 	case status != 200 || db.Version == "":
-		log.Println("Status " + strconv.Itoa(status) + " trying to cconnect to " + u.String())
+		log.Println("Status " + strconv.Itoa(status) + " trying to cconnect to " + uri)
 		logPretty(req)
-		return db, BadResponse
+		return db, e
 	}
 	return db, nil
 }
