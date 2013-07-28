@@ -196,24 +196,11 @@ func TestCypher(t *testing.T) {
 
 func TestCypherBadQuery(t *testing.T) {
 	db := connectTest(t)
-	// Create
-	idx0, _ := db.CreateNodeIndex("name_index", "", "")
-	defer idx0.Delete()
-	n0, _ := db.CreateNode(Props{"name": "I"})
-	defer n0.Delete()
-	idx0.Add(n0, "name", "I")
-	n1, _ := db.CreateNode(Props{"name": "you", "age": "69"})
-	defer n1.Delete()
-	r0, _ := n0.Relate("know", n1.Id(), nil)
-	defer r0.Delete()
-	// Query
-	result := new(interface{})
 	cq := CypherQuery{
 		Statement: "foobar",
-		Result:    &result,
 	}
 	err := db.Cypher(&cq)
-	if err != BadResponse {
+	if _, ok := err.(NeoError); !ok {
 		t.Error(err)
 	}
 }
@@ -279,5 +266,17 @@ func TestCypherBatch(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func TestCypherBadBatch(t *testing.T) {
+	db := connectTest(t)
+	cq := CypherQuery{
+		Statement: "foobar",
+	}
+	qs := []*CypherQuery{&cq}
+	err := db.CypherBatch(qs)
+	if _, ok := err.(NeoError); !ok {
+		t.Error(err)
 	}
 }
