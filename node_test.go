@@ -139,7 +139,6 @@ func TestSetBadPropertyOnNode(t *testing.T) {
 	value := rndStr(t)
 	err := n0.SetProperty(key, value)
 	if _, ok := err.(NeoError); !ok {
-		logPretty(err)
 		t.Fatal(err)
 	}
 }
