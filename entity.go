@@ -105,18 +105,21 @@ func (e *entity) Delete() error {
 		Error:  &ne,
 	}
 	status, err := e.do(&rr)
-	switch {
-	case err != nil:
-		logPretty(ne)
+	if err != nil {
 		return err
-	case status == 204:
-		// Successful deletion!
-		return nil
-	case status == 409:
-		return CannotDelete
 	}
-	logPretty(ne)
-	return ne
+	switch status {
+	case 204:
+	case 404:
+		return NotFound
+	case 409:
+		return CannotDelete
+	default:
+		logPretty(status)
+		logPretty(ne)
+		return ne
+	}
+	return nil
 }
 
 // Properties fetches all properties
