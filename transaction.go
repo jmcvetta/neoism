@@ -51,25 +51,28 @@ func (tr *txResponse) unmarshall(qs []*CypherQuery) error {
 // BeginTx opens a new transaction, executing zero or more cypher queries
 // inside the transaction.
 func (db *Database) BeginTx(qs []*CypherQuery) (*Tx, error) {
-	ne := new(NeoError)
+	ne := NeoError{}
 	payload := txRequest{Statements: qs}
 	res := txResponse{}
 	rr := restclient.RequestResponse{
-		Url:            db.HrefTransaction,
-		Method:         "POST",
-		Data:           payload,
-		Result:         &res,
-		Error:          &ne,
-		ExpectedStatus: 201,
+		Url:    db.HrefTransaction,
+		Method: "POST",
+		Data:   payload,
+		Result: &res,
+		Error:  &ne,
 	}
-	_, err := db.rc.Do(&rr)
+	status, err := db.rc.Do(&rr)
 	if err != nil {
 		return nil, err
 	}
+	if status != 201 {
+		return nil, ne
+	}
 	t := Tx{
-		Location: rr.HttpResponse.Header.Get("location"),
-		Commit:   res.Commit,
-		Errors:   res.Errors,
+		db:         db,
+		hrefCommit: res.Commit,
+		Location:   rr.HttpResponse.Header.Get("location"),
+		Errors:     res.Errors,
 	}
 	err = res.unmarshall(qs)
 	return &t, err
@@ -77,7 +80,25 @@ func (db *Database) BeginTx(qs []*CypherQuery) (*Tx, error) {
 
 // A Tx is an in-progress database transaction.
 type Tx struct {
-	Location string
-	Commit   string
-	Errors   []TxError
+	db         *Database
+	hrefCommit string
+	Location   string
+	Errors     []TxError
+}
+
+func (t *Tx) Commit() error {
+	ne := NeoError{}
+	rr := restclient.RequestResponse{
+		Url:    t.hrefCommit,
+		Method: "POST",
+		Error:  &ne,
+	}
+	status, err := t.db.rc.Do(&rr)
+	if err != nil {
+		return err
+	}
+	if status != 200 {
+		return ne
+	}
+	return nil // Success
 }
