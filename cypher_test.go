@@ -201,7 +201,9 @@ func TestCypherBadQuery(t *testing.T) {
 	}
 	err := db.Cypher(&cq)
 	if ne, ok := err.(NeoError); !ok {
-		s := ne.Error()
+		var n NeoError
+		n = ne
+		s := n.Error()
 		assert.NotEqual(t, "", s)
 		t.Error(err)
 	}
