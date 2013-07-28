@@ -42,3 +42,9 @@ func TestRelationshipIndexes(t *testing.T) {
 	idx2 := indexes[0]
 	assert.Equal(t, idx0.Name, idx2.Name)
 }
+
+func TestBadCreateRelIndex(t *testing.T) {
+	db := connectTest(t)
+	_, err := db.CreateRelIndex("", "", "")
+	assert.NotEqual(t, nil, err)
+}
