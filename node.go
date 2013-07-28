@@ -70,32 +70,18 @@ type Node struct {
 	// HrefSelf              string      `json:"self"`
 	// HrefProperty          string      `json:"property"`
 	// HrefProperties        string      `json:"properties"`
-	HrefData              interface{} `json:"data"`
-	HrefExtensions        interface{} `json:"extensions"`
-	HrefOutgoingRels      string      `json:"outgoing_relationships"`
-	HrefTraverse          string      `json:"traverse"`
-	HrefAllTypedRels      string      `json:"all_typed_relationships"`
-	HrefOutgoing          string      `json:"outgoing_typed_relationships"`
-	HrefIncomingRels      string      `json:"incoming_relationships"`
-	HrefCreateRel         string      `json:"create_relationship"`
-	HrefPagedTraverse     string      `json:"paged_traverse"`
-	HrefAllRels           string      `json:"all_relationships"`
-	HrefIncomingTypedRels string      `json:"incoming_typed_relationships"`
+	HrefOutgoingRels      string                 `json:"outgoing_relationships"`
+	HrefTraverse          string                 `json:"traverse"`
+	HrefAllTypedRels      string                 `json:"all_typed_relationships"`
+	HrefOutgoing          string                 `json:"outgoing_typed_relationships"`
+	HrefIncomingRels      string                 `json:"incoming_relationships"`
+	HrefCreateRel         string                 `json:"create_relationship"`
+	HrefPagedTraverse     string                 `json:"paged_traverse"`
+	HrefAllRels           string                 `json:"all_relationships"`
+	HrefIncomingTypedRels string                 `json:"incoming_typed_relationships"`
+	Data                  map[string]interface{} `json:"data"`
+	Extensions            map[string]interface{} `json:"extensions"`
 }
-
-/*
-func (n *Node) hrefSelf() string {
-	return n.HrefSelf
-}
-
-func (n *Node) hrefProperties() string {
-	return n.HrefProperties
-}
-
-func (n *Node) db() *Database {
-	return n.db
-}
-*/
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
