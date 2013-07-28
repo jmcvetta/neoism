@@ -73,3 +73,68 @@ func TestTxBegin(t *testing.T) {
 	assert.Equal(t, "Commands", res2[0].Rel)
 	assert.Equal(t, "Dr McCoy", res2[0].B.Name)
 }
+
+func TestTxCommit(t *testing.T) {
+	db := connectTest(t)
+	name := rndStr(t)
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `
+				CREATE (n:Person {name: {name}})
+				RETURN n
+			`,
+			Parameters: Props{"name": name},
+		},
+	}
+	tx, err := db.BeginTx(qs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	//
+	// Confirm it does not exist before commit
+	//
+	res0 := []struct {
+		N string `json:"n.name"`
+	}{}
+	q0 := CypherQuery{
+		Statement: `
+			MATCH n:Person
+			WHERE n.name = {name}
+			RETURN n.name
+		`,
+		Parameters: Props{"name": name},
+		Result:     &res0,
+	}
+	err = db.Cypher(&q0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 0, len(res0))
+	//
+	// Commit and confirm creation
+	//
+	err = tx.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = db.Cypher(&q0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(res0))
+	//
+	// Cleanup
+	//
+	q1 := CypherQuery{
+		Statement: `
+			MATCH n:Person
+			WHERE n.name = {name}
+			DELETE n
+		`,
+		Parameters: Props{"name": name},
+	}
+	err = db.Cypher(&q1)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
