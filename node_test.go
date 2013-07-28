@@ -130,6 +130,20 @@ func TestSetPropertyOnNode(t *testing.T) {
 	assert.Tf(t, checkVal == value, "Expected property value not found")
 }
 
+// 18.7.1. Set property on node
+func TestSetBadPropertyOnNode(t *testing.T) {
+	db := connectTest(t)
+	n0, _ := db.CreateNode(Props{})
+	defer n0.Delete()
+	key := ""
+	value := rndStr(t)
+	err := n0.SetProperty(key, value)
+	if _, ok := err.(NeoError); !ok {
+		logPretty(err)
+		t.Fatal(err)
+	}
+}
+
 // 18.7.2. Update node properties
 func TestUpdatePropertyOnNode(t *testing.T) {
 	db := connectTest(t)
