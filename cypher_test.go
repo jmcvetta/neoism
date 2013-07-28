@@ -200,13 +200,12 @@ func TestCypherBadQuery(t *testing.T) {
 		Statement: "foobar",
 	}
 	err := db.Cypher(&cq)
-	if ne, ok := err.(NeoError); !ok {
-		var n NeoError
-		n = ne
-		s := n.Error()
-		assert.NotEqual(t, "", s)
+	ne, ok := err.(NeoError)
+	if !ok {
 		t.Error(err)
 	}
+	s := ne.Error()
+	assert.NotEqual(t, "", s)
 }
 
 func TestCypherBatch(t *testing.T) {
