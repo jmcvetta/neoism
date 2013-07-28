@@ -230,4 +230,15 @@ func TestDeleteNamedPropertyFromNode(t *testing.T) {
 	// Confirm
 	checkProps, _ := n0.Properties()
 	assert.Equalf(t, props0, checkProps, "Failed to remove named property with DeleteProperty().")
+	//
+	// Delete non-existent property
+	//
+	err = n0.DeleteProperty("eggs")
+	assert.NotEqual(t, nil, err)
+	//
+	// Delete and check 404
+	//
+	n0.Delete()
+	err = n0.DeleteProperty("spam")
+	assert.Equal(t, NotFound, err)
 }

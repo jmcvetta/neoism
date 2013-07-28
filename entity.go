@@ -59,16 +59,16 @@ func (e *entity) Property(key string) (string, error) {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logPretty(ne)
 		return val, err
 	}
 	switch status {
 	case 200:
-		return val, nil // Success!
 	case 404:
 		return val, NotFound
+	default:
+		return val, ne
 	}
-	return val, ne
+	return val, nil // Success!
 }
 
 // DeleteProperty deletes property key
