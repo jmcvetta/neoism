@@ -69,4 +69,9 @@ func TestConnectInvalidUrl(t *testing.T) {
 	if err == nil {
 		t.Fatal("Expected error due to unsupported protocol scheme")
 	}
+	//
+	// Not Found
+	//
+	_, err = Connect("http://localhost:7474/db/datadatadata")
+	assert.Equal(t, InvalidDatabase, err)
 }
