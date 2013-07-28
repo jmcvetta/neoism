@@ -26,6 +26,7 @@ using defer() for cleanup.
 package neo4j
 
 import (
+	"github.com/bmizerany/assert"
 	"github.com/jmcvetta/randutil"
 	"log"
 	"testing"
@@ -50,7 +51,7 @@ func rndStr(t *testing.T) string {
 
 func TestConnect(t *testing.T) {
 	db := connectTest(t)
-	logPretty(db)
+	assert.Equal(t, "http://localhost:7474/db/data", db.Url)
 }
 
 func TestConnectInvalidUrl(t *testing.T) {
