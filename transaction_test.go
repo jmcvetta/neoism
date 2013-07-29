@@ -143,16 +143,14 @@ func TestTxCommit(t *testing.T) {
 
 func TestTxBadResultObj(t *testing.T) {
 	db := connectTest(t)
-	name := rndStr(t)
-	result := struct{ N string }{}
+	//
+	// Struct not slice of structs
+	//
+	res0 := struct{ N string }{}
 	qs := []*CypherQuery{
 		&CypherQuery{
-			Statement: `
-				CREATE (n:Person {name: {name}})
-				RETURN n
-			`,
-			Parameters: Props{"name": name},
-			Result:     &result,
+			Statement: `CREATE (n:Person) RETURN n`,
+			Result:    &res0,
 		},
 	}
 	_, err := db.Begin(qs)
