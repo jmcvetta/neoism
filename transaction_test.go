@@ -5,6 +5,7 @@
 package neo4j
 
 import (
+	"encoding/json"
 	"github.com/bmizerany/assert"
 	"testing"
 )
@@ -135,6 +136,26 @@ func TestTxCommit(t *testing.T) {
 	}
 	err = db.Cypher(&q1)
 	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTxBadResultObj(t *testing.T) {
+	db := connectTest(t)
+	name := rndStr(t)
+	result := struct{ N string }{}
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `
+				CREATE (n:Person {name: {name}})
+				RETURN n
+			`,
+			Parameters: Props{"name": name},
+			Result:     &result,
+		},
+	}
+	_, err := db.Begin(qs)
+	if _, ok := err.(*json.UnmarshalTypeError); !ok {
 		t.Fatal(err)
 	}
 }
