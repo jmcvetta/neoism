@@ -13,6 +13,10 @@ type txRequest struct {
 	Statements []*CypherQuery `json:"statements"`
 }
 
+// A TxQueryError is returned when there is an error with one of the Cypher
+// queries inside a transaction, but not with the transaction itself.
+var TxQueryError = errors.New("Error with a query inside a transaction.")
+
 // A TxError is an error with one of the statements submitted in a transaction,
 // but not with the transaction itself.
 type TxError struct {
@@ -33,13 +37,11 @@ type txResponse struct {
 // unmarshall populates a slice of CypherQuery object with result data returned
 // from the server.
 func (tr *txResponse) unmarshall(qs []*CypherQuery) error {
-	if len(tr.Results) != len(qs) {
-		return errors.New("Result count does not match query count")
-	}
-	for i, s := range qs {
-		s.cr = tr.Results[i]
-		if s.Result != nil {
-			err := s.Unmarshall(s.Result)
+	for i, res := range tr.Results {
+		q := qs[i]
+		q.cr = res
+		if q.Result != nil {
+			err := q.Unmarshall(q.Result)
 			if err != nil {
 				return err
 			}
@@ -75,6 +77,12 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 		Errors:     res.Errors,
 	}
 	err = res.unmarshall(qs)
+	if err != nil {
+		return &t, err
+	}
+	if len(t.Errors) != 0 {
+		return &t, TxQueryError
+	}
 	return &t, err
 }
 
