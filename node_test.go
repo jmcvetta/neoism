@@ -259,3 +259,24 @@ func TestNodeProperty(t *testing.T) {
 	_, err = n0.Property("foo")
 	assert.Equal(t, NotFound, err)
 }
+
+func TestAddLabels(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	labels, err := n0.Labels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, []string{}, labels)
+	newLabels := []string{"Person", "Bicyclist"}
+	err = n0.AddLabels(newLabels...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	labels, err = n0.Labels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, newLabels, labels)
+}

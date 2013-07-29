@@ -66,9 +66,6 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 // A Node is a node, with optional properties, in a graph.
 type Node struct {
 	entity
-	// HrefSelf              string      `json:"self"`
-	// HrefProperty          string      `json:"property"`
-	// HrefProperties        string      `json:"properties"`
 	HrefOutgoingRels      string                 `json:"outgoing_relationships"`
 	HrefTraverse          string                 `json:"traverse"`
 	HrefAllTypedRels      string                 `json:"all_typed_relationships"`
@@ -78,6 +75,7 @@ type Node struct {
 	HrefPagedTraverse     string                 `json:"paged_traverse"`
 	HrefAllRels           string                 `json:"all_relationships"`
 	HrefIncomingTypedRels string                 `json:"incoming_typed_relationships"`
+	HrefLabels            string                 `json:"labels"`
 	Data                  map[string]interface{} `json:"data"`
 	Extensions            map[string]interface{} `json:"extensions"`
 }
@@ -168,4 +166,43 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 		return &rel, ne
 	}
 	return &rel, nil
+}
+
+// AddLabels adds one or more labels to a node.
+func (n *Node) AddLabels(l ...string) error {
+	ne := NeoError{}
+	rr := restclient.RequestResponse{
+		Url:    n.HrefLabels,
+		Method: "POST",
+		Data:   l,
+		Error:  &ne,
+	}
+	status, err := n.Db.Rc.Do(&rr)
+	if err != nil {
+		return err
+	}
+	if status != 204 {
+		return ne
+	}
+	return nil // Success
+}
+
+// Labels lists labels for a node.
+func (n *Node) Labels() ([]string, error) {
+	ne := NeoError{}
+	res := []string{}
+	rr := restclient.RequestResponse{
+		Url:    n.HrefLabels,
+		Method: "GET",
+		Error:  &ne,
+		Result: &res,
+	}
+	status, err := n.Db.Rc.Do(&rr)
+	if err != nil {
+		return res, err
+	}
+	if status != 200 {
+		return res, ne
+	}
+	return res, nil // Success
 }
