@@ -336,3 +336,22 @@ func TestSetLabels(t *testing.T) {
 	err = n0.SetLabels([]string{"foobar"})
 	assert.Equal(t, NotFound, err)
 }
+
+func TestNodesByLabel(t *testing.T) {
+	db := connectTest(t)
+	cleanup(t, db) // Make sure no nodes exist before we start
+	defer cleanup(t, db)
+	nodes, err := db.NodesByLabel("foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 0, len(nodes))
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel("foobar")
+	nodes, err = db.NodesByLabel("foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	exp := []*Node{n0,}
+	assert.Equal(t, exp, nodes)
+}

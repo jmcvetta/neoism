@@ -257,3 +257,29 @@ func (n *Node) SetLabels(labels []string) error {
 	}
 	return nil // Success
 }
+
+func (db *Database) NodesByLabel(label string) ([]*Node, error) {
+	url := join(db.Url, "label", label, "nodes")
+	ne := NeoError{}
+	res := []*Node{}
+	rr := restclient.RequestResponse{
+		Url:    url,
+		Method: "GET",
+		Result: &res,
+		Error:  &ne,
+	}
+	status, err := db.Rc.Do(&rr)
+	if err != nil {
+		return res, err
+	}
+	if status == 404 {
+		return res, NotFound
+	}
+	if status != 200 {
+		return res, ne
+	}
+	for _, n := range res {
+		n.Db = db
+	}
+	return res, nil // Success
+}
