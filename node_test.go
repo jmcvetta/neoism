@@ -270,7 +270,7 @@ func TestAddLabels(t *testing.T) {
 	}
 	assert.Equal(t, []string{}, labels)
 	newLabels := []string{"Person", "Bicyclist"}
-	err = n0.AddLabels(newLabels...)
+	err = n0.AddLabel(newLabels...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -279,4 +279,15 @@ func TestAddLabels(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, newLabels, labels)
+}
+
+func TestLabelsInvalidNode(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	n0.Delete()
+	err := n0.AddLabel("foobar")
+	assert.Equal(t, NotFound, err)
+	_, err = n0.Labels()
+	assert.Equal(t, NotFound, err)
 }

@@ -169,7 +169,7 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 }
 
 // AddLabels adds one or more labels to a node.
-func (n *Node) AddLabels(l ...string) error {
+func (n *Node) AddLabel(l ...string) error {
 	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    n.HrefLabels,
@@ -180,6 +180,9 @@ func (n *Node) AddLabels(l ...string) error {
 	status, err := n.Db.Rc.Do(&rr)
 	if err != nil {
 		return err
+	}
+	if status == 404 {
+		return NotFound
 	}
 	if status != 204 {
 		return ne
@@ -200,6 +203,9 @@ func (n *Node) Labels() ([]string, error) {
 	status, err := n.Db.Rc.Do(&rr)
 	if err != nil {
 		return res, err
+	}
+	if status == 404 {
+		return res, NotFound
 	}
 	if status != 200 {
 		return res, ne
