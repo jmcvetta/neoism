@@ -96,6 +96,7 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 	return &t, err
 }
 
+// Commit commits an open transaction.
 func (t *Tx) Commit() error {
 	if len(t.Errors) > 0 {
 		return TxQueryError
@@ -132,6 +133,9 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 	if err != nil {
 		return err
 	}
+	if status == 404 {
+		return NotFound
+	}
 	if status != 200 {
 		return &ne
 	}
@@ -145,4 +149,21 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 		return TxQueryError
 	}
 	return nil
+}
+
+func (t *Tx) Rollback() error {
+	ne := NeoError{}
+	rr := restclient.RequestResponse{
+		Url:    t.Location,
+		Method: "DELETE",
+		Error:  &ne,
+	}
+	status, err := t.db.Rc.Do(&rr)
+	if err != nil {
+		return err
+	}
+	if status != 200 {
+		return ne
+	}
+	return nil // Success
 }

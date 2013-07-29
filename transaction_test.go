@@ -242,3 +242,22 @@ func TestTxQuery(t *testing.T) {
 	}
 	assert.Equal(t, "Knows", res0[0].R)
 }
+
+func TestTxRollback(t *testing.T) {
+	db := connectTest(t)
+	qs0 := []*CypherQuery{
+		&CypherQuery{
+			Statement: `CREATE (n:Person)`,
+		},
+	}
+	tx, err := db.Begin(qs0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = tx.Rollback()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = tx.Query(qs0)
+	assert.Equal(t, NotFound, err)
+}
