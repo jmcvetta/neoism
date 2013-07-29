@@ -25,7 +25,6 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 	}
 	status, err := db.rc.Do(&rr)
 	if err != nil {
-		logPretty(ne)
 		return &rel, err
 	}
 	switch status {
@@ -52,7 +51,6 @@ func (db *Database) RelTypes() ([]string, error) {
 	}
 	status, err := db.rc.Do(&c)
 	if err != nil {
-		logPretty(ne)
 		return reltypes, err
 	}
 	if status == 200 {

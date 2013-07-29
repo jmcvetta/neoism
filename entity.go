@@ -83,7 +83,6 @@ func (e *entity) DeleteProperty(key string) error {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logPretty(ne)
 		return err
 	}
 	switch status {
@@ -134,7 +133,6 @@ func (e *entity) Properties() (Props, error) {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logPretty(ne)
 		return props, err
 	}
 	// Status code 204 indicates no properties on this node
@@ -155,7 +153,6 @@ func (e *entity) SetProperties(p Props) error {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logPretty(ne)
 		return err
 	}
 	if status == 204 {
@@ -175,7 +172,6 @@ func (e *entity) DeleteProperties() error {
 	}
 	status, err := e.do(&rr)
 	if err != nil {
-		logPretty(ne)
 		return err
 	}
 	switch status {

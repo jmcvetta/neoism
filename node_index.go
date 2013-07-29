@@ -82,7 +82,6 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
-		logPretty(ne)
 		return nm, err
 	}
 	if status != 200 {

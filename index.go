@@ -6,7 +6,6 @@ package neo4j
 
 import (
 	"github.com/jmcvetta/restclient"
-	"log"
 	"net/url"
 )
 
@@ -67,7 +66,6 @@ func (db *Database) indexes(href string) ([]*index, error) {
 	}
 	status, err := db.rc.Do(&req)
 	if err != nil {
-		logPretty(ne)
 		return nis, err
 	}
 	if status != 200 {
@@ -103,19 +101,18 @@ func (db *Database) index(href, name string) (*index, error) {
 	}
 	status, err := db.rc.Do(&req)
 	if err != nil {
-		log.Println(err)
-		logPretty(req)
-		return idx, err
+		return nil, err
 	}
 	switch status {
 	// Success!
 	case 200:
-		return idx, nil
 	case 404:
-		return idx, NotFound
+		return nil, NotFound
+	default:
+		logPretty(ne)
+		return idx, ne
 	}
-	logPretty(ne)
-	return idx, ne
+	return idx, nil
 }
 
 type index struct {
@@ -165,7 +162,6 @@ func (idx *index) Delete() error {
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
-		logPretty(req)
 		return err
 	}
 	if status != 204 {
@@ -200,7 +196,6 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
-		logPretty(ne)
 		return err
 	}
 	if status != 201 {
@@ -231,7 +226,6 @@ func (idx *index) remove(e entity, id, key, value string) error {
 	}
 	status, err := idx.db.rc.Do(&req)
 	if err != nil {
-		logPretty(ne)
 		return err
 	}
 	if status != 204 {
