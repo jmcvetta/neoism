@@ -259,3 +259,119 @@ func TestNodeProperty(t *testing.T) {
 	_, err = n0.Property("foo")
 	assert.Equal(t, NotFound, err)
 }
+
+func TestAddLabels(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	labels, err := n0.Labels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, []string{}, labels)
+	newLabels := []string{"Person", "Bicyclist"}
+	err = n0.AddLabel(newLabels...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	labels, err = n0.Labels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, newLabels, labels)
+}
+
+func TestLabelsInvalidNode(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	n0.Delete()
+	err := n0.AddLabel("foobar")
+	assert.Equal(t, NotFound, err)
+	_, err = n0.Labels()
+	assert.Equal(t, NotFound, err)
+}
+
+func TestRemoveLabel(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel("foobar")
+	labels, _ := n0.Labels()
+	assert.Equal(t, []string{"foobar"}, labels)
+	err := n0.RemoveLabel("foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	labels, _ = n0.Labels()
+	assert.Equal(t, []string{}, labels)
+	n0.Delete()
+	err = n0.RemoveLabel("foobar")
+	assert.Equal(t, NotFound, err)
+
+}
+
+func TestAddLabelInvalidName(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	err := n0.AddLabel("") // Blank string is invalid label name
+	if _, ok := err.(NeoError); !ok {
+		t.Fatal(err)
+	}
+}
+
+func TestSetLabels(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel("spam", "eggs")
+	err := n0.SetLabels([]string{"foobar"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	labels, _ := n0.Labels()
+	assert.Equal(t, []string{"foobar"}, labels)
+	n0.Delete()
+	err = n0.SetLabels([]string{"foobar"})
+	assert.Equal(t, NotFound, err)
+}
+
+func TestNodesByLabel(t *testing.T) {
+	db := connectTest(t)
+	cleanup(t, db) // Make sure no nodes exist before we start
+	defer cleanup(t, db)
+	nodes, err := db.NodesByLabel("foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 0, len(nodes))
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel("foobar")
+	nodes, err = db.NodesByLabel("foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	exp := []*Node{n0}
+	assert.Equal(t, exp, nodes)
+}
+
+func TestGetAllLabels(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	rndLabel := rndStr(t)
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel(rndLabel)
+	labels, err := db.Labels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := make(map[string]bool, len(labels))
+	for _, l := range labels {
+		m[l] = true
+	}
+	if _, ok := m[rndLabel]; !ok {
+		t.Fatal("Label not returned: " + rndLabel)
+	}
+
+}

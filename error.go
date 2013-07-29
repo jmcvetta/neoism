@@ -18,9 +18,10 @@ var (
 
 // A NeoError is populated by api calls when there is an error.
 type NeoError struct {
-	Message    string   `json:"message"`
-	Exception  string   `json:"exception"`
-	Stacktrace []string `json:"stacktrace"`
+	Message    string      `json:"message"`
+	Exception  string      `json:"exception"`
+	Stacktrace []string    `json:"stacktrace"`
+	Cause      interface{} `json:"cause"` // New in Neo4j 2.0
 }
 
 // Error returns the error message supplied by the server.
