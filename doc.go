@@ -1,4 +1,6 @@
-package neo4j
+// Copyright (c) 2012-2013 Jason McVetta.  This is Free Software, released under
+// the terms of the GPL v3.  See http://www.gnu.org/copyleft/gpl.html for details.
+// Resist intellectual serfdom - the ownership of ideas is akin to slavery.
 
 /*
 
@@ -41,7 +43,7 @@ Example Usage:
 			Result:     &res0,
 		}
 		db.Cypher(&cq0)
-		n1 := res0[0].N
+		n1 := res0[0].N // Only one row of data returned
 		n1.Db = db // Must manually set Db with objects returned from Cypher query
 		//
 		// Create a relationship
@@ -93,3 +95,4 @@ Example Usage:
 		tx.Commit()
 	}
 */
+package neo4j

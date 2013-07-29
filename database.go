@@ -2,7 +2,6 @@
 // the terms of the GPL v3.  See http://www.gnu.org/copyleft/gpl.html for details.
 // Resist intellectual serfdom - the ownership of ideas is akin to slavery.
 
-// Package neo4j provides a client for the Neo4j graph database.
 package neo4j
 
 import (
