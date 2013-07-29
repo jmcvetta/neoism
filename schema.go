@@ -14,7 +14,7 @@ type indexRequest struct {
 
 // An Index improves the speed of looking up nodes in the database.
 type Index struct {
-	db *Database
+	db           *Database
 	Label        string
 	PropertyKeys []string `json:"property-keys"`
 }
