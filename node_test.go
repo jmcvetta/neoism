@@ -291,3 +291,22 @@ func TestLabelsInvalidNode(t *testing.T) {
 	_, err = n0.Labels()
 	assert.Equal(t, NotFound, err)
 }
+
+func TestRemoveLabel(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel("foobar")
+	labels, _ := n0.Labels()
+	assert.Equal(t, []string{"foobar"}, labels)
+	err := n0.RemoveLabel("foobar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	labels, _ = n0.Labels()
+	assert.Equal(t, []string{}, labels)
+	n0.Delete()
+	err = n0.RemoveLabel("foobar")
+	assert.Equal(t, NotFound, err)
+
+}
