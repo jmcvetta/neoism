@@ -261,3 +261,19 @@ func TestTxRollback(t *testing.T) {
 	err = tx.Query(qs0)
 	assert.Equal(t, NotFound, err)
 }
+
+func TestTxQueryBad(t *testing.T) {
+	db := connectTest(t)
+	qs0 := []*CypherQuery{}
+	qs1 := []*CypherQuery{
+		&CypherQuery{
+			Statement: `foobar`,
+		},
+	}
+	tx, err := db.Begin(qs0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = tx.Query(qs1)
+	assert.Equal(t, TxQueryError, err)
+}
