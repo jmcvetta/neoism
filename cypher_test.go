@@ -17,11 +17,11 @@ func TestCypherParameters(t *testing.T) {
 	defer cleanup(t, db)
 	// defer cleanup(t, db)
 	// Create
-	nameIdx, _ := db.CreateNodeIndex("name_index", "", "")
+	nameIdx, _ := db.CreateLegacyNodeIndex("name_index", "", "")
 	defer nameIdx.Delete()
-	floatIdx, _ := db.CreateNodeIndex("float_index", "", "")
+	floatIdx, _ := db.CreateLegacyNodeIndex("float_index", "", "")
 	defer floatIdx.Delete()
-	numIdx, _ := db.CreateNodeIndex("num_index", "", "")
+	numIdx, _ := db.CreateLegacyNodeIndex("num_index", "", "")
 	defer numIdx.Delete()
 	n0, _ := db.CreateNode(Props{"name": "I"})
 	nameIdx.Add(n0, "name", "I")
@@ -149,7 +149,7 @@ func TestCypher(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
 	// Create
-	idx0, _ := db.CreateNodeIndex("name_index", "", "")
+	idx0, _ := db.CreateLegacyNodeIndex("name_index", "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{"name": "I"})
 	idx0.Add(n0, "name", "I")

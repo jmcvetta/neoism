@@ -10,58 +10,58 @@ import (
 	"strconv"
 )
 
-// A NodeIndex is a searchable index for nodes.
-type NodeIndex struct {
+// A LegacyNodeIndex is a searchable index for nodes.
+type LegacyNodeIndex struct {
 	index
 }
 
-// CreateNodeIndex creates a new node index with optional type and provider.
-func (db *Database) CreateNodeIndex(name, idxType, provider string) (*NodeIndex, error) {
+// CreateLegacyNodeIndex creates a new node index with optional type and provider.
+func (db *Database) CreateLegacyNodeIndex(name, idxType, provider string) (*LegacyNodeIndex, error) {
 	idx, err := db.createIndex(db.HrefNodeIndex, name, idxType, provider)
 	if err != nil {
 		return nil, err
 	}
-	return &NodeIndex{*idx}, nil
+	return &LegacyNodeIndex{*idx}, nil
 }
 
-// NodeIndexes returns all node indexes.
-func (db *Database) NodeIndexes() ([]*NodeIndex, error) {
+// LegacyNodeIndexes returns all node indexes.
+func (db *Database) LegacyNodeIndexes() ([]*LegacyNodeIndex, error) {
 	indexes, err := db.indexes(db.HrefNodeIndex)
 	if err != nil {
 		return nil, err
 	}
-	nis := make([]*NodeIndex, len(indexes))
+	nis := make([]*LegacyNodeIndex, len(indexes))
 	for i, idx := range indexes {
-		nis[i] = &NodeIndex{*idx}
+		nis[i] = &LegacyNodeIndex{*idx}
 	}
 	return nis, nil
 }
 
-// NodeIndex returns the named relationship index.
-func (db *Database) NodeIndex(name string) (*NodeIndex, error) {
+// LegacyNodeIndex returns the named relationship index.
+func (db *Database) LegacyNodeIndex(name string) (*LegacyNodeIndex, error) {
 	idx, err := db.index(db.HrefNodeIndex, name)
 	if err != nil {
 		return nil, err
 	}
-	ni := NodeIndex{*idx}
+	ni := LegacyNodeIndex{*idx}
 	return &ni, nil
 
 }
 
 // Add indexes a node with a key/value pair.
-func (nix *NodeIndex) Add(n *Node, key string, value interface{}) error {
+func (nix *LegacyNodeIndex) Add(n *Node, key string, value interface{}) error {
 	return nix.add(n.entity, key, value)
 }
 
 // Remove deletes all entries with a given node, key and value from the index.
 // If value or both key and value are the blank string, they are ignored.
-func (nix *NodeIndex) Remove(n *Node, key, value string) error {
+func (nix *LegacyNodeIndex) Remove(n *Node, key, value string) error {
 	id := strconv.Itoa(n.Id())
 	return nix.remove(n.entity, id, key, value)
 }
 
 // Find locates Nodes in the index by exact key/value match.
-func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
+func (idx *LegacyNodeIndex) Find(key, value string) (map[int]*Node, error) {
 	nm := make(map[int]*Node)
 	rawurl, err := idx.uri()
 	if err != nil {

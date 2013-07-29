@@ -12,13 +12,13 @@ import (
 )
 
 // 18.9.1. Create node index
-func TestCreateNodeIndex(t *testing.T) {
+func TestCreateLegacyNodeIndex(t *testing.T) {
 	db := connectTest(t)
 	name := rndStr(t)
 	//
 	// Create new index
 	//
-	idx0, err := db.CreateNodeIndex(name, "", "")
+	idx0, err := db.CreateLegacyNodeIndex(name, "", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -27,7 +27,7 @@ func TestCreateNodeIndex(t *testing.T) {
 	//
 	// Get the index we just created
 	//
-	idx1, err := db.NodeIndex(name)
+	idx1, err := db.LegacyNodeIndex(name)
 	if err != nil {
 		t.Error(err)
 	}
@@ -36,7 +36,7 @@ func TestCreateNodeIndex(t *testing.T) {
 }
 
 // 18.9.2. Create node index with configuration
-func TestNodeIndexCreateWithConf(t *testing.T) {
+func TestLegacyNodeIndexCreateWithConf(t *testing.T) {
 	db := connectTest(t)
 	name := rndStr(t)
 	indexType := "fulltext"
@@ -44,7 +44,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	//
 	// Create new index
 	//
-	idx0, err := db.CreateNodeIndex(name, indexType, provider)
+	idx0, err := db.CreateLegacyNodeIndex(name, indexType, provider)
 	if err != nil {
 		t.Error(err)
 	}
@@ -55,7 +55,7 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 	//
 	// Get the index we just created
 	//
-	idx1, err := db.NodeIndex(name)
+	idx1, err := db.LegacyNodeIndex(name)
 	if err != nil {
 		t.Error(err)
 	}
@@ -63,26 +63,26 @@ func TestNodeIndexCreateWithConf(t *testing.T) {
 }
 
 // 18.9.3. Delete node index
-func TestDeleteNodeIndex(t *testing.T) {
+func TestDeleteLegacyNodeIndex(t *testing.T) {
 	db := connectTest(t)
 	// Include a space in the name to ensure correct URL escaping.
 	name := rndStr(t) + " " + rndStr(t)
-	idx0, _ := db.CreateNodeIndex(name, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(name, "", "")
 	err := idx0.Delete()
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = db.NodeIndex(name)
+	_, err = db.LegacyNodeIndex(name)
 	assert.Equal(t, err, NotFound)
 }
 
 // 18.9.4. List node indexes
-func TestListNodeIndexes(t *testing.T) {
+func TestListLegacyNodeIndexes(t *testing.T) {
 	db := connectTest(t)
 	name := rndStr(t)
-	idx0, _ := db.CreateNodeIndex(name, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(name, "", "")
 	defer idx0.Delete()
-	indexes, err := db.NodeIndexes()
+	indexes, err := db.LegacyNodeIndexes()
 	if err != nil {
 		t.Error(err)
 	}
@@ -101,7 +101,7 @@ func TestAddNodeToIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.CreateNodeIndex(name, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
@@ -116,9 +116,9 @@ func TestAddNodeToExistingIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.CreateNodeIndex(name, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(name, "", "")
 	defer idx0.Delete()
-	idx1, _ := db.NodeIndex(name)
+	idx1, _ := db.LegacyNodeIndex(name)
 	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
 	err := idx1.Add(n0, key, value)
@@ -133,7 +133,7 @@ func TestRemoveNodeFromIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.CreateNodeIndex(name, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
@@ -150,7 +150,7 @@ func TestRemoveNodeAndKeyFromIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.CreateNodeIndex(name, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
@@ -167,7 +167,7 @@ func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
 	name := rndStr(t)
 	key := rndStr(t)
 	value := rndStr(t)
-	idx0, _ := db.CreateNodeIndex(name, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(name, "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{})
 	defer n0.Delete()
@@ -188,7 +188,7 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	key1 := rndStr(t)
 	value0 := rndStr(t)
 	value1 := rndStr(t)
-	idx0, _ := db.CreateNodeIndex(idxName, "", "")
+	idx0, _ := db.CreateLegacyNodeIndex(idxName, "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{})
 	n1, _ := db.CreateNode(Props{})
@@ -217,7 +217,7 @@ func TestFindNodeByQuery(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
 	// Create
-	idx0, _ := db.CreateNodeIndex("test index", "", "")
+	idx0, _ := db.CreateLegacyNodeIndex("test index", "", "")
 	defer idx0.Delete()
 	key0 := rndStr(t)
 	key1 := rndStr(t)

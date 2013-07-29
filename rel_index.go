@@ -6,47 +6,47 @@ package neo4j
 
 import "strconv"
 
-// A RelationshipIndex is an index for searching Relationships.
-type RelationshipIndex struct {
+// A LegacyRelationshipIndex is an index for searching Relationships.
+type LegacyRelationshipIndex struct {
 	index
 }
 
-// CreateRelIndex creates a new relationship index with optional type and
+// CreateLegacyRelIndex creates a new relationship index with optional type and
 // provider.
-func (db *Database) CreateRelIndex(name, idxType, provider string) (*RelationshipIndex, error) {
+func (db *Database) CreateLegacyRelIndex(name, idxType, provider string) (*LegacyRelationshipIndex, error) {
 	idx, err := db.createIndex(db.HrefRelIndex, name, idxType, provider)
 	if err != nil {
 		return nil, err
 	}
-	return &RelationshipIndex{*idx}, nil
+	return &LegacyRelationshipIndex{*idx}, nil
 }
 
-// RelIndexes returns all relationship indexes.
-func (db *Database) RelIndexes() ([]*RelationshipIndex, error) {
+// LegacyRelIndexes returns all relationship indexes.
+func (db *Database) LegacyRelIndexes() ([]*LegacyRelationshipIndex, error) {
 	indexes, err := db.indexes(db.HrefRelIndex)
 	if err != nil {
 		return nil, err
 	}
-	ris := make([]*RelationshipIndex, len(indexes))
+	ris := make([]*LegacyRelationshipIndex, len(indexes))
 	for i, idx := range indexes {
-		ris[i] = &RelationshipIndex{*idx}
+		ris[i] = &LegacyRelationshipIndex{*idx}
 	}
 	return ris, nil
 }
 
-// RelIndex returns the named relationship index.
-func (db *Database) RelIndex(name string) (*RelationshipIndex, error) {
+// LegacyRelIndex returns the named relationship index.
+func (db *Database) LegacyRelIndex(name string) (*LegacyRelationshipIndex, error) {
 	idx, err := db.index(db.HrefRelIndex, name)
 	if err != nil {
 		return nil, err
 	}
-	ri := RelationshipIndex{*idx}
+	ri := LegacyRelationshipIndex{*idx}
 	return &ri, nil
 }
 
 // Remove deletes all entries with a given node, key and value from the index.
 // If value or both key and value are the blank string, they are ignored.
-func (rix *RelationshipIndex) Remove(r *Relationship, key, value string) error {
+func (rix *LegacyRelationshipIndex) Remove(r *Relationship, key, value string) error {
 	id := strconv.Itoa(r.Id())
 	return rix.remove(r.entity, id, key, value)
 }
