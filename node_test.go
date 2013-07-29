@@ -352,6 +352,26 @@ func TestNodesByLabel(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	exp := []*Node{n0,}
+	exp := []*Node{n0}
 	assert.Equal(t, exp, nodes)
+}
+
+func TestGetAllLabels(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	rndLabel := rndStr(t)
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel(rndLabel)
+	labels, err := db.Labels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := make(map[string]bool, len(labels))
+	for _, l := range labels {
+		m[l] = true
+	}
+	if _, ok := m[rndLabel]; !ok {
+		t.Fatal("Label not returned: " + rndLabel)
+	}
+
 }
