@@ -60,7 +60,7 @@ func TestTxBegin(t *testing.T) {
 
 	assert.Equal(t, *new([]string), q1.Columns())
 	stmts := []*CypherQuery{&q0, &q1, &q2}
-	_, err := db.BeginTx(stmts)
+	_, err := db.Begin(stmts)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ func TestTxCommit(t *testing.T) {
 			Parameters: Props{"name": name},
 		},
 	}
-	tx, err := db.BeginTx(qs)
+	tx, err := db.Begin(qs)
 	if err != nil {
 		t.Fatal(err)
 	}

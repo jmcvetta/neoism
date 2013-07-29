@@ -48,9 +48,9 @@ func (tr *txResponse) unmarshall(qs []*CypherQuery) error {
 	return nil
 }
 
-// BeginTx opens a new transaction, executing zero or more cypher queries
+// Begin opens a new transaction, executing zero or more cypher queries
 // inside the transaction.
-func (db *Database) BeginTx(qs []*CypherQuery) (*Tx, error) {
+func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 	ne := NeoError{}
 	payload := txRequest{Statements: qs}
 	res := txResponse{}
