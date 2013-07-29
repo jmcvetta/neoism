@@ -102,6 +102,8 @@ func (r *Relationship) End() (*Node, error) {
 // A Rels is a collection of relationships.
 type Rels []*Relationship
 
+// Map presents a set of relationships as a map associating relationship IDs to
+// relationship objects.
 func (r *Rels) Map() map[int]*Relationship {
 	m := make(map[int]*Relationship, len(*r))
 	for _, rel := range *r {
