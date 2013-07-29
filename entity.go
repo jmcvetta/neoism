@@ -13,7 +13,7 @@ import (
 // database.  An entity may optinally be assigned an arbitrary set of key:value
 // properties.
 type entity struct {
-	db             *Database
+	Db             *Database
 	HrefSelf       string `json:"self"`
 	HrefProperty   string `json:"property"`
 	HrefProperties string `json:"properties"`
@@ -21,7 +21,7 @@ type entity struct {
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
 func (e *entity) do(rr *restclient.RequestResponse) (status int, err error) {
-	return e.db.rc.Do(rr)
+	return e.Db.rc.Do(rr)
 }
 
 // SetProperty sets the single property key to value.

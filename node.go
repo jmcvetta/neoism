@@ -13,7 +13,7 @@ import (
 // CreateNode creates a Node in the database.
 func (db *Database) CreateNode(p Props) (*Node, error) {
 	n := Node{}
-	n.db = db
+	n.Db = db
 	ne := new(NeoError)
 	rr := restclient.RequestResponse{
 		Url:            db.HrefNode,
@@ -42,7 +42,7 @@ func (db *Database) Node(id int) (*Node, error) {
 func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	ne := NeoError{}
 	n := Node{}
-	n.db = db
+	n.Db = db
 	rr := restclient.RequestResponse{
 		Url:    uri,
 		Method: "GET",
@@ -84,7 +84,7 @@ type Node struct {
 
 // Id gets the ID number of this Node.
 func (n *Node) Id() int {
-	l := len(n.db.HrefNode)
+	l := len(n.Db.HrefNode)
 	s := n.HrefSelf[l:]
 	s = strings.Trim(s, "/")
 	id, err := strconv.Atoi(s)
@@ -110,7 +110,7 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		Result: &rels,
 		Error:  &ne,
 	}
-	status, err := n.db.rc.Do(&rr)
+	status, err := n.Db.rc.Do(&rr)
 	if err != nil {
 		return rels, err
 	}
@@ -141,10 +141,10 @@ func (n *Node) Outgoing(types ...string) (Rels, error) {
 // from this Node to the node identified by destId.
 func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error) {
 	rel := Relationship{}
-	rel.db = n.db
+	rel.Db = n.Db
 	ne := NeoError{}
 	srcUri := join(n.HrefSelf, "relationships")
-	destUri := join(n.db.HrefNode, strconv.Itoa(destId))
+	destUri := join(n.Db.HrefNode, strconv.Itoa(destId))
 	content := map[string]interface{}{
 		"to":   destUri,
 		"type": relType,
@@ -159,7 +159,7 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 		Result: &rel,
 		Error:  &ne,
 	}
-	status, err := n.db.rc.Do(&c)
+	status, err := n.Db.rc.Do(&c)
 	if err != nil {
 		return &rel, err
 	}

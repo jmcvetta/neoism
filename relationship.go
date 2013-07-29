@@ -14,7 +14,7 @@ import (
 // Relationship fetches a Relationship from by id.
 func (db *Database) Relationship(id int) (*Relationship, error) {
 	rel := Relationship{}
-	rel.db = db
+	rel.Db = db
 	uri := join(db.Url, "relationship", strconv.Itoa(id))
 	ne := NeoError{}
 	rr := restclient.RequestResponse{
@@ -91,12 +91,12 @@ func (r *Relationship) Id() int {
 // Start gets the starting Node of this Relationship.
 func (r *Relationship) Start() (*Node, error) {
 	// log.Println("INFO", r.Info)
-	return r.db.getNodeByUri(r.HrefStart)
+	return r.Db.getNodeByUri(r.HrefStart)
 }
 
 // End gets the ending Node of this Relationship.
 func (r *Relationship) End() (*Node, error) {
-	return r.db.getNodeByUri(r.HrefEnd)
+	return r.Db.getNodeByUri(r.HrefEnd)
 }
 
 // A Rels is a collection of relationships.

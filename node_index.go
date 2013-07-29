@@ -89,7 +89,7 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 		return nm, ne
 	}
 	for _, n := range resp {
-		n.db = idx.db
+		n.Db = idx.db
 		nm[n.Id()] = &n
 	}
 	return nm, nil
@@ -126,7 +126,7 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		return nm, ne
 	}
 	for _, n := range result {
-		n.db = idx.db
+		n.Db = idx.db
 		nm[n.Id()] = &n
 	}
 	return nm, nil

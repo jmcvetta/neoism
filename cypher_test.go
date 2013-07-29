@@ -250,21 +250,21 @@ func TestCypherBatch(t *testing.T) {
 	// Cleanup
 	//
 	for _, r := range r2 {
-		r.R.db = db
+		r.R.Db = db
 		err = r.R.Delete()
 		if err != nil {
 			t.Error(err)
 		}
 	}
 	for _, n := range r0 {
-		n.N.db = db
+		n.N.Db = db
 		err = n.N.Delete()
 		if err != nil {
 			t.Error(err)
 		}
 	}
 	for _, n := range r1 {
-		n.N.db = db
+		n.N.Db = db
 		err = n.N.Delete()
 		if err != nil {
 			t.Error(err)
