@@ -320,3 +320,19 @@ func TestAddLabelInvalidName(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSetLabels(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	n0.AddLabel("spam", "eggs")
+	err := n0.SetLabels([]string{"foobar"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	labels, _ := n0.Labels()
+	assert.Equal(t, []string{"foobar"}, labels)
+	n0.Delete()
+	err = n0.SetLabels([]string{"foobar"})
+	assert.Equal(t, NotFound, err)
+}

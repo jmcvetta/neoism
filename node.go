@@ -234,3 +234,26 @@ func (n *Node) RemoveLabel(label string) error {
 	}
 	return nil // Success
 }
+
+// SetLabels removes any labels currently on a node, and replaces them with the
+// labels provided as argument.
+func (n *Node) SetLabels(labels []string) error {
+	ne := NeoError{}
+	rr := restclient.RequestResponse{
+		Url:    n.HrefLabels,
+		Method: "PUT",
+		Data:   labels,
+		Error:  &ne,
+	}
+	status, err := n.Db.Rc.Do(&rr)
+	if err != nil {
+		return err
+	}
+	if status == 404 {
+		return NotFound
+	}
+	if status != 204 {
+		return ne
+	}
+	return nil // Success
+}
