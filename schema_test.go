@@ -5,14 +5,15 @@
 package neo4j
 
 import (
+	"fmt"
 	"github.com/bmizerany/assert"
 	"testing"
-	"fmt"
 )
 
 func TestCreateIndex(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
+	defer cleanupIndexes(t, db)
 	label := rndStr(t)
 	prop0 := rndStr(t)
 	idx, err := db.CreateIndex(label, prop0)
@@ -50,6 +51,7 @@ func TestIndexes(t *testing.T) {
 func TestDropIndex(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
+	defer cleanupIndexes(t, db)
 	label := rndStr(t)
 	prop0 := rndStr(t)
 	idx, _ := db.CreateIndex(label, prop0)
