@@ -13,13 +13,11 @@ import (
 // 18.5.1. Get Relationship by ID
 func TestGetRelationshipById(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r0.Delete()
 	// Get relationship
 	r1, err := db.Relationship(r0.Id())
 	if err != nil {
@@ -31,16 +29,14 @@ func TestGetRelationshipById(t *testing.T) {
 // 18.5.2. Create relationship
 func TestCreateRelationship(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, err := n0.Relate("knows", n1.Id(), Props{})
 	if err != nil {
 		t.Error(err)
 	}
-	defer r0.Delete()
 	// Confirm relationship exists on both nodes
 	rels, _ := n0.Outgoing("knows")
 	_, present := rels.Map()[r0.Id()]
@@ -53,17 +49,15 @@ func TestCreateRelationship(t *testing.T) {
 // 18.5.3. Create a relationship with properties
 func TestCreateRelationshipWithProperties(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	props0 := Props{"foo": "bar", "spam": "eggs"}
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, err := n0.Relate("knows", n1.Id(), props0)
 	if err != nil {
 		t.Error(err)
 	}
-	defer r0.Delete()
 	// Confirm relationship was created with specified properties.
 	props1, _ := r0.Properties()
 	assert.Equalf(t, props0, props1, "Properties queried from relationship do not match properties it was created with.")
@@ -72,11 +66,10 @@ func TestCreateRelationshipWithProperties(t *testing.T) {
 // 18.5.4. Delete relationship
 func TestDeleteRelationship(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, err := n0.Relate("knows", n1.Id(), Props{})
 	if err != nil {
 		t.Error(err)
@@ -90,14 +83,12 @@ func TestDeleteRelationship(t *testing.T) {
 // 18.5.5. Get all properties on a relationship
 func TestGetAllPropertiesOnRelationship(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	props0 := Props{"foo": "bar", "spam": "eggs"}
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), props0)
-	defer r0.Delete()
 	// Confirm relationship was created with specified properties.  No need to
 	// check success of creation itself, as that is handled by TestCreateRelationship().
 	props1, err := r0.Properties()
@@ -110,15 +101,13 @@ func TestGetAllPropertiesOnRelationship(t *testing.T) {
 // 18.5.6. Set all properties on a relationship
 func TestSetAllPropertiesOnRelationship(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	props0 := Props{"foo": "bar"}
 	props1 := Props{"spam": "eggs"}
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), props0)
-	defer r0.Delete()
 	// Set all properties
 	r0.SetProperties(props1)
 	// Confirm
@@ -129,14 +118,12 @@ func TestSetAllPropertiesOnRelationship(t *testing.T) {
 // 18.5.7. Get single property on a relationship
 func TestGetSinglePropertyOnRelationship(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	props := Props{"foo": "bar"}
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), props)
-	defer r0.Delete()
 	// Get property
 	value, err := r0.Property("foo")
 	if err != nil {
@@ -148,13 +135,11 @@ func TestGetSinglePropertyOnRelationship(t *testing.T) {
 // 18.5.8. Set single property on a relationship
 func TestSetSinglePropertyOnRelationship(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r0.Delete()
 	// Set property
 	r0.SetProperty("foo", "bar")
 	// Confirm
@@ -166,17 +151,13 @@ func TestSetSinglePropertyOnRelationship(t *testing.T) {
 // 18.5.9. Get all relationships
 func TestGetAllRelationships(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r0.Delete()
 	r1, _ := n1.Relate("knows", n0.Id(), Props{})
-	defer r1.Delete()
 	r2, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r2.Delete()
 	// Check relationships
 	rels, err := n0.Relationships()
 	if err != nil {
@@ -192,17 +173,13 @@ func TestGetAllRelationships(t *testing.T) {
 // 18.5.10. Get incoming relationships
 func TestGetIncomingRelationships(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
-	r0, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r0.Delete()
+	n0.Relate("knows", n1.Id(), Props{})
 	r1, _ := n1.Relate("knows", n0.Id(), Props{})
-	defer r1.Delete()
-	r2, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r2.Delete()
+	n0.Relate("knows", n1.Id(), Props{})
 	// Check relationships
 	rels, err := n0.Incoming()
 	if err != nil {
@@ -216,17 +193,13 @@ func TestGetIncomingRelationships(t *testing.T) {
 // 18.5.11. Get outgoing relationships
 func TestGetOutgoingRelationships(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r0.Delete()
-	r1, _ := n1.Relate("knows", n0.Id(), Props{})
-	defer r1.Delete()
+	n1.Relate("knows", n0.Id(), Props{})
 	r2, _ := n0.Relate("knows", n1.Id(), Props{})
-	defer r2.Delete()
 	// Check relationships
 	rels, err := n0.Outgoing()
 	if err != nil {
@@ -242,17 +215,14 @@ func TestGetOutgoingRelationships(t *testing.T) {
 // 18.5.12. Get typed relationships
 func TestGetTypedRelationships(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	relType0 := rndStr(t)
 	relType1 := rndStr(t)
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	r0, _ := n0.Relate(relType0, n1.Id(), Props{})
-	defer r0.Delete()
 	r1, _ := n0.Relate(relType1, n1.Id(), Props{})
-	defer r1.Delete()
 	// Check one type of relationship
 	rels, err := n0.Relationships(relType0)
 	if err != nil {
@@ -288,20 +258,18 @@ func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
 // 18.6.1. Get relationship types
 func TestGetRelationshipTypes(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	relTypes := []string{}
 	for i := 0; i < 10; i++ {
 		relTypes = append(relTypes, rndStr(t))
 	}
 	// Create relationships
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	rels := []*Relationship{}
 	for _, rt := range relTypes {
 		aRel, _ := n0.Relate(rt, n1.Id(), Props{})
 		rels = append(rels, aRel)
-		defer aRel.Delete()
 	}
 	// Get all relationship types, and confirm the list of types contains at least
 	// all those randomly-generated values in relTypes.  It cannot be guaranteed
@@ -318,13 +286,11 @@ func TestGetRelationshipTypes(t *testing.T) {
 
 func TestRelationshipStartEnd(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	start, _ := db.CreateNode(Props{})
-	defer start.Delete()
 	end, _ := db.CreateNode(Props{})
-	defer end.Delete()
 	r0, _ := start.Relate("knows", end.Id(), Props{})
-	defer r0.Delete()
 	//
 	n, err := r0.Start()
 	if err != nil {

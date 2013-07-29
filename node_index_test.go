@@ -181,6 +181,7 @@ func TestRemoveNodeKeyAndValueFromIndex(t *testing.T) {
 // 18.9.9. Find node by exact match
 func TestFindNodeByExactMatch(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	idxName := rndStr(t)
 	key0 := rndStr(t)
@@ -190,11 +191,8 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	idx0, _ := db.CreateNodeIndex(idxName, "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	n2, _ := db.CreateNode(Props{})
-	defer n2.Delete()
 	// These two will be located by Find() below
 	idx0.Add(n0, key0, value0)
 	idx0.Add(n1, key0, value0)
@@ -217,6 +215,7 @@ func TestFindNodeByExactMatch(t *testing.T) {
 // 18.9.10. Find node by query
 func TestFindNodeByQuery(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	idx0, _ := db.CreateNodeIndex("test index", "", "")
 	defer idx0.Delete()
@@ -225,14 +224,11 @@ func TestFindNodeByQuery(t *testing.T) {
 	value0 := rndStr(t)
 	value1 := rndStr(t)
 	n0, _ := db.CreateNode(Props{})
-	defer n0.Delete()
 	idx0.Add(n0, key0, value0)
 	idx0.Add(n0, key1, value1)
 	n1, _ := db.CreateNode(Props{})
-	defer n1.Delete()
 	idx0.Add(n1, key0, value0)
 	n2, _ := db.CreateNode(Props{})
-	defer n2.Delete()
 	idx0.Add(n2, rndStr(t), rndStr(t))
 	// Retrieve
 	luceneQuery0 := fmt.Sprintf("%v:%v AND %v:%v", key0, value0, key1, value1) // Retrieve n0 only

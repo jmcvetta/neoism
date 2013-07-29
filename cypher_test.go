@@ -14,6 +14,8 @@ import (
 func TestCypherParameters(t *testing.T) {
 	var db *Database
 	db = connectTest(t)
+	defer cleanup(t, db)
+	// defer cleanup(t, db)
 	// Create
 	nameIdx, _ := db.CreateNodeIndex("name_index", "", "")
 	defer nameIdx.Delete()
@@ -22,22 +24,15 @@ func TestCypherParameters(t *testing.T) {
 	numIdx, _ := db.CreateNodeIndex("num_index", "", "")
 	defer numIdx.Delete()
 	n0, _ := db.CreateNode(Props{"name": "I"})
-	defer n0.Delete()
 	nameIdx.Add(n0, "name", "I")
 	n1, _ := db.CreateNode(Props{"name": "you"})
-	defer n1.Delete()
 	n2, _ := db.CreateNode(Props{"name": "num", "num": 42})
-	defer n2.Delete()
 	numIdx.Add(n2, "num", 42)
 	n3, _ := db.CreateNode(Props{"name": "float", "float": 3.14})
-	defer n3.Delete()
 	floatIdx.Add(n3, "float", 3.14)
 	r0, _ := n0.Relate("knows", n1.Id(), nil)
-	defer r0.Delete()
 	r1, _ := n0.Relate("loves", n1.Id(), nil)
-	defer r1.Delete()
-	r2, _ := n0.Relate("understands", n2.Id(), nil)
-	defer r2.Delete()
+	n0.Relate("understands", n2.Id(), nil)
 	//
 	// Query with string parameters and integer results
 	//
@@ -152,16 +147,14 @@ func TestCypherParameters(t *testing.T) {
 // 18.3.2. Send a Query
 func TestCypher(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	// Create
 	idx0, _ := db.CreateNodeIndex("name_index", "", "")
 	defer idx0.Delete()
 	n0, _ := db.CreateNode(Props{"name": "I"})
-	defer n0.Delete()
 	idx0.Add(n0, "name", "I")
 	n1, _ := db.CreateNode(Props{"name": "you", "age": 69})
-	defer n1.Delete()
-	r0, _ := n0.Relate("know", n1.Id(), nil)
-	defer r0.Delete()
+	n0.Relate("know", n1.Id(), nil)
 	// Query
 	// query := "START x = node:name_index(name=I) MATCH path = (x-[r]-friend) WHERE friend.name = you RETURN TYPE(r)"
 	type resultStruct struct {

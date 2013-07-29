@@ -31,6 +31,7 @@ type resStruct2 struct {
 
 func TestTxBegin(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	type name struct {
 		Name string `json:"name"`
 	}
@@ -62,10 +63,11 @@ func TestTxBegin(t *testing.T) {
 
 	assert.Equal(t, *new([]string), q1.Columns())
 	stmts := []*CypherQuery{&q0, &q1, &q2}
-	_, err := db.Begin(stmts)
+	tx, err := db.Begin(stmts)
 	if err != nil {
 		t.Fatal(err)
 	}
+	tx.Rollback() // Else cleanup will hang til Tx times out
 	assert.Equal(t, 1, len(res0))
 	assert.Equal(t, "James T Kirk", res0[0].N.Name)
 	assert.Equal(t, 1, len(res1))
@@ -78,6 +80,7 @@ func TestTxBegin(t *testing.T) {
 
 func TestTxCommit(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	name := rndStr(t)
 	qs := []*CypherQuery{
 		&CypherQuery{
@@ -124,25 +127,11 @@ func TestTxCommit(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, 1, len(res0))
-	//
-	// Cleanup
-	//
-	q1 := CypherQuery{
-		Statement: `
-			MATCH n:Person
-			WHERE n.name = {name}
-			DELETE n
-		`,
-		Parameters: Props{"name": name},
-	}
-	err = db.Cypher(&q1)
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestTxBadResultObj(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	//
 	// Struct not slice of structs
 	//
@@ -153,14 +142,16 @@ func TestTxBadResultObj(t *testing.T) {
 			Result:    &res0,
 		},
 	}
-	_, err := db.Begin(qs)
+	tx, err := db.Begin(qs)
 	if _, ok := err.(*json.UnmarshalTypeError); !ok {
 		t.Fatal(err)
 	}
+	tx.Rollback() // Else cleanup will hang til Tx times out
 }
 
 func TestTxBadQuery(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	qs := []*CypherQuery{
 		&CypherQuery{
 			Statement: `CREATE (n:Person) RETURN n`,
@@ -179,10 +170,12 @@ func TestTxBadQuery(t *testing.T) {
 	assert.Equal(t, TxQueryError, err)
 	numErr := len(tx.Errors)
 	assert.T(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
+	tx.Rollback() // Else cleanup will hang til Tx times out
 }
 
 func TestTxQuery(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	name0 := rndStr(t)
 	name1 := rndStr(t)
 	qs0 := []*CypherQuery{
@@ -245,6 +238,7 @@ func TestTxQuery(t *testing.T) {
 
 func TestTxRollback(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	qs0 := []*CypherQuery{
 		&CypherQuery{
 			Statement: `CREATE (n:Person)`,
@@ -264,6 +258,7 @@ func TestTxRollback(t *testing.T) {
 
 func TestTxQueryBad(t *testing.T) {
 	db := connectTest(t)
+	defer cleanup(t, db)
 	qs0 := []*CypherQuery{}
 	qs1 := []*CypherQuery{
 		&CypherQuery{
@@ -276,4 +271,5 @@ func TestTxQueryBad(t *testing.T) {
 	}
 	err = tx.Query(qs1)
 	assert.Equal(t, TxQueryError, err)
+	tx.Rollback() // Else cleanup will hang til Tx times out
 }

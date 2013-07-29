@@ -41,6 +41,21 @@ func connectTest(t *testing.T) *Database {
 	return db
 }
 
+func cleanup(t *testing.T, db *Database) {
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `START r=rel(*) DELETE r`,
+		},
+		&CypherQuery{
+			Statement: `START n=node(*) DELETE n`,
+		},
+	}
+	err := db.CypherBatch(qs)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func rndStr(t *testing.T) string {
 	name, err := randutil.AlphaString(12)
 	if err != nil {
