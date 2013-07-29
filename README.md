@@ -48,11 +48,11 @@ the repo Issues.  The API is **not** promised to be stable at this time.
   API should not be considered stable.
 * Batched Cypher queries
 * Transactional endpoint (Neo4j 2.0)
+* Node labels (Neo4j 2.0)
 
 
 ## To Do:
 
-* Node labels (Neo4j 2.0)
 * Schema index (Neo4j 2.0)
 * ~~Unique Indexes~~ - probably will not expand support for legacy indexing.
 * ~~Automatic Indexes~~ - "
