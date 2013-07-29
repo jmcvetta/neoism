@@ -310,3 +310,13 @@ func TestRemoveLabel(t *testing.T) {
 	assert.Equal(t, NotFound, err)
 
 }
+
+func TestAddLabelInvalidName(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	n0, _ := db.CreateNode(nil)
+	err := n0.AddLabel("") // Blank string is invalid label name
+	if _, ok := err.(NeoError); !ok {
+		t.Fatal(err)
+	}
+}
