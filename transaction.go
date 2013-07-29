@@ -9,8 +9,13 @@ import (
 	"github.com/jmcvetta/restclient"
 )
 
-type txRequest struct {
-	Statements []*CypherQuery `json:"statements"`
+// A Tx is an in-progress database transaction.
+type Tx struct {
+	db         *Database
+	hrefCommit string
+	Location   string
+	Errors     []TxError
+	Expires    string // Cannot unmarshall into time.Time :(
 }
 
 // A TxQueryError is returned when there is an error with one of the Cypher
@@ -23,6 +28,10 @@ type TxError struct {
 	Code    int
 	Status  string
 	Message string
+}
+
+type txRequest struct {
+	Statements []*CypherQuery `json:"statements"`
 }
 
 type txResponse struct {
@@ -75,6 +84,7 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 		hrefCommit: res.Commit,
 		Location:   rr.HttpResponse.Header.Get("location"),
 		Errors:     res.Errors,
+		Expires:    res.Transaction.Expires,
 	}
 	err = res.unmarshal(qs)
 	if err != nil {
@@ -86,15 +96,10 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 	return &t, err
 }
 
-// A Tx is an in-progress database transaction.
-type Tx struct {
-	db         *Database
-	hrefCommit string
-	Location   string
-	Errors     []TxError
-}
-
 func (t *Tx) Commit() error {
+	if len(t.Errors) > 0 {
+		return TxQueryError
+	}
 	ne := NeoError{}
 	rr := restclient.RequestResponse{
 		Url:    t.hrefCommit,
@@ -109,4 +114,35 @@ func (t *Tx) Commit() error {
 		return ne
 	}
 	return nil // Success
+}
+
+// Query executes statements in an open transaction.
+func (t *Tx) Query(qs []*CypherQuery) error {
+	ne := NeoError{}
+	payload := txRequest{Statements: qs}
+	res := txResponse{}
+	rr := restclient.RequestResponse{
+		Url:    t.Location,
+		Method: "POST",
+		Data:   payload,
+		Result: &res,
+		Error:  &ne,
+	}
+	status, err := t.db.Rc.Do(&rr)
+	if err != nil {
+		return err
+	}
+	if status != 200 {
+		return &ne
+	}
+	t.Expires = res.Transaction.Expires
+	t.Errors = append(t.Errors, res.Errors...)
+	err = res.unmarshal(qs)
+	if err != nil {
+		return err
+	}
+	if len(t.Errors) != 0 {
+		return TxQueryError
+	}
+	return nil
 }

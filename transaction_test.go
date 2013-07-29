@@ -180,3 +180,65 @@ func TestTxBadQuery(t *testing.T) {
 	numErr := len(tx.Errors)
 	assert.T(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
 }
+
+func TestTxQuery(t *testing.T) {
+	db := connectTest(t)
+	name0 := rndStr(t)
+	name1 := rndStr(t)
+	qs0 := []*CypherQuery{
+		&CypherQuery{
+			Statement:  `CREATE (n:Person {name: {name}}) RETURN n`,
+			Parameters: Props{"name": name0},
+		},
+		&CypherQuery{
+			Statement:  `CREATE (n:Person {name: {name}}) RETURN n`,
+			Parameters: Props{"name": name1},
+		},
+	}
+	tx, err := db.Begin(qs0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	qs1 := []*CypherQuery{
+		&CypherQuery{
+			Statement: `
+				MATCH a:Person, b:Person
+				WHERE a.name = {a} AND b.name = {b}
+				CREATE (a)-[r:Knows]->(b)
+			`,
+			Parameters: Props{
+				"a": name0,
+				"b": name1,
+			},
+		},
+	}
+	err = tx.Query(qs1)
+	if err != nil {
+		logPretty(tx.Errors)
+		t.Fatal(err)
+	}
+	err = tx.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
+	res0 := []struct {
+		R string `json:"type(r)"`
+	}{}
+	cq0 := CypherQuery{
+		Statement: `
+				MATCH (a:Person)-[r]->(b:Person)
+				WHERE a.name = {a} AND b.name = {b}
+				RETURN type(r)
+			`,
+		Parameters: Props{
+			"a": name0,
+			"b": name1,
+		},
+		Result: &res0,
+	}
+	err = db.Cypher(&cq0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "Knows", res0[0].R)
+}
