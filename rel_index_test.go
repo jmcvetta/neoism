@@ -17,7 +17,7 @@ func TestRelationshipIndexes(t *testing.T) {
 	//
 	// Create new index
 	//
-	idx0, err := db.CreateRelIndex(name, "", "")
+	idx0, err := db.CreateLegacyRelIndex(name, "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestRelationshipIndexes(t *testing.T) {
 	//
 	// Get the index we just created
 	//
-	idx1, err := db.RelIndex(name)
+	idx1, err := db.LegacyRelIndex(name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func TestRelationshipIndexes(t *testing.T) {
 	//
 	// See if we get this index, and only this index
 	//
-	indexes, err := db.RelIndexes()
+	indexes, err := db.LegacyRelIndexes()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,8 +43,8 @@ func TestRelationshipIndexes(t *testing.T) {
 	assert.Equal(t, idx0.Name, idx2.Name)
 }
 
-func TestBadCreateRelIndex(t *testing.T) {
+func TestBadCreateLegacyRelIndex(t *testing.T) {
 	db := connectTest(t)
-	_, err := db.CreateRelIndex("", "", "")
+	_, err := db.CreateLegacyRelIndex("", "", "")
 	assert.NotEqual(t, nil, err)
 }
