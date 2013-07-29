@@ -23,7 +23,7 @@ func (db *Database) CreateNode(p Props) (*Node, error) {
 		Error:          ne,
 		ExpectedStatus: 201,
 	}
-	status, err := db.rc.Do(&rr)
+	status, err := db.Rc.Do(&rr)
 	if err != nil {
 		logPretty(status)
 		logPretty(ne)
@@ -49,7 +49,7 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 		Result: &n,
 		Error:  &ne,
 	}
-	status, err := db.rc.Do(&rr)
+	status, err := db.Rc.Do(&rr)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		Result: &rels,
 		Error:  &ne,
 	}
-	status, err := n.Db.rc.Do(&rr)
+	status, err := n.Db.Rc.Do(&rr)
 	if err != nil {
 		return rels, err
 	}
@@ -159,7 +159,7 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 		Result: &rel,
 		Error:  &ne,
 	}
-	status, err := n.Db.rc.Do(&c)
+	status, err := n.Db.Rc.Do(&c)
 	if err != nil {
 		return &rel, err
 	}

@@ -80,7 +80,7 @@ func (idx *NodeIndex) Find(key, value string) (map[int]*Node, error) {
 		Result: &resp,
 		Error:  &ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Rc.Do(&req)
 	if err != nil {
 		return nm, err
 	}
@@ -117,7 +117,7 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		Result: &result,
 		Error:  &ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Rc.Do(&req)
 	if err != nil {
 		return nm, err
 	}

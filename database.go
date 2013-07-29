@@ -14,7 +14,7 @@ import (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	rc              *restclient.Client
+	Rc              *restclient.Client
 	Url             string      `json:"-"` // Root URL for REST API
 	HrefNode        string      `json:"node"`
 	HrefRefNode     string      `json:"reference_node"`
@@ -33,7 +33,7 @@ type Database struct {
 func Connect(uri string) (*Database, error) {
 	var e NeoError
 	db := &Database{
-		rc: restclient.New(),
+		Rc: restclient.New(),
 	}
 	_, err := url.Parse(uri) // Sanity check
 	if err != nil {
@@ -46,13 +46,13 @@ func Connect(uri string) (*Database, error) {
 		Result: &db,
 		Error:  &e,
 	}
-	status, err := db.rc.Do(&req)
+	status, err := db.Rc.Do(&req)
 	if err != nil {
 		return nil, err
 	}
 	if status != 200 || db.Version == "" {
 		logPretty(req.RawText)
-		log.Println("Status " + strconv.Itoa(status) + " trying to cconnect to " + uri)
+		log.Println("Status " + strconv.Itoa(status) + " trying to connect to " + uri)
 		return nil, InvalidDatabase
 	}
 	return db, nil

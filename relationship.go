@@ -23,7 +23,7 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 		Result: &rel,
 		Error:  &ne,
 	}
-	status, err := db.rc.Do(&rr)
+	status, err := db.Rc.Do(&rr)
 	if err != nil {
 		return &rel, err
 	}
@@ -49,7 +49,7 @@ func (db *Database) RelTypes() ([]string, error) {
 		Result: &reltypes,
 		Error:  &ne,
 	}
-	status, err := db.rc.Do(&c)
+	status, err := db.Rc.Do(&c)
 	if err != nil {
 		return reltypes, err
 	}

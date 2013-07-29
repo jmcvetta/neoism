@@ -41,7 +41,7 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 		Error:          &ne,
 		ExpectedStatus: 201,
 	}
-	status, err := db.rc.Do(&rr)
+	status, err := db.Rc.Do(&rr)
 	if err != nil {
 		logPretty(err)
 		return nil, err
@@ -64,7 +64,7 @@ func (db *Database) indexes(href string) ([]*index, error) {
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := db.rc.Do(&req)
+	status, err := db.Rc.Do(&req)
 	if err != nil {
 		return nis, err
 	}
@@ -99,7 +99,7 @@ func (db *Database) index(href, name string) (*index, error) {
 		Method: "GET",
 		Error:  &ne,
 	}
-	status, err := db.rc.Do(&req)
+	status, err := db.Rc.Do(&req)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (idx *index) Delete() error {
 		Method: "DELETE",
 		Error:  &ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Rc.Do(&req)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 		Data:   data,
 		Error:  &ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Rc.Do(&req)
 	if err != nil {
 		return err
 	}
@@ -224,7 +224,7 @@ func (idx *index) remove(e entity, id, key, value string) error {
 		Method: "DELETE",
 		Error:  &ne,
 	}
-	status, err := idx.db.rc.Do(&req)
+	status, err := idx.db.Rc.Do(&req)
 	if err != nil {
 		return err
 	}

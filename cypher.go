@@ -77,7 +77,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 		Result: &cRes,
 		Error:  ne,
 	}
-	status, err := db.rc.Do(&rr)
+	status, err := db.Rc.Do(&rr)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := db.rc.Do(&rr)
+	status, err := db.Rc.Do(&rr)
 	if err != nil {
 		return err
 	}

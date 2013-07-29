@@ -21,7 +21,7 @@ type entity struct {
 
 // do is a convenience wrapper around the embedded restclient's Do() method.
 func (e *entity) do(rr *restclient.RequestResponse) (status int, err error) {
-	return e.Db.rc.Do(rr)
+	return e.Db.Rc.Do(rr)
 }
 
 // SetProperty sets the single property key to value.

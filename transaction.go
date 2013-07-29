@@ -63,7 +63,7 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 		Result: &res,
 		Error:  &ne,
 	}
-	status, err := db.rc.Do(&rr)
+	status, err := db.Rc.Do(&rr)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (t *Tx) Commit() error {
 		Method: "POST",
 		Error:  &ne,
 	}
-	status, err := t.db.rc.Do(&rr)
+	status, err := t.db.Rc.Do(&rr)
 	if err != nil {
 		return err
 	}
