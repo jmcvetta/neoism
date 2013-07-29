@@ -151,6 +151,7 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 	return nil
 }
 
+// Rollback rolls back an open transaction.
 func (t *Tx) Rollback() error {
 	ne := NeoError{}
 	rr := restclient.RequestResponse{
