@@ -57,7 +57,8 @@ func cleanup(t *testing.T, db *Database) {
 }
 
 func rndStr(t *testing.T) string {
-	name, err := randutil.AlphaString(12)
+	// Neo4j doesn't like object names beginning with numerals.
+	name, err := randutil.String(12, randutil.Alphabet)
 	if err != nil {
 		t.Fatal(err)
 	}
