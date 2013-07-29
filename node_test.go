@@ -242,3 +242,21 @@ func TestDeleteNamedPropertyFromNode(t *testing.T) {
 	err = n0.DeleteProperty("spam")
 	assert.Equal(t, NotFound, err)
 }
+
+func TestNodeProperty(t *testing.T) {
+	db := connectTest(t)
+	props := Props{"foo": "bar"}
+	n0, _ := db.CreateNode(props)
+	defer n0.Delete()
+	value, err := n0.Property("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	assert.Equalf(t, value, "bar", "Incorrect value when getting single property.")
+	//
+	// Check Not Found
+	//
+	n0.Delete()
+	_, err = n0.Property("foo")
+	assert.Equal(t, NotFound, err)
+}
