@@ -48,16 +48,12 @@ func Connect(uri string) (*Database, error) {
 	}
 	status, err := db.rc.Do(&req)
 	if err != nil {
-		logPretty(req)
-		return db, err
+		return nil, err
 	}
-	switch {
-	case status == 404:
-		return db, InvalidDatabase
-	case status != 200 || db.Version == "":
+	if status != 200 || db.Version == "" {
+		logPretty(req.RawText)
 		log.Println("Status " + strconv.Itoa(status) + " trying to cconnect to " + uri)
-		logPretty(req)
-		return db, e
+		return nil, InvalidDatabase
 	}
 	return db, nil
 }

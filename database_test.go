@@ -74,4 +74,9 @@ func TestConnectInvalidUrl(t *testing.T) {
 	//
 	_, err = Connect("http://localhost:7474/db/datadatadata")
 	assert.Equal(t, InvalidDatabase, err)
+	//
+	// 200 Success and HTML returned
+	//
+	_, err = Connect("http://localhost:7474")
+	assert.Equal(t, InvalidDatabase, err)
 }
