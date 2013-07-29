@@ -23,6 +23,7 @@ type NeoError struct {
 	Stacktrace []string `json:"stacktrace"`
 }
 
+// Error returns the error message supplied by the server.
 func (ne NeoError) Error() string {
 	return ne.Message
 }
