@@ -34,14 +34,14 @@ type txResponse struct {
 	Errors []TxError
 }
 
-// unmarshall populates a slice of CypherQuery object with result data returned
+// unmarshal populates a slice of CypherQuery object with result data returned
 // from the server.
-func (tr *txResponse) unmarshall(qs []*CypherQuery) error {
+func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 	for i, res := range tr.Results {
 		q := qs[i]
 		q.cr = res
 		if q.Result != nil {
-			err := q.Unmarshall(q.Result)
+			err := q.Unmarshal(q.Result)
 			if err != nil {
 				return err
 			}
@@ -76,7 +76,7 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 		Location:   rr.HttpResponse.Header.Get("location"),
 		Errors:     res.Errors,
 	}
-	err = res.unmarshall(qs)
+	err = res.unmarshal(qs)
 	if err != nil {
 		return &t, err
 	}

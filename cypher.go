@@ -27,10 +27,10 @@ func (cq *CypherQuery) Columns() []string {
 	return cq.cr.Columns
 }
 
-// Unmarshall decodes result data into v, which must be a pointer to a slice of
+// Unmarshal decodes result data into v, which must be a pointer to a slice of
 // structs - e.g. &[]someStruct{}.  Struct fields are matched up with fields
 // returned by the cypher query using the `json:"fieldName"` tag.
-func (cq *CypherQuery) Unmarshall(v interface{}) error {
+func (cq *CypherQuery) Unmarshal(v interface{}) error {
 	// We do a round-trip thru the JSON marshaller.  A fairly simple way to
 	// do type-safe unmarshalling, but perhaps not the most efficient solution.
 	rs := make([]map[string]*json.RawMessage, len(cq.cr.Data))
@@ -87,7 +87,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	}
 	q.cr = cRes
 	if q.Result != nil {
-		q.Unmarshall(q.Result)
+		q.Unmarshal(q.Result)
 	}
 	return nil
 }
@@ -145,7 +145,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 	for i, s := range qs {
 		s.cr = res[i].Body
 		if s.Result != nil {
-			err := s.Unmarshall(s.Result)
+			err := s.Unmarshal(s.Result)
 			if err != nil {
 				return err
 			}
