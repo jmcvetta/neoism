@@ -7,6 +7,7 @@ package neo4j
 import (
 	"encoding/json"
 	"github.com/bmizerany/assert"
+	"strconv"
 	"testing"
 )
 
@@ -158,4 +159,26 @@ func TestTxBadResultObj(t *testing.T) {
 	if _, ok := err.(*json.UnmarshalTypeError); !ok {
 		t.Fatal(err)
 	}
+}
+
+func TestTxBadQuery(t *testing.T) {
+	db := connectTest(t)
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `CREATE (n:Person) RETURN n`,
+		},
+		&CypherQuery{
+			Statement: `CREATE (n:Person) RETURN n`,
+		},
+		&CypherQuery{
+			Statement: `foobar`,
+		},
+		&CypherQuery{
+			Statement: `CREATE (n:Person) RETURN n`,
+		},
+	}
+	tx, err := db.Begin(qs)
+	assert.Equal(t, TxQueryError, err)
+	numErr := len(tx.Errors)
+	assert.T(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
 }
