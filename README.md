@@ -44,8 +44,7 @@ changes from time to time.
 * Node (create/edit/relate/delete/properties)
 * Relationship (create/edit/delete/properties)
 * Legacy Indexing (create/edit/delete/add node/remove node/find/query)
-* Cypher (query with and without parameters) - still under active development,
-  API should not be considered stable.
+* Cypher queries
 * Batched Cypher queries
 * Transactional endpoint (Neo4j 2.0)
 * Node labels (Neo4j 2.0)
