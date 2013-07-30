@@ -27,16 +27,16 @@ documentation.
 [![Build Status](https://drone.io/github.com/jmcvetta/neo4j/status.png)](https://drone.io/github.com/jmcvetta/neo4j/latest)
 [![Coverage Status](https://coveralls.io/repos/jmcvetta/neo4j/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neo4j)
 
-This driver is a work in progress.  It is not yet complete, but may now be
-suitable for use by others.  The code has an extensive set of integration
-tests, but very little real-world testing.  YMMV; use in production at your own
-risk.
+This driver is fairly complete, and may now be suitable for general use.  The
+code has an extensive set of integration tests, but little real-world testing.
+YMMV; use in production at your own risk.
 
 ## Production Note
 
 If you decide to use `neo4j` in a production system, please let me know.  All
 API changes will be made via Pull Request, so it's highly recommended you Watch
-the repo Issues.  The API is **not** promised to be stable at this time.
+the repo Issues.  The API is fairly stable, but there are additions and small
+changes from time to time.
 
 
 ## Completed:
@@ -64,8 +64,14 @@ the repo Issues.  The API is **not** promised to be stable at this time.
 * Gremlin
 
 
+# Support
+
+Paid support, development, related professional services, and proprietary
+licensing terms for this package are available from [from the
+author](mailto:jason.mcvetta@gmail.com).
+
+
 # License
 
 This is Free Software, released under the terms of the [GPL
 v3](http://www.gnu.org/copyleft/gpl.html).
-
