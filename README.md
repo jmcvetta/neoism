@@ -9,8 +9,7 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 # Requirements
 
-[Go 1.1](http://golang.org/doc/go1.1) or later is required.  Earlier versions
-of Go cannot be used, as they can't unmarshall JSON into an embedded struct.
+[Go 1.1](http://golang.org/doc/go1.1) or later is required.
 
 
 # Documentation
