@@ -23,7 +23,7 @@ using defer() for cleanup.
 
 */
 
-package neo4j
+package neoism
 
 import (
 	"github.com/bmizerany/assert"
