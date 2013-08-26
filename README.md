@@ -1,9 +1,9 @@
-neo4j - Neo4j client for Go
+neoism - Neo4j client for Go
 ===========================
 
-![Neo4j + Gopher Logo](https://raw.github.com/jmcvetta/neo4j/master/neo4j_gopher.png)
+![Neo4j + Gopher Logo](https://raw.github.com/jmcvetta/neoism/master/neoism.png)
 
-Package `neo4j` is a [Go](http://golang.org) client library providing access to
+Package `neoism` is a [Go](http://golang.org) client library providing access to
 the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 
@@ -16,16 +16,16 @@ Neo4j Milestone 2.0.0-M03 or greater is required to run the full test suite.
 
 # Documentation
 
-See [Go Walker](http://gowalker.org/github.com/jmcvetta/neo4j) or
-[GoDoc](http://godoc.org/github.com/jmcvetta/neo4j) for automatic
+See [Go Walker](http://gowalker.org/github.com/jmcvetta/neoism) or
+[GoDoc](http://godoc.org/github.com/jmcvetta/neoism) for automatic
 documentation.
 
 
 # Status
 
-[![Build Status](https://travis-ci.org/jmcvetta/neo4j.png?branch=master)](https://travis-ci.org/jmcvetta/neo4j)
-[![Build Status](https://drone.io/github.com/jmcvetta/neo4j/status.png)](https://drone.io/github.com/jmcvetta/neo4j/latest)
-[![Coverage Status](https://coveralls.io/repos/jmcvetta/neo4j/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neo4j)
+[![Build Status](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)
+[![Build Status](https://drone.io/github.com/jmcvetta/neoism/status.png)](https://drone.io/github.com/jmcvetta/neoism/latest)
+[![Coverage Status](https://coveralls.io/repos/jmcvetta/neoism/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neoism)
 
 This driver is fairly complete, and may now be suitable for general use.  The
 code has an extensive set of integration tests, but little real-world testing.
@@ -33,7 +33,7 @@ YMMV; use in production at your own risk.
 
 ## Production Note
 
-If you decide to use `neo4j` in a production system, please let me know.  All
+If you decide to use `neoism` in a production system, please let me know.  All
 API changes will be made via Pull Request, so it's highly recommended you Watch
 the repo Issues.  The API is fairly stable, but there are additions and small
 changes from time to time.

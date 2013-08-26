@@ -6,7 +6,7 @@
 // The Neo4j Manual section numbers quoted herein refer to the manual for
 // milestone release 1.8.  http://docs.neo4j.org/chunked/1.8/
 
-package neo4j
+package neoism
 
 import (
 	"github.com/bmizerany/assert"
