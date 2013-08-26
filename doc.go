@@ -4,7 +4,7 @@
 
 /*
 
-Package neo4j is a client library providing access to the Neo4j graph database
+Package neoism is a client library providing access to the Neo4j graph database
 via its REST API.
 
 
@@ -14,7 +14,7 @@ Example Usage:
 
 	import (
 		"fmt"
-		"github.com/jmcvetta/neo4j"
+		"github.com/jmcvetta/neoism"
 	)
 
 	func main() {
@@ -22,24 +22,24 @@ Example Usage:
 		//
 		// Connect to the Neo4j server
 		//
-		db, _ := neo4j.Connect("http://localhost:7474/db/data")
+		db, _ := neoism.Connect("http://localhost:7474/db/data")
 		kirk := "Captain Kirk"
 		mccoy := "Dr McCoy"
 		//
 		// Create a node
 		//
-		n0, _ := db.CreateNode(neo4j.Props{"name": kirk})
+		n0, _ := db.CreateNode(neoism.Props{"name": kirk})
 		defer n0.Delete()  // Deferred clean up
 		//
 		// Create a node with a Cypher query
 		//
 		res0 := []struct {
-			N neo4j.Node // Column "n" gets automagically unmarshalled into field N
+			N neoism.Node // Column "n" gets automagically unmarshalled into field N
 		}{}
-		cq0 := neo4j.CypherQuery{
+		cq0 := neoism.CypherQuery{
 			Statement: "CREATE (n:Person {name: {name}}) RETURN n",
 			// Use parameters instead of constructing a query string
-			Parameters: neo4j.Props{"name": mccoy},
+			Parameters: neoism.Props{"name": mccoy},
 			Result:     &res0,
 		}
 		db.Cypher(&cq0)
@@ -48,7 +48,7 @@ Example Usage:
 		//
 		// Create a relationship
 		//
-		n1.Relate("reports to", n0.Id(), neo4j.Props{}) // Empty Props{} is okay
+		n1.Relate("reports to", n0.Id(), neoism.Props{}) // Empty Props{} is okay
 		//
 		// Issue a query
 		//
@@ -57,14 +57,14 @@ Example Usage:
 			Rel string `json:"type(r)"`
 			B   string `json:"b.name"`
 		}{}
-		cq1 := neo4j.CypherQuery{
+		cq1 := neoism.CypherQuery{
 			// Use backticks for long statements - Cypher is whitespace indifferent
 			Statement: `
 				MATCH (a:Person)-[r]->(b)
 				WHERE a.name = {name}
 				RETURN a.name, type(r), b.name
 			`,
-			Parameters: neo4j.Props{"name": mccoy},
+			Parameters: neoism.Props{"name": mccoy},
 			Result:     &res1,
 		}
 		db.Cypher(&cq1)
@@ -73,26 +73,26 @@ Example Usage:
 		//
 		// Clean up using a transaction
 		//
-		qs := []*neo4j.CypherQuery{
-			&neo4j.CypherQuery{
+		qs := []*neoism.CypherQuery{
+			&neoism.CypherQuery{
 				Statement: `
 					MATCH (n:Person)-[r]->()
 					WHERE n.name = {name}
 					DELETE r
 				`,
-				Parameters: neo4j.Props{"name": mccoy},
+				Parameters: neoism.Props{"name": mccoy},
 			},
-			&neo4j.CypherQuery{
+			&neoism.CypherQuery{
 				Statement: `
 					MATCH n:Person
 					WHERE n.name = {name}
 					DELETE n
 				`,
-				Parameters: neo4j.Props{"name": mccoy},
+				Parameters: neoism.Props{"name": mccoy},
 			},
 		}
 		tx, _ := db.Begin(qs)
 		tx.Commit()
 	}
 */
-package neo4j
+package neoism
