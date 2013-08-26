@@ -1,7 +1,7 @@
 neoism - Neo4j client for Go
 ===========================
 
-![Neo4j + Gopher Logo](https://raw.github.com/jmcvetta/neoism/master/neoism_gopher.png)
+![Neo4j + Gopher Logo](https://raw.github.com/jmcvetta/neoism/master/neoism.png)
 
 Package `neoism` is a [Go](http://golang.org) client library providing access to
 the [Neo4j](http://www.neo4j.org) graph database via its REST API.
