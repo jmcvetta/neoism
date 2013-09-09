@@ -58,6 +58,7 @@ Contributions, in the form of Pull Requests or Issues, are gladly accepted.
 
 ## To Do:
 
+* Streaming API support - see Issue [#22](https://github.com/jmcvetta/neoism/issues/22)
 * ~~Unique Indexes~~ - probably will not expand support for legacy indexing.
 * ~~Automatic Indexes~~ - "
 * Traversals - May never be supported due to security concerns.  From the
