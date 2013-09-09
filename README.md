@@ -39,6 +39,11 @@ the repo Issues.  The API is fairly stable, but there are additions and small
 changes from time to time.
 
 
+## Contributing
+
+Contributions, in the form of Pull Requests or Issues, are gladly accepted.
+
+
 ## Completed:
 
 * Node (create/edit/relate/delete/properties)
