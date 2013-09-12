@@ -29,5 +29,5 @@ func logPretty(x interface{}) {
 	_, file, line, _ := runtime.Caller(1)
 	lineNo := strconv.Itoa(line)
 	s := file + ":" + lineNo + ": %# v\n"
-	pretty.Printf(s, x)
+	pretty.Logf(s, x)
 }
