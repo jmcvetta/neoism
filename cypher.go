@@ -80,7 +80,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 		return err
 	}
 	if resp.Status() != 200 {
-		resp.Unmarshall(ne)
+		resp.Unmarshal(ne)
 		logPretty(ne)
 		return *ne
 	}

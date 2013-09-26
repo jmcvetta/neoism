@@ -28,7 +28,7 @@ func (e *entity) SetProperty(key string, value string) error {
 	}
 	if resp.Status() != 204 {
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success!
@@ -50,7 +50,7 @@ func (e *entity) Property(key string) (string, error) {
 		return val, NotFound
 	default:
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		return val, ne
 	}
 	return val, nil // Success!
@@ -71,7 +71,7 @@ func (e *entity) DeleteProperty(key string) error {
 		return NotFound
 	}
 	ne := NeoError{}
-	resp.Unmarshall(&ne)
+	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }
@@ -90,7 +90,7 @@ func (e *entity) Delete() error {
 		return CannotDelete
 	default:
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		logPretty(resp.Status())
 		logPretty(ne)
 		return ne
@@ -122,7 +122,7 @@ func (e *entity) SetProperties(p Props) error {
 		return nil // Success!
 	}
 	ne := NeoError{}
-	resp.Unmarshall(&ne)
+	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }
@@ -140,7 +140,7 @@ func (e *entity) DeleteProperties() error {
 		return NotFound
 	}
 	ne := NeoError{}
-	resp.Unmarshall(&ne)
+	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }

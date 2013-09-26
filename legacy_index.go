@@ -38,7 +38,7 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 	}
 	if resp.Status() != 201 {
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		return nil, ne
 	}
 	idx.populate(res)
@@ -55,7 +55,7 @@ func (db *Database) indexes(href string) ([]*index, error) {
 	}
 	if resp.Status() != 200 {
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return nis, ne
 	}
@@ -91,7 +91,7 @@ func (db *Database) index(href, name string) (*index, error) {
 		return nil, NotFound
 	default:
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return idx, ne
 	}
@@ -143,7 +143,7 @@ func (idx *index) Delete() error {
 	}
 	if resp.Status() != 204 {
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return ne
 	}
@@ -172,7 +172,7 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 	}
 	if resp.Status() != 201 {
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return ne
 	}
@@ -198,7 +198,7 @@ func (idx *index) remove(e entity, id, key, value string) error {
 	}
 	if resp.Status() != 204 {
 		ne := NeoError{}
-		resp.Unmarshall(&ne)
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return ne
 	}
