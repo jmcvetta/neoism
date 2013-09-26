@@ -4,10 +4,6 @@
 
 package neoism
 
-import (
-	"github.com/jmcvetta/restclient"
-)
-
 type indexRequest struct {
 	PropertyKeys []string `json:"property_keys"`
 }
@@ -21,21 +17,17 @@ type Index struct {
 
 // Drop removes the index.
 func (idx *Index) Drop() error {
-	url := join(idx.db.Url, "schema/index", idx.Label, idx.PropertyKeys[0])
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    url,
-		Method: "DELETE",
-		Error:  &ne,
-	}
-	status, err := idx.db.Rc.Do(&rr)
+	uri := join(idx.db.Url, "schema/index", idx.Label, idx.PropertyKeys[0])
+	resp, err := idx.db.Session.Delete(uri)
 	if err != nil {
 		return err
 	}
-	if status == 404 {
+	if resp.Status() == 404 {
 		return NotFound
 	}
-	if status != 204 {
+	if resp.Status() != 204 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil
@@ -44,53 +36,42 @@ func (idx *Index) Drop() error {
 // CreateIndex starts a background job in the database that will create and
 // populate the new index of a specified property on nodes of a given label.
 func (db *Database) CreateIndex(label, property string) (*Index, error) {
-	url := join(db.Url, "schema/index", label)
+	uri := join(db.Url, "schema/index", label)
 	payload := indexRequest{[]string{property}}
-	ne := NeoError{}
-	res := Index{db: db}
-	rr := restclient.RequestResponse{
-		Url:    url,
-		Method: "POST",
-		Data:   payload,
-		Result: &res,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	result := Index{db: db}
+	resp, err := db.Session.Post(uri, payload, &result)
 	if err != nil {
 		return nil, err
 	}
-	if status == 404 {
+	switch resp.Status() {
+	case 200:
+		return &result, nil // Success
+	case 404:
 		return nil, NotFound
 	}
-	if status != 200 {
-		return nil, ne
-	}
-	return &res, nil
+	ne := NeoError{}
+	resp.Unmarshal(&ne)
+	return nil, ne
 }
 
 // Indexes lists indexes for a label.
 func (db *Database) Indexes(label string) ([]*Index, error) {
-	url := join(db.Url, "schema/index", label)
-	ne := NeoError{}
-	res := []*Index{}
-	rr := restclient.RequestResponse{
-		Url:    url,
-		Method: "GET",
-		Result: &res,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	uri := join(db.Url, "schema/index", label)
+	result := []*Index{}
+	resp, err := db.Session.Get(uri, nil, &result)
 	if err != nil {
-		return res, err
+		return result, err
 	}
-	if status == 404 {
-		return res, NotFound
+	if resp.Status() == 404 {
+		return result, NotFound
 	}
-	if status != 200 {
-		return res, ne
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
+		return result, ne
 	}
-	for _, idx := range res {
+	for _, idx := range result {
 		idx.db = db
 	}
-	return res, nil
+	return result, nil
 }

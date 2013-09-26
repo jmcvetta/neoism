@@ -5,7 +5,6 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/restclient"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,19 +15,14 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 	rel := Relationship{}
 	rel.Db = db
 	uri := join(db.Url, "relationship", strconv.Itoa(id))
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    uri,
-		Method: "GET",
-		Result: &rel,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	resp, err := db.Session.Get(uri, nil, &rel)
 	if err != nil {
 		return &rel, err
 	}
-	switch status {
+	switch resp.Status() {
 	default:
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		err = ne
 	case 200:
@@ -42,21 +36,16 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 // Types lists all existing relationship types
 func (db *Database) RelTypes() ([]string, error) {
 	reltypes := []string{}
-	ne := NeoError{}
-	c := restclient.RequestResponse{
-		Url:    db.HrefRelTypes,
-		Method: "GET",
-		Result: &reltypes,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&c)
+	resp, err := db.Session.Get(db.HrefRelTypes, nil, &reltypes)
 	if err != nil {
 		return reltypes, err
 	}
-	if status == 200 {
+	if resp.Status() == 200 {
 		sort.Sort(sort.StringSlice(reltypes))
 		return reltypes, nil // Success!
 	}
+	ne := NeoError{}
+	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return reltypes, ne
 }
