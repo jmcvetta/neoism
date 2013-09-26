@@ -72,7 +72,7 @@ func (idx *LegacyNodeIndex) Find(key, value string) (map[int]*Node, error) {
 		return nm, err
 	}
 	result := []Node{}
-	resp, err := idx.db.Session.Get(u.String(), nil, &result, nil)
+	resp, err := idx.db.Session.Get(u.String(), nil, &result)
 	if err != nil {
 		return nm, err
 	}
@@ -104,7 +104,7 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		return nm, err
 	}
 	result := []Node{}
-	resp, err := idx.db.Session.Get(u.String(), nil, &result, nil)
+	resp, err := idx.db.Session.Get(u.String(), nil, &result)
 	if err != nil {
 		return nm, err
 	}

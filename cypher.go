@@ -75,7 +75,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	// Result: &cRes
 	// Error:  ne
 	// }
-	resp, err := db.Session.Post(url, &payload, &result, nil)
+	resp, err := db.Session.Post(url, &payload, &result)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 	res := []batchCypherResponse{}
 	ne := NeoError{}
 	url := db.HrefBatch
-	resp, err := db.Session.Post(url, payload, &res, nil)
+	resp, err := db.Session.Post(url, payload, &res)
 	if err != nil {
 		return err
 	}

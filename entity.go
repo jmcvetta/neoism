@@ -22,7 +22,7 @@ type entity struct {
 func (e *entity) SetProperty(key string, value string) error {
 	parts := []string{e.HrefProperties, key}
 	url := strings.Join(parts, "/")
-	resp, err := e.Db.Session.Put(url, &value, nil, nil)
+	resp, err := e.Db.Session.Put(url, &value, nil)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (e *entity) Property(key string) (string, error) {
 	var val string
 	parts := []string{e.HrefProperties, key}
 	url := strings.Join(parts, "/")
-	resp, err := e.Db.Session.Get(url, nil, &val, nil)
+	resp, err := e.Db.Session.Get(url, nil, &val)
 	if err != nil {
 		logPretty(err)
 		return val, err
@@ -60,7 +60,7 @@ func (e *entity) Property(key string) (string, error) {
 func (e *entity) DeleteProperty(key string) error {
 	parts := []string{e.HrefProperties, key}
 	url := strings.Join(parts, "/")
-	resp, err := e.Db.Session.Delete(url, nil)
+	resp, err := e.Db.Session.Delete(url)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (e *entity) DeleteProperty(key string) error {
 
 // Delete removes the object from the DB.
 func (e *entity) Delete() error {
-	resp, err := e.Db.Session.Delete(e.HrefSelf, nil)
+	resp, err := e.Db.Session.Delete(e.HrefSelf)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (e *entity) Delete() error {
 // Properties fetches all properties
 func (e *entity) Properties() (Props, error) {
 	props := Props{}
-	resp, err := e.Db.Session.Get(e.HrefProperties, nil, &props, nil)
+	resp, err := e.Db.Session.Get(e.HrefProperties, nil, &props)
 	if err != nil {
 		return props, err
 	}
@@ -114,7 +114,7 @@ func (e *entity) Properties() (Props, error) {
 
 // SetProperties updates all properties, overwriting any existing properties.
 func (e *entity) SetProperties(p Props) error {
-	resp, err := e.Db.Session.Put(e.HrefProperties, &p, nil, nil)
+	resp, err := e.Db.Session.Put(e.HrefProperties, &p, nil)
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (e *entity) SetProperties(p Props) error {
 
 // DeleteProperties deletes all properties.
 func (e *entity) DeleteProperties() error {
-	resp, err := e.Db.Session.Delete(e.HrefProperties, nil)
+	resp, err := e.Db.Session.Delete(e.HrefProperties)
 	if err != nil {
 		return err
 	}

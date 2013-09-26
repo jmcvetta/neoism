@@ -63,7 +63,7 @@ func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 	payload := txRequest{Statements: qs}
 	result := txResponse{}
-	resp, err := db.Session.Post(db.HrefTransaction, payload, &result, nil)
+	resp, err := db.Session.Post(db.HrefTransaction, payload, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (t *Tx) Commit() error {
 	if len(t.Errors) > 0 {
 		return TxQueryError
 	}
-	resp, err := t.db.Session.Post(t.hrefCommit, nil, nil, nil)
+	resp, err := t.db.Session.Post(t.hrefCommit, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (t *Tx) Commit() error {
 func (t *Tx) Query(qs []*CypherQuery) error {
 	payload := txRequest{Statements: qs}
 	result := txResponse{}
-	resp, err := t.db.Session.Post(t.Location, payload, &result, nil)
+	resp, err := t.db.Session.Post(t.Location, payload, &result)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 
 // Rollback rolls back an open transaction.
 func (t *Tx) Rollback() error {
-	resp, err := t.db.Session.Delete(t.Location, nil)
+	resp, err := t.db.Session.Delete(t.Location)
 	if err != nil {
 		return err
 	}

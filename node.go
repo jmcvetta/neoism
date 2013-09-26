@@ -13,7 +13,7 @@ import (
 func (db *Database) CreateNode(p Props) (*Node, error) {
 	n := Node{}
 	n.Db = db
-	resp, err := db.Session.Post(db.HrefNode, &p, &n, nil)
+	resp, err := db.Session.Post(db.HrefNode, &p, &n)
 	if err != nil || resp.Status() != 201 {
 		logPretty(resp.Status())
 		ne := NeoError{}
@@ -34,7 +34,7 @@ func (db *Database) Node(id int) (*Node, error) {
 func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	n := Node{}
 	n.Db = db
-	resp, err := db.Session.Get(uri, nil, &n, nil)
+	resp, err := db.Session.Get(uri, nil, &n)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		uri = strings.Join(parts, "/")
 	}
 	rels := Rels{}
-	resp, err := n.Db.Session.Get(uri, nil, &rels, nil)
+	resp, err := n.Db.Session.Get(uri, nil, &rels)
 	if err != nil {
 		return rels, err
 	}
@@ -132,7 +132,7 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 	if p != nil {
 		content["data"] = &p
 	}
-	resp, err := n.Db.Session.Post(srcUri, content, &rel, nil)
+	resp, err := n.Db.Session.Post(srcUri, content, &rel)
 	if err != nil {
 		return &rel, err
 	}
@@ -147,7 +147,7 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 
 // AddLabels adds one or more labels to a node.
 func (n *Node) AddLabel(labels ...string) error {
-	resp, err := n.Db.Session.Post(n.HrefLabels, labels, nil, nil)
+	resp, err := n.Db.Session.Post(n.HrefLabels, labels, nil)
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func (n *Node) AddLabel(labels ...string) error {
 // Labels lists labels for a node.
 func (n *Node) Labels() ([]string, error) {
 	res := []string{}
-	resp, err := n.Db.Session.Get(n.HrefLabels, nil, &res, nil)
+	resp, err := n.Db.Session.Get(n.HrefLabels, nil, &res)
 	if err != nil {
 		return res, err
 	}
@@ -183,7 +183,7 @@ func (n *Node) Labels() ([]string, error) {
 // RemoveLabel removes a label from a node.
 func (n *Node) RemoveLabel(label string) error {
 	uri := join(n.HrefLabels, label)
-	resp, err := n.Db.Session.Delete(uri, nil)
+	resp, err := n.Db.Session.Delete(uri)
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func (n *Node) RemoveLabel(label string) error {
 // SetLabels removes any labels currently on a node, and replaces them with the
 // labels provided as argument.
 func (n *Node) SetLabels(labels []string) error {
-	resp, err := n.Db.Session.Put(n.HrefLabels, labels, nil, nil)
+	resp, err := n.Db.Session.Put(n.HrefLabels, labels, nil)
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func (n *Node) SetLabels(labels []string) error {
 func (db *Database) NodesByLabel(label string) ([]*Node, error) {
 	uri := join(db.Url, "label", label, "nodes")
 	res := []*Node{}
-	resp, err := db.Session.Get(uri, nil, &res, nil)
+	resp, err := db.Session.Get(uri, nil, &res)
 	if err != nil {
 		return res, err
 	}
@@ -242,7 +242,7 @@ func (db *Database) NodesByLabel(label string) ([]*Node, error) {
 func (db *Database) Labels() ([]string, error) {
 	uri := join(db.Url, "labels")
 	labels := []string{}
-	resp, err := db.Session.Get(uri, nil, &labels, nil)
+	resp, err := db.Session.Get(uri, nil, &labels)
 	if err != nil {
 		return labels, err
 	}

@@ -15,7 +15,7 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 	rel := Relationship{}
 	rel.Db = db
 	uri := join(db.Url, "relationship", strconv.Itoa(id))
-	resp, err := db.Session.Get(uri, nil, &rel, nil)
+	resp, err := db.Session.Get(uri, nil, &rel)
 	if err != nil {
 		return &rel, err
 	}
@@ -36,7 +36,7 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 // Types lists all existing relationship types
 func (db *Database) RelTypes() ([]string, error) {
 	reltypes := []string{}
-	resp, err := db.Session.Get(db.HrefRelTypes, nil, &reltypes, nil)
+	resp, err := db.Session.Get(db.HrefRelTypes, nil, &reltypes)
 	if err != nil {
 		return reltypes, err
 	}

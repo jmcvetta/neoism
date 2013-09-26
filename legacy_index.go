@@ -31,7 +31,7 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 		payload.Config = config
 	}
 	res := new(indexResponse)
-	resp, err := db.Session.Post(href, &payload, &res, nil)
+	resp, err := db.Session.Post(href, &payload, &res)
 	if err != nil {
 		logPretty(err)
 		return nil, err
@@ -49,7 +49,7 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 func (db *Database) indexes(href string) ([]*index, error) {
 	res := map[string]indexResponse{}
 	nis := []*index{}
-	resp, err := db.Session.Get(href, nil, &res, nil)
+	resp, err := db.Session.Get(href, nil, &res)
 	if err != nil {
 		return nis, err
 	}
@@ -80,7 +80,7 @@ func (db *Database) index(href, name string) (*index, error) {
 	if err != nil {
 		return idx, err
 	}
-	resp, err := db.Session.Get(u.String(), nil, nil, nil)
+	resp, err := db.Session.Get(u.String(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (idx *index) Delete() error {
 	if err != nil {
 		return err
 	}
-	resp, err := idx.db.Session.Delete(uri, nil)
+	resp, err := idx.db.Session.Delete(uri)
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 		Key:   key,
 		Value: value,
 	}
-	resp, err := idx.db.Session.Post(uri, &payload, nil, nil)
+	resp, err := idx.db.Session.Post(uri, &payload, nil)
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func (idx *index) remove(e entity, id, key, value string) error {
 		uri = join(uri, key, value)
 	}
 	uri = join(uri, id)
-	resp, err := idx.db.Session.Delete(uri, nil)
+	resp, err := idx.db.Session.Delete(uri)
 	if err != nil {
 		return err
 	}
