@@ -6,7 +6,6 @@ package neoism
 
 import (
 	"github.com/jmcvetta/napping"
-	"github.com/jmcvetta/restclient"
 	"log"
 	"net/url"
 	"strconv"
@@ -14,7 +13,6 @@ import (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	Rc              *restclient.Client
 	Session         *napping.Session
 	Url             string      `json:"-"` // Root URL for REST API
 	HrefNode        string      `json:"node"`
@@ -33,7 +31,6 @@ type Database struct {
 // Connect establishes a connection to the Neo4j server.
 func Connect(uri string) (*Database, error) {
 	db := &Database{
-		Rc:      restclient.New(),
 		Session: &napping.Session{},
 	}
 	_, err := url.Parse(uri) // Sanity check
