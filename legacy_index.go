@@ -5,7 +5,6 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/restclient"
 	"net/url"
 )
 
@@ -32,21 +31,14 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 		payload.Config = config
 	}
 	res := new(indexResponse)
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:            href,
-		Method:         "POST",
-		Data:           &payload,
-		Result:         res,
-		Error:          &ne,
-		ExpectedStatus: 201,
-	}
-	status, err := db.Rc.Do(&rr)
+	resp, err := db.Session.Post(href, &payload, &res, nil)
 	if err != nil {
 		logPretty(err)
 		return nil, err
 	}
-	if status != 201 {
+	if resp.Status() != 201 {
+		ne := NeoError{}
+		resp.Unmarshall(&ne)
 		return nil, ne
 	}
 	idx.populate(res)
@@ -57,18 +49,13 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 func (db *Database) indexes(href string) ([]*index, error) {
 	res := map[string]indexResponse{}
 	nis := []*index{}
-	ne := NeoError{}
-	req := restclient.RequestResponse{
-		Url:    href,
-		Method: "GET",
-		Result: &res,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&req)
+	resp, err := db.Session.Get(href, nil, &res, nil)
 	if err != nil {
 		return nis, err
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshall(&ne)
 		logPretty(ne)
 		return nis, ne
 	}
@@ -93,22 +80,18 @@ func (db *Database) index(href, name string) (*index, error) {
 	if err != nil {
 		return idx, err
 	}
-	ne := NeoError{}
-	req := restclient.RequestResponse{
-		Url:    u.String(),
-		Method: "GET",
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&req)
+	resp, err := db.Session.Get(u.String(), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	switch status {
+	switch resp.Status() {
 	// Success!
 	case 200:
 	case 404:
 		return nil, NotFound
 	default:
+		ne := NeoError{}
+		resp.Unmarshall(&ne)
 		logPretty(ne)
 		return idx, ne
 	}
@@ -154,17 +137,13 @@ func (idx *index) Delete() error {
 	if err != nil {
 		return err
 	}
-	ne := NeoError{}
-	req := restclient.RequestResponse{
-		Url:    uri,
-		Method: "DELETE",
-		Error:  &ne,
-	}
-	status, err := idx.db.Rc.Do(&req)
+	resp, err := idx.db.Session.Delete(uri, nil)
 	if err != nil {
 		return err
 	}
-	if status != 204 {
+	if resp.Status() != 204 {
+		ne := NeoError{}
+		resp.Unmarshall(&ne)
 		logPretty(ne)
 		return ne
 	}
@@ -177,28 +156,23 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 	if err != nil {
 		return err
 	}
-	ne := NeoError{}
 	type s struct {
 		Uri   string      `json:"uri"`
 		Key   string      `json:"key"`
 		Value interface{} `json:"value"`
 	}
-	data := s{
+	payload := s{
 		Uri:   e.HrefSelf,
 		Key:   key,
 		Value: value,
 	}
-	req := restclient.RequestResponse{
-		Url:    uri,
-		Method: "POST",
-		Data:   data,
-		Error:  &ne,
-	}
-	status, err := idx.db.Rc.Do(&req)
+	resp, err := idx.db.Session.Post(uri, &payload, nil, nil)
 	if err != nil {
 		return err
 	}
-	if status != 201 {
+	if resp.Status() != 201 {
+		ne := NeoError{}
+		resp.Unmarshall(&ne)
 		logPretty(ne)
 		return ne
 	}
@@ -218,18 +192,14 @@ func (idx *index) remove(e entity, id, key, value string) error {
 		uri = join(uri, key, value)
 	}
 	uri = join(uri, id)
-	ne := NeoError{}
-	req := restclient.RequestResponse{
-		Url:    uri,
-		Method: "DELETE",
-		Error:  &ne,
-	}
-	status, err := idx.db.Rc.Do(&req)
+	resp, err := idx.db.Session.Delete(uri, nil)
 	if err != nil {
 		return err
 	}
-	if status != 204 {
-		logPretty(req)
+	if resp.Status() != 204 {
+		ne := NeoError{}
+		resp.Unmarshall(&ne)
+		logPretty(ne)
 		return ne
 	}
 	return nil // Success!

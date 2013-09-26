@@ -7,7 +7,6 @@ package neoism
 import (
 	"encoding/json"
 	"errors"
-	"github.com/jmcvetta/restclient"
 )
 
 // A CypherQuery is a statement in the Cypher query language, with optional
@@ -64,28 +63,28 @@ type cypherResult struct {
 // from the db is used to populate `result`, which should be a pointer to a
 // slice of structs.  TODO:  Or a pointer to a two-dimensional array of structs?
 func (db *Database) Cypher(q *CypherQuery) error {
-	cRes := cypherResult{}
-	cReq := cypherRequest{
+	result := cypherResult{}
+	payload := cypherRequest{
 		Query:      q.Statement,
 		Parameters: q.Parameters,
 	}
 	ne := new(NeoError)
-	rr := restclient.RequestResponse{
-		Url:    db.HrefCypher,
-		Method: "POST",
-		Data:   &cReq,
-		Result: &cRes,
-		Error:  ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	url := db.HrefCypher
+	// Method: "POST"
+	// Data:   &cReq
+	// Result: &cRes
+	// Error:  ne
+	// }
+	resp, err := db.Session.Post(url, &payload, &result, nil)
 	if err != nil {
 		return err
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
+		resp.Unmarshall(ne)
 		logPretty(ne)
 		return *ne
 	}
-	q.cr = cRes
+	q.cr = result
 	if q.Result != nil {
 		q.Unmarshal(q.Result)
 	}
@@ -124,18 +123,12 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 	}
 	res := []batchCypherResponse{}
 	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    db.HrefBatch,
-		Method: "POST",
-		Data:   payload,
-		Result: &res,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	url := db.HrefBatch
+	resp, err := db.Session.Post(url, payload, &res, nil)
 	if err != nil {
 		return err
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
 		logPretty(ne)
 		return ne
 	}
