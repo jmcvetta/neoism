@@ -79,7 +79,7 @@ func TestConnectInvalidUrl(t *testing.T) {
 		t.Fatal("Expected error due to missing protocol scheme")
 	}
 	//
-	// Unsupported protocol scheme - restclient.Do should fail
+	// Unsupported protocol scheme - Session.Get should fail
 	//
 	_, err = Connect("foo://bar.com")
 	if err == nil {

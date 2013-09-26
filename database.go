@@ -5,7 +5,7 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/restclient"
+	"github.com/jmcvetta/napping"
 	"log"
 	"net/url"
 	"strconv"
@@ -13,7 +13,7 @@ import (
 
 // A Database is a REST client connected to a Neo4j database.
 type Database struct {
-	Rc              *restclient.Client
+	Session         *napping.Session
 	Url             string      `json:"-"` // Root URL for REST API
 	HrefNode        string      `json:"node"`
 	HrefRefNode     string      `json:"reference_node"`
@@ -30,28 +30,25 @@ type Database struct {
 
 // Connect establishes a connection to the Neo4j server.
 func Connect(uri string) (*Database, error) {
-	var e NeoError
 	db := &Database{
-		Rc: restclient.New(),
+		Session: &napping.Session{},
 	}
 	_, err := url.Parse(uri) // Sanity check
 	if err != nil {
 		return nil, err
 	}
 	db.Url = uri
-	req := restclient.RequestResponse{
-		Url:    db.Url,
-		Method: "GET",
-		Result: &db,
-		Error:  &e,
-	}
-	status, err := db.Rc.Do(&req)
+	//		Url:    db.Url,
+	//		Method: "GET",
+	//		Result: &db,
+	//		Error:  &e,
+	resp, err := db.Session.Get(db.Url, nil, &db)
 	if err != nil {
 		return nil, err
 	}
-	if status != 200 || db.Version == "" {
-		logPretty(req.RawText)
-		log.Println("Status " + strconv.Itoa(status) + " trying to connect to " + uri)
+	if resp.Status() != 200 || db.Version == "" {
+		logPretty(resp.RawText())
+		log.Println("Status " + strconv.Itoa(resp.Status()) + " trying to connect to " + uri)
 		return nil, InvalidDatabase
 	}
 	return db, nil

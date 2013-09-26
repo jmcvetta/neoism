@@ -5,7 +5,6 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/restclient"
 	"strings"
 )
 
@@ -19,27 +18,17 @@ type entity struct {
 	HrefProperties string `json:"properties"`
 }
 
-// do is a convenience wrapper around the embedded restclient's Do() method.
-func (e *entity) do(rr *restclient.RequestResponse) (status int, err error) {
-	return e.Db.Rc.Do(rr)
-}
-
 // SetProperty sets the single property key to value.
 func (e *entity) SetProperty(key string, value string) error {
 	parts := []string{e.HrefProperties, key}
-	uri := strings.Join(parts, "/")
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    uri,
-		Method: "PUT",
-		Data:   &value,
-		Error:  &ne,
-	}
-	status, err := e.do(&rr)
+	url := strings.Join(parts, "/")
+	resp, err := e.Db.Session.Put(url, &value, nil)
 	if err != nil {
 		return err
 	}
-	if status != 204 {
+	if resp.Status() != 204 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success!
@@ -49,23 +38,19 @@ func (e *entity) SetProperty(key string, value string) error {
 func (e *entity) Property(key string) (string, error) {
 	var val string
 	parts := []string{e.HrefProperties, key}
-	uri := strings.Join(parts, "/")
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    uri,
-		Method: "GET",
-		Result: &val,
-		Error:  &ne,
-	}
-	status, err := e.do(&rr)
+	url := strings.Join(parts, "/")
+	resp, err := e.Db.Session.Get(url, nil, &val)
 	if err != nil {
+		logPretty(err)
 		return val, err
 	}
-	switch status {
+	switch resp.Status() {
 	case 200:
 	case 404:
 		return val, NotFound
 	default:
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return val, ne
 	}
 	return val, nil // Success!
@@ -74,47 +59,39 @@ func (e *entity) Property(key string) (string, error) {
 // DeleteProperty deletes property key
 func (e *entity) DeleteProperty(key string) error {
 	parts := []string{e.HrefProperties, key}
-	uri := strings.Join(parts, "/")
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    uri,
-		Method: "DELETE",
-		Error:  &ne,
-	}
-	status, err := e.do(&rr)
+	url := strings.Join(parts, "/")
+	resp, err := e.Db.Session.Delete(url)
 	if err != nil {
 		return err
 	}
-	switch status {
+	switch resp.Status() {
 	case 204:
 		return nil // Success!
 	case 404:
 		return NotFound
 	}
+	ne := NeoError{}
+	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }
 
 // Delete removes the object from the DB.
 func (e *entity) Delete() error {
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    e.HrefSelf,
-		Method: "DELETE",
-		Error:  &ne,
-	}
-	status, err := e.do(&rr)
+	resp, err := e.Db.Session.Delete(e.HrefSelf)
 	if err != nil {
 		return err
 	}
-	switch status {
+	switch resp.Status() {
 	case 204:
 	case 404:
 		return NotFound
 	case 409:
 		return CannotDelete
 	default:
-		logPretty(status)
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
+		logPretty(resp.Status())
 		logPretty(ne)
 		return ne
 	}
@@ -124,19 +101,12 @@ func (e *entity) Delete() error {
 // Properties fetches all properties
 func (e *entity) Properties() (Props, error) {
 	props := Props{}
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    e.HrefProperties,
-		Method: "GET",
-		Result: &props,
-		Error:  &ne,
-	}
-	status, err := e.do(&rr)
+	resp, err := e.Db.Session.Get(e.HrefProperties, nil, &props)
 	if err != nil {
 		return props, err
 	}
 	// Status code 204 indicates no properties on this node
-	if status == 204 {
+	if resp.Status() == 204 {
 		props = Props{}
 	}
 	return props, nil
@@ -144,42 +114,33 @@ func (e *entity) Properties() (Props, error) {
 
 // SetProperties updates all properties, overwriting any existing properties.
 func (e *entity) SetProperties(p Props) error {
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    e.HrefProperties,
-		Method: "PUT",
-		Data:   &p,
-		Error:  &ne,
-	}
-	status, err := e.do(&rr)
+	resp, err := e.Db.Session.Put(e.HrefProperties, &p, nil)
 	if err != nil {
 		return err
 	}
-	if status == 204 {
+	if resp.Status() == 204 {
 		return nil // Success!
 	}
+	ne := NeoError{}
+	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }
 
 // DeleteProperties deletes all properties.
 func (e *entity) DeleteProperties() error {
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    e.HrefProperties,
-		Method: "DELETE",
-		Error:  &ne,
-	}
-	status, err := e.do(&rr)
+	resp, err := e.Db.Session.Delete(e.HrefProperties)
 	if err != nil {
 		return err
 	}
-	switch status {
+	switch resp.Status() {
 	case 204:
 		return nil // Success!
 	case 404:
 		return NotFound
 	}
+	ne := NeoError{}
+	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }
