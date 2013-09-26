@@ -5,7 +5,6 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/restclient"
 	"strconv"
 	"strings"
 )
@@ -14,18 +13,11 @@ import (
 func (db *Database) CreateNode(p Props) (*Node, error) {
 	n := Node{}
 	n.Db = db
-	ne := new(NeoError)
-	rr := restclient.RequestResponse{
-		Url:            db.HrefNode,
-		Method:         "POST",
-		Data:           &p,
-		Result:         &n,
-		Error:          ne,
-		ExpectedStatus: 201,
-	}
-	status, err := db.Rc.Do(&rr)
-	if err != nil {
-		logPretty(status)
+	resp, err := db.Session.Post(db.HrefNode, &p, &n, nil)
+	if err != nil || resp.Status() != 201 {
+		logPretty(resp.Status())
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return &n, err
 	}
@@ -40,23 +32,19 @@ func (db *Database) Node(id int) (*Node, error) {
 
 // getNodeByUri fetches a Node from the database based on its URI.
 func (db *Database) getNodeByUri(uri string) (*Node, error) {
-	ne := NeoError{}
 	n := Node{}
 	n.Db = db
-	rr := restclient.RequestResponse{
-		Url:    uri,
-		Method: "GET",
-		Result: &n,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	resp, err := db.Session.Get(uri, nil, &n, nil)
 	if err != nil {
 		return nil, err
 	}
+	status := resp.Status()
 	switch {
 	case status == 404:
 		return &n, NotFound
 	case status != 200 || n.HrefSelf == "":
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return nil, ne
 	}
@@ -101,18 +89,13 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		uri = strings.Join(parts, "/")
 	}
 	rels := Rels{}
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    uri,
-		Method: "GET",
-		Result: &rels,
-		Error:  &ne,
-	}
-	status, err := n.Db.Rc.Do(&rr)
+	resp, err := n.Db.Session.Get(uri, nil, &rels, nil)
 	if err != nil {
 		return rels, err
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return rels, ne
 	}
@@ -140,7 +123,6 @@ func (n *Node) Outgoing(types ...string) (Rels, error) {
 func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error) {
 	rel := Relationship{}
 	rel.Db = n.Db
-	ne := NeoError{}
 	srcUri := join(n.HrefSelf, "relationships")
 	destUri := join(n.Db.HrefNode, strconv.Itoa(destId))
 	content := map[string]interface{}{
@@ -150,18 +132,13 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 	if p != nil {
 		content["data"] = &p
 	}
-	c := restclient.RequestResponse{
-		Url:    srcUri,
-		Method: "POST",
-		Data:   content,
-		Result: &rel,
-		Error:  &ne,
-	}
-	status, err := n.Db.Rc.Do(&c)
+	resp, err := n.Db.Session.Post(srcUri, content, &rel, nil)
 	if err != nil {
 		return &rel, err
 	}
-	if status != 201 {
+	if resp.Status() != 201 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return &rel, ne
 	}
@@ -170,21 +147,16 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 
 // AddLabels adds one or more labels to a node.
 func (n *Node) AddLabel(labels ...string) error {
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    n.HrefLabels,
-		Method: "POST",
-		Data:   labels,
-		Error:  &ne,
-	}
-	status, err := n.Db.Rc.Do(&rr)
+	resp, err := n.Db.Session.Post(n.HrefLabels, labels, nil, nil)
 	if err != nil {
 		return err
 	}
-	if status == 404 {
+	if resp.Status() == 404 {
 		return NotFound
 	}
-	if status != 204 {
+	if resp.Status() != 204 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
@@ -192,22 +164,17 @@ func (n *Node) AddLabel(labels ...string) error {
 
 // Labels lists labels for a node.
 func (n *Node) Labels() ([]string, error) {
-	ne := NeoError{}
 	res := []string{}
-	rr := restclient.RequestResponse{
-		Url:    n.HrefLabels,
-		Method: "GET",
-		Error:  &ne,
-		Result: &res,
-	}
-	status, err := n.Db.Rc.Do(&rr)
+	resp, err := n.Db.Session.Get(n.HrefLabels, nil, &res, nil)
 	if err != nil {
 		return res, err
 	}
-	if status == 404 {
+	if resp.Status() == 404 {
 		return res, NotFound
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return res, ne
 	}
 	return res, nil // Success
@@ -215,21 +182,17 @@ func (n *Node) Labels() ([]string, error) {
 
 // RemoveLabel removes a label from a node.
 func (n *Node) RemoveLabel(label string) error {
-	ne := NeoError{}
-	url := join(n.HrefLabels, label)
-	rr := restclient.RequestResponse{
-		Url:    url,
-		Method: "DELETE",
-		Error:  &ne,
-	}
-	status, err := n.Db.Rc.Do(&rr)
+	uri := join(n.HrefLabels, label)
+	resp, err := n.Db.Session.Delete(uri, nil)
 	if err != nil {
 		return err
 	}
-	if status == 404 {
+	if resp.Status() == 404 {
 		return NotFound
 	}
-	if status != 204 {
+	if resp.Status() != 204 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
@@ -238,21 +201,16 @@ func (n *Node) RemoveLabel(label string) error {
 // SetLabels removes any labels currently on a node, and replaces them with the
 // labels provided as argument.
 func (n *Node) SetLabels(labels []string) error {
-	ne := NeoError{}
-	rr := restclient.RequestResponse{
-		Url:    n.HrefLabels,
-		Method: "PUT",
-		Data:   labels,
-		Error:  &ne,
-	}
-	status, err := n.Db.Rc.Do(&rr)
+	resp, err := n.Db.Session.Put(n.HrefLabels, labels, nil, nil)
 	if err != nil {
 		return err
 	}
-	if status == 404 {
+	if resp.Status() == 404 {
 		return NotFound
 	}
-	if status != 204 {
+	if resp.Status() != 204 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
@@ -260,23 +218,18 @@ func (n *Node) SetLabels(labels []string) error {
 
 // NodesByLabel gets all nodes with a given label.
 func (db *Database) NodesByLabel(label string) ([]*Node, error) {
-	url := join(db.Url, "label", label, "nodes")
-	ne := NeoError{}
+	uri := join(db.Url, "label", label, "nodes")
 	res := []*Node{}
-	rr := restclient.RequestResponse{
-		Url:    url,
-		Method: "GET",
-		Result: &res,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	resp, err := db.Session.Get(uri, nil, &res, nil)
 	if err != nil {
 		return res, err
 	}
-	if status == 404 {
+	if resp.Status() == 404 {
 		return res, NotFound
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return res, ne
 	}
 	for _, n := range res {
@@ -287,20 +240,15 @@ func (db *Database) NodesByLabel(label string) ([]*Node, error) {
 
 // Labels lists all labels.
 func (db *Database) Labels() ([]string, error) {
-	url := join(db.Url, "labels")
-	ne := NeoError{}
+	uri := join(db.Url, "labels")
 	labels := []string{}
-	rr := restclient.RequestResponse{
-		Url:    url,
-		Method: "GET",
-		Result: &labels,
-		Error:  &ne,
-	}
-	status, err := db.Rc.Do(&rr)
+	resp, err := db.Session.Get(uri, nil, &labels, nil)
 	if err != nil {
 		return labels, err
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		return labels, ne
 	}
 	return labels, nil
