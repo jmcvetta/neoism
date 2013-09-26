@@ -5,7 +5,6 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/restclient"
 	"net/url"
 	"strconv"
 )
@@ -72,23 +71,18 @@ func (idx *LegacyNodeIndex) Find(key, value string) (map[int]*Node, error) {
 	if err != nil {
 		return nm, err
 	}
-	ne := NeoError{}
-	resp := []Node{}
-	req := restclient.RequestResponse{
-		Url:    u.String(),
-		Method: "GET",
-		Result: &resp,
-		Error:  &ne,
-	}
-	status, err := idx.db.Rc.Do(&req)
+	result := []Node{}
+	resp, err := idx.db.Session.Get(u.String(), nil, &result, nil)
 	if err != nil {
 		return nm, err
 	}
-	if status != 200 {
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return nm, ne
 	}
-	for _, n := range resp {
+	for _, n := range result {
 		n.Db = idx.db
 		nm[n.Id()] = &n
 	}
@@ -110,19 +104,14 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		return nm, err
 	}
 	result := []Node{}
-	ne := NeoError{}
-	req := restclient.RequestResponse{
-		Url:    u.String(),
-		Method: "GET",
-		Result: &result,
-		Error:  &ne,
-	}
-	status, err := idx.db.Rc.Do(&req)
+	resp, err := idx.db.Session.Get(u.String(), nil, &result, nil)
 	if err != nil {
 		return nm, err
 	}
-	if status != 200 {
-		logPretty(req)
+	if resp.Status() != 200 {
+		ne := NeoError{}
+		resp.Unmarshal(&ne)
+		logPretty(ne)
 		return nm, ne
 	}
 	for _, n := range result {
