@@ -154,6 +154,12 @@ func TestDeleteNode(t *testing.T) {
 	// Check that node is no longer in db
 	_, err = db.Node(id)
 	assert.Equal(t, err, NotFound)
+	//
+	// Delete non-existent node
+	//
+	err = n0.Delete()
+	assert.Equal(t, NotFound, err)
+
 }
 
 // 18.4.6. Nodes with relationships can not be deleted;
