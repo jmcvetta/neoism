@@ -44,14 +44,6 @@ the repo Issues.  The API is fairly stable, but there are additions and small
 changes from time to time.
 
 
-## Contributing
-
-Contributions, in the form of Pull Requests or Issues, are gladly accepted.
-Before submitting a Pull Request, please ensure your code passes all tests, and
-that your changes do not decrease test coverage.  I.e. if you add new features,
-also add corresponding new tests.
-
-
 ## Completed:
 
 * Node (create/edit/relate/delete/properties)
@@ -75,6 +67,14 @@ also add corresponding new tests.
   environments, this can constitute a security risk."
 * Built-In Graph Algorithms
 * Gremlin
+
+
+# Contributing
+
+Contributions, in the form of Pull Requests or Issues, are gladly accepted.
+Before submitting a Pull Request, please ensure your code passes all tests, and
+that your changes do not decrease test coverage.  I.e. if you add new features,
+also add corresponding new tests.
 
 
 # Support
