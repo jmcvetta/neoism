@@ -16,12 +16,16 @@ func (db *Database) CreateNode(p Props) (*Node, error) {
 	n.Db = db
 	ne := NeoError{}
 	resp, err := db.Session.Post(db.HrefNode, &p, &n, &ne)
-	if err != nil || resp.Status() != 201 {
-		logPretty(resp.Status())
-		logPretty(ne)
+	if err != nil {
 		return &n, err
 	}
-	return &n, nil
+	switch resp.Status() {
+	case 201: // Success
+		return &n, nil
+	case 404:
+		return nil, NotFound
+	}
+	return nil, ne
 }
 
 // Node fetches a Node from the database

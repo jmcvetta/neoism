@@ -28,6 +28,13 @@ func TestCreateNode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	//
+	// Bad Href
+	//
+	db1 := connectTest(t)
+	db1.HrefNode = db1.HrefNode + "foobar"
+	_, err = db1.CreateNode(nil)
+	assert.Equal(t, NotFound, err)
 }
 
 // 18.4.2. Create Node with properties
