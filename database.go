@@ -7,6 +7,7 @@ package neoism
 import (
 	"github.com/jmcvetta/napping"
 	"log"
+	"net/http"
 	"net/url"
 	"strconv"
 )
@@ -30,8 +31,12 @@ type Database struct {
 
 // Connect establishes a connection to the Neo4j server.
 func Connect(uri string) (*Database, error) {
+	h := http.Header{}
+	h.Add("User-Agent", "neoism")
 	db := &Database{
-		Session: &napping.Session{},
+		Session: &napping.Session{
+			Header: &h,
+		},
 	}
 	_, err := url.Parse(uri) // Sanity check
 	if err != nil {
