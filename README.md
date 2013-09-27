@@ -26,6 +26,11 @@ documentation.
 [![Build Status](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)
 [![Build Status](https://drone.io/github.com/jmcvetta/neoism/status.png)](https://drone.io/github.com/jmcvetta/neoism/latest)
 [![Coverage Status](https://coveralls.io/repos/jmcvetta/neoism/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neoism)
+[![xrefs](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/xrefs.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
+[![funcs](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/funcs.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
+[![top func](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/top-func.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
+[![library users](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/library-users.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
+[![status](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/status.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
 
 This driver is fairly complete, and may now be suitable for general use.  The
 code has an extensive set of integration tests, but little real-world testing.
