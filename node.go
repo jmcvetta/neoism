@@ -5,6 +5,7 @@
 package neoism
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -27,6 +28,49 @@ func (db *Database) CreateNode(p Props) (*Node, error) {
 func (db *Database) Node(id int) (*Node, error) {
 	uri := join(db.HrefNode, strconv.Itoa(id))
 	return db.getNodeByUri(uri)
+}
+
+// GetOrCreateNode creates a node if it doesn’t already exist.
+func (db *Database) GetOrCreateNode(label, key string, p Props) (n *Node, created bool, err error) {
+	/*
+		valInterface, ok := p[key]
+		if !ok {
+			return nil, false, errors.New("Properties must contain key")
+		}
+		value, ok := valInterface.(string)
+		if !ok {
+			return nil, false, errors.New("Value of key must be a string")
+		}
+	*/
+	value, ok := p[key]
+	if !ok {
+		return nil, false, errors.New("Properties must contain key")
+	}
+	n = &Node{}
+	n.Db = db
+	ne := NeoError{}
+	uri := join(db.HrefNodeIndex, label) + "?uniqueness=get_or_create"
+	type s struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+		Props Props       `json:"properties"`
+	}
+	payload := s{
+		Key:   key,
+		Value: value,
+		Props: p,
+	}
+	resp, err := db.Session.Post(uri, &payload, &n, &ne)
+	if err != nil {
+		return nil, false, err
+	}
+	switch resp.Status() {
+	case 200:
+		return n, false, nil // Existing node
+	case 201:
+		return n, true, nil // Created node
+	}
+	return nil, false, ne // Error
 }
 
 // getNodeByUri fetches a Node from the database based on its URI.
