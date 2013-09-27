@@ -22,13 +22,12 @@ type entity struct {
 func (e *entity) SetProperty(key string, value string) error {
 	parts := []string{e.HrefProperties, key}
 	url := strings.Join(parts, "/")
-	resp, err := e.Db.Session.Put(url, &value, nil)
+	ne := NeoError{}
+	resp, err := e.Db.Session.Put(url, &value, nil, &ne)
 	if err != nil {
 		return err
 	}
 	if resp.Status() != 204 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success!
@@ -39,7 +38,8 @@ func (e *entity) Property(key string) (string, error) {
 	var val string
 	parts := []string{e.HrefProperties, key}
 	url := strings.Join(parts, "/")
-	resp, err := e.Db.Session.Get(url, nil, &val)
+	ne := NeoError{}
+	resp, err := e.Db.Session.Get(url, nil, &val, &ne)
 	if err != nil {
 		logPretty(err)
 		return val, err
@@ -49,8 +49,6 @@ func (e *entity) Property(key string) (string, error) {
 	case 404:
 		return val, NotFound
 	default:
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return val, ne
 	}
 	return val, nil // Success!
@@ -60,7 +58,8 @@ func (e *entity) Property(key string) (string, error) {
 func (e *entity) DeleteProperty(key string) error {
 	parts := []string{e.HrefProperties, key}
 	url := strings.Join(parts, "/")
-	resp, err := e.Db.Session.Delete(url)
+	ne := NeoError{}
+	resp, err := e.Db.Session.Delete(url, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -70,15 +69,14 @@ func (e *entity) DeleteProperty(key string) error {
 	case 404:
 		return NotFound
 	}
-	ne := NeoError{}
-	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }
 
 // Delete removes the object from the DB.
 func (e *entity) Delete() error {
-	resp, err := e.Db.Session.Delete(e.HrefSelf)
+	ne := NeoError{}
+	resp, err := e.Db.Session.Delete(e.HrefSelf, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -89,8 +87,6 @@ func (e *entity) Delete() error {
 	case 409:
 		return CannotDelete
 	default:
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		logPretty(resp.Status())
 		logPretty(ne)
 		return ne
@@ -101,7 +97,7 @@ func (e *entity) Delete() error {
 // Properties fetches all properties
 func (e *entity) Properties() (Props, error) {
 	props := Props{}
-	resp, err := e.Db.Session.Get(e.HrefProperties, nil, &props)
+	resp, err := e.Db.Session.Get(e.HrefProperties, nil, &props, nil)
 	if err != nil {
 		return props, err
 	}
@@ -114,22 +110,22 @@ func (e *entity) Properties() (Props, error) {
 
 // SetProperties updates all properties, overwriting any existing properties.
 func (e *entity) SetProperties(p Props) error {
-	resp, err := e.Db.Session.Put(e.HrefProperties, &p, nil)
+	ne := NeoError{}
+	resp, err := e.Db.Session.Put(e.HrefProperties, &p, nil, &ne)
 	if err != nil {
 		return err
 	}
 	if resp.Status() == 204 {
 		return nil // Success!
 	}
-	ne := NeoError{}
-	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }
 
 // DeleteProperties deletes all properties.
 func (e *entity) DeleteProperties() error {
-	resp, err := e.Db.Session.Delete(e.HrefProperties)
+	ne := NeoError{}
+	resp, err := e.Db.Session.Delete(e.HrefProperties, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -139,8 +135,6 @@ func (e *entity) DeleteProperties() error {
 	case 404:
 		return NotFound
 	}
-	ne := NeoError{}
-	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return ne
 }

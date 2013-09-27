@@ -42,7 +42,7 @@ func Connect(uri string) (*Database, error) {
 	//		Method: "GET",
 	//		Result: &db,
 	//		Error:  &e,
-	resp, err := db.Session.Get(db.Url, nil, &db)
+	resp, err := db.Session.Get(db.Url, nil, &db, nil)
 	if err != nil {
 		return nil, err
 	}

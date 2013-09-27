@@ -63,13 +63,12 @@ func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 	payload := txRequest{Statements: qs}
 	result := txResponse{}
-	resp, err := db.Session.Post(db.HrefTransaction, payload, &result)
+	ne := NeoError{}
+	resp, err := db.Session.Post(db.HrefTransaction, payload, &result, &ne)
 	if err != nil {
 		return nil, err
 	}
 	if resp.Status() != 201 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return nil, ne
 	}
 	t := Tx{
@@ -94,13 +93,12 @@ func (t *Tx) Commit() error {
 	if len(t.Errors) > 0 {
 		return TxQueryError
 	}
-	resp, err := t.db.Session.Post(t.hrefCommit, nil, nil)
+	ne := NeoError{}
+	resp, err := t.db.Session.Post(t.hrefCommit, nil, nil, &ne)
 	if err != nil {
 		return err
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
@@ -110,7 +108,8 @@ func (t *Tx) Commit() error {
 func (t *Tx) Query(qs []*CypherQuery) error {
 	payload := txRequest{Statements: qs}
 	result := txResponse{}
-	resp, err := t.db.Session.Post(t.Location, payload, &result)
+	ne := NeoError{}
+	resp, err := t.db.Session.Post(t.Location, payload, &result, &ne)
 	if err != nil {
 		return err
 	}
@@ -118,8 +117,6 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 		return NotFound
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return &ne
 	}
 	t.Expires = result.Transaction.Expires
@@ -136,13 +133,12 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 
 // Rollback rolls back an open transaction.
 func (t *Tx) Rollback() error {
-	resp, err := t.db.Session.Delete(t.Location)
+	ne := NeoError{}
+	resp, err := t.db.Session.Delete(t.Location, nil, &ne)
 	if err != nil {
 		return err
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
