@@ -34,7 +34,6 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 	ne := NeoError{}
 	resp, err := db.Session.Post(href, &payload, &res, &ne)
 	if err != nil {
-		logPretty(err)
 		return nil, err
 	}
 	if resp.Status() != 201 {
@@ -55,7 +54,6 @@ func (db *Database) indexes(href string) ([]*index, error) {
 		return nis, err
 	}
 	if resp.Status() != 200 {
-		logPretty(ne)
 		return nis, ne
 	}
 	for name, r := range res {
@@ -90,7 +88,6 @@ func (db *Database) index(href, name string) (*index, error) {
 	case 404:
 		return nil, NotFound
 	default:
-		logPretty(ne)
 		return idx, ne
 	}
 	return idx, nil
@@ -141,7 +138,6 @@ func (idx *index) Delete() error {
 		return err
 	}
 	if resp.Status() != 204 {
-		logPretty(ne)
 		return ne
 	}
 	return nil // Success!
@@ -169,7 +165,6 @@ func (idx *index) add(e entity, key string, value interface{}) error {
 		return err
 	}
 	if resp.Status() != 201 {
-		logPretty(ne)
 		return ne
 	}
 	return nil // Success!
@@ -194,7 +189,6 @@ func (idx *index) remove(e entity, id, key, value string) error {
 		return err
 	}
 	if resp.Status() != 204 {
-		logPretty(ne)
 		return ne
 	}
 	return nil // Success!

@@ -80,7 +80,6 @@ func (db *Database) Cypher(q *CypherQuery) error {
 		return err
 	}
 	if resp.Status() != 200 {
-		logPretty(ne)
 		return ne
 	}
 	q.cr = result
@@ -128,7 +127,6 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 		return err
 	}
 	if resp.Status() != 200 {
-		logPretty(ne)
 		return ne
 	}
 	if len(res) != len(qs) {

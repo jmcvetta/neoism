@@ -41,7 +41,6 @@ func (e *entity) Property(key string) (string, error) {
 	ne := NeoError{}
 	resp, err := e.Db.Session.Get(url, nil, &val, &ne)
 	if err != nil {
-		logPretty(err)
 		return val, err
 	}
 	switch resp.Status() {
@@ -69,7 +68,6 @@ func (e *entity) DeleteProperty(key string) error {
 	case 404:
 		return NotFound
 	}
-	logPretty(ne)
 	return ne
 }
 
@@ -87,8 +85,6 @@ func (e *entity) Delete() error {
 	case 409:
 		return CannotDelete
 	default:
-		logPretty(resp.Status())
-		logPretty(ne)
 		return ne
 	}
 	return nil
@@ -118,7 +114,6 @@ func (e *entity) SetProperties(p Props) error {
 	if resp.Status() == 204 {
 		return nil // Success!
 	}
-	logPretty(ne)
 	return ne
 }
 
@@ -135,6 +130,5 @@ func (e *entity) DeleteProperties() error {
 	case 404:
 		return NotFound
 	}
-	logPretty(ne)
 	return ne
 }

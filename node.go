@@ -91,7 +91,6 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	case status == 404:
 		return &n, NotFound
 	case status != 200 || n.HrefSelf == "":
-		logPretty(ne)
 		return nil, ne
 	}
 	return &n, nil
@@ -141,7 +140,6 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		return rels, err
 	}
 	if resp.Status() != 200 {
-		logPretty(ne)
 		return rels, ne
 	}
 	return rels, nil // Success!
@@ -183,7 +181,6 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 		return &rel, err
 	}
 	if resp.Status() != 201 {
-		logPretty(ne)
 		return &rel, ne
 	}
 	return &rel, nil
