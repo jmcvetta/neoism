@@ -78,7 +78,6 @@ func (idx *LegacyNodeIndex) Find(key, value string) (map[int]*Node, error) {
 		return nm, err
 	}
 	if resp.Status() != 200 {
-		logPretty(ne)
 		return nm, ne
 	}
 	for _, n := range result {
@@ -109,7 +108,6 @@ func (idx *index) Query(query string) (map[int]*Node, error) {
 		return nm, err
 	}
 	if resp.Status() != 200 {
-		logPretty(ne)
 		return nm, ne
 	}
 	for _, n := range result {

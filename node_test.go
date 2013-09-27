@@ -10,9 +10,7 @@ package neoism
 
 import (
 	"github.com/bmizerany/assert"
-	// "github.com/jmcvetta/randutil"
-	// "log"
-	// "sort"
+	"github.com/jmcvetta/randutil"
 	"testing"
 )
 
@@ -30,6 +28,13 @@ func TestCreateNode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	//
+	// Bad Href
+	//
+	db1 := connectTest(t)
+	db1.HrefNode = db1.HrefNode + "foobar"
+	_, err = db1.CreateNode(nil)
+	assert.Equal(t, NotFound, err)
 }
 
 // 18.4.2. Create Node with properties
@@ -52,6 +57,67 @@ func TestCreateNodeWithProperties(t *testing.T) {
 	// Confirm properties
 	props1, _ := n0.Properties()
 	assert.Equalf(t, props0, props1, "Node properties not as expected")
+}
+
+// 18.4.2. Create Node with properties
+func TestGetOrCreateNode(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	label, err := randutil.String(12, randutil.Alphabet)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := randutil.String(12, randutil.Alphabet)
+	if err != nil {
+		t.Fatal(err)
+	}
+	value, err := randutil.String(12, randutil.Alphabet)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p0 := Props{key: value, "foo": "bar"}
+	p1 := Props{key: value}
+	p2 := Props{"foo": "bar"}
+	//
+	// Create unique node
+	//
+	n0, created, err := db.GetOrCreateNode(label, key, p0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !created {
+		t.Fatal("Failed to create unique node")
+	}
+	check0, err := n0.Properties()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, p0, check0)
+	//
+	// Get unique node
+	//
+	n1, created, err := db.GetOrCreateNode(label, key, p1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created {
+		t.Fatal("Failed to retrieve unique node")
+	}
+	check1, err := n1.Properties()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, p0, check1)
+	//
+	// No key in props
+	//
+	_, _, err = db.GetOrCreateNode(label, key, p2)
+	assert.NotEqual(t, nil, err)
+	//
+	// Empty label
+	//
+	_, _, err = db.GetOrCreateNode("", key, p0)
+	assert.NotEqual(t, nil, err)
 }
 
 // 18.4.3. Get node
@@ -95,6 +161,12 @@ func TestDeleteNode(t *testing.T) {
 	// Check that node is no longer in db
 	_, err = db.Node(id)
 	assert.Equal(t, err, NotFound)
+	//
+	// Delete non-existent node
+	//
+	err = n0.Delete()
+	assert.Equal(t, NotFound, err)
+
 }
 
 // 18.4.6. Nodes with relationships can not be deleted;

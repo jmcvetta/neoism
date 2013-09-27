@@ -5,6 +5,7 @@
 package neoism
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -15,18 +16,65 @@ func (db *Database) CreateNode(p Props) (*Node, error) {
 	n.Db = db
 	ne := NeoError{}
 	resp, err := db.Session.Post(db.HrefNode, &p, &n, &ne)
-	if err != nil || resp.Status() != 201 {
-		logPretty(resp.Status())
-		logPretty(ne)
+	if err != nil {
 		return &n, err
 	}
-	return &n, nil
+	switch resp.Status() {
+	case 201: // Success
+		return &n, nil
+	case 404:
+		return nil, NotFound
+	}
+	return nil, ne
 }
 
 // Node fetches a Node from the database
 func (db *Database) Node(id int) (*Node, error) {
 	uri := join(db.HrefNode, strconv.Itoa(id))
 	return db.getNodeByUri(uri)
+}
+
+// GetOrCreateNode creates a node if it doesn’t already exist.
+func (db *Database) GetOrCreateNode(label, key string, p Props) (n *Node, created bool, err error) {
+	/*
+		valInterface, ok := p[key]
+		if !ok {
+			return nil, false, errors.New("Properties must contain key")
+		}
+		value, ok := valInterface.(string)
+		if !ok {
+			return nil, false, errors.New("Value of key must be a string")
+		}
+	*/
+	value, ok := p[key]
+	if !ok {
+		return nil, false, errors.New("Properties must contain key")
+	}
+	n = &Node{}
+	n.Db = db
+	ne := NeoError{}
+	uri := join(db.HrefNodeIndex, label) + "?uniqueness=get_or_create"
+	type s struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
+		Props Props       `json:"properties"`
+	}
+	payload := s{
+		Key:   key,
+		Value: value,
+		Props: p,
+	}
+	resp, err := db.Session.Post(uri, &payload, &n, &ne)
+	if err != nil {
+		return nil, false, err
+	}
+	switch resp.Status() {
+	case 200:
+		return n, false, nil // Existing node
+	case 201:
+		return n, true, nil // Created node
+	}
+	return nil, false, ne // Error
 }
 
 // getNodeByUri fetches a Node from the database based on its URI.
@@ -43,7 +91,6 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	case status == 404:
 		return &n, NotFound
 	case status != 200 || n.HrefSelf == "":
-		logPretty(ne)
 		return nil, ne
 	}
 	return &n, nil
@@ -93,7 +140,6 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		return rels, err
 	}
 	if resp.Status() != 200 {
-		logPretty(ne)
 		return rels, ne
 	}
 	return rels, nil // Success!
@@ -135,7 +181,6 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 		return &rel, err
 	}
 	if resp.Status() != 201 {
-		logPretty(ne)
 		return &rel, ne
 	}
 	return &rel, nil
