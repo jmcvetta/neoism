@@ -13,11 +13,10 @@ import (
 func (db *Database) CreateNode(p Props) (*Node, error) {
 	n := Node{}
 	n.Db = db
-	resp, err := db.Session.Post(db.HrefNode, &p, &n)
+	ne := NeoError{}
+	resp, err := db.Session.Post(db.HrefNode, &p, &n, &ne)
 	if err != nil || resp.Status() != 201 {
 		logPretty(resp.Status())
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return &n, err
 	}
@@ -34,7 +33,8 @@ func (db *Database) Node(id int) (*Node, error) {
 func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	n := Node{}
 	n.Db = db
-	resp, err := db.Session.Get(uri, nil, &n)
+	ne := NeoError{}
+	resp, err := db.Session.Get(uri, nil, &n, &ne)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +43,6 @@ func (db *Database) getNodeByUri(uri string) (*Node, error) {
 	case status == 404:
 		return &n, NotFound
 	case status != 200 || n.HrefSelf == "":
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return nil, ne
 	}
@@ -89,13 +87,12 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 		uri = strings.Join(parts, "/")
 	}
 	rels := Rels{}
-	resp, err := n.Db.Session.Get(uri, nil, &rels)
+	ne := NeoError{}
+	resp, err := n.Db.Session.Get(uri, nil, &rels, &ne)
 	if err != nil {
 		return rels, err
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return rels, ne
 	}
@@ -132,13 +129,12 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 	if p != nil {
 		content["data"] = &p
 	}
-	resp, err := n.Db.Session.Post(srcUri, content, &rel)
+	ne := NeoError{}
+	resp, err := n.Db.Session.Post(srcUri, content, &rel, &ne)
 	if err != nil {
 		return &rel, err
 	}
 	if resp.Status() != 201 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		logPretty(ne)
 		return &rel, ne
 	}
@@ -147,7 +143,8 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 
 // AddLabels adds one or more labels to a node.
 func (n *Node) AddLabel(labels ...string) error {
-	resp, err := n.Db.Session.Post(n.HrefLabels, labels, nil)
+	ne := NeoError{}
+	resp, err := n.Db.Session.Post(n.HrefLabels, labels, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -155,8 +152,6 @@ func (n *Node) AddLabel(labels ...string) error {
 		return NotFound
 	}
 	if resp.Status() != 204 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
@@ -165,7 +160,8 @@ func (n *Node) AddLabel(labels ...string) error {
 // Labels lists labels for a node.
 func (n *Node) Labels() ([]string, error) {
 	res := []string{}
-	resp, err := n.Db.Session.Get(n.HrefLabels, nil, &res)
+	ne := NeoError{}
+	resp, err := n.Db.Session.Get(n.HrefLabels, nil, &res, &ne)
 	if err != nil {
 		return res, err
 	}
@@ -173,8 +169,6 @@ func (n *Node) Labels() ([]string, error) {
 		return res, NotFound
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return res, ne
 	}
 	return res, nil // Success
@@ -183,7 +177,8 @@ func (n *Node) Labels() ([]string, error) {
 // RemoveLabel removes a label from a node.
 func (n *Node) RemoveLabel(label string) error {
 	uri := join(n.HrefLabels, label)
-	resp, err := n.Db.Session.Delete(uri)
+	ne := NeoError{}
+	resp, err := n.Db.Session.Delete(uri, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -191,8 +186,6 @@ func (n *Node) RemoveLabel(label string) error {
 		return NotFound
 	}
 	if resp.Status() != 204 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
@@ -201,7 +194,8 @@ func (n *Node) RemoveLabel(label string) error {
 // SetLabels removes any labels currently on a node, and replaces them with the
 // labels provided as argument.
 func (n *Node) SetLabels(labels []string) error {
-	resp, err := n.Db.Session.Put(n.HrefLabels, labels, nil)
+	ne := NeoError{}
+	resp, err := n.Db.Session.Put(n.HrefLabels, labels, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -209,8 +203,6 @@ func (n *Node) SetLabels(labels []string) error {
 		return NotFound
 	}
 	if resp.Status() != 204 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil // Success
@@ -220,7 +212,8 @@ func (n *Node) SetLabels(labels []string) error {
 func (db *Database) NodesByLabel(label string) ([]*Node, error) {
 	uri := join(db.Url, "label", label, "nodes")
 	res := []*Node{}
-	resp, err := db.Session.Get(uri, nil, &res)
+	ne := NeoError{}
+	resp, err := db.Session.Get(uri, nil, &res, &ne)
 	if err != nil {
 		return res, err
 	}
@@ -228,8 +221,6 @@ func (db *Database) NodesByLabel(label string) ([]*Node, error) {
 		return res, NotFound
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return res, ne
 	}
 	for _, n := range res {
@@ -242,13 +233,12 @@ func (db *Database) NodesByLabel(label string) ([]*Node, error) {
 func (db *Database) Labels() ([]string, error) {
 	uri := join(db.Url, "labels")
 	labels := []string{}
-	resp, err := db.Session.Get(uri, nil, &labels)
+	ne := NeoError{}
+	resp, err := db.Session.Get(uri, nil, &labels, &ne)
 	if err != nil {
 		return labels, err
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return labels, ne
 	}
 	return labels, nil
