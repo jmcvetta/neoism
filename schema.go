@@ -18,7 +18,8 @@ type Index struct {
 // Drop removes the index.
 func (idx *Index) Drop() error {
 	uri := join(idx.db.Url, "schema/index", idx.Label, idx.PropertyKeys[0])
-	resp, err := idx.db.Session.Delete(uri)
+	ne := NeoError{}
+	resp, err := idx.db.Session.Delete(uri, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -26,8 +27,6 @@ func (idx *Index) Drop() error {
 		return NotFound
 	}
 	if resp.Status() != 204 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return ne
 	}
 	return nil
@@ -39,7 +38,8 @@ func (db *Database) CreateIndex(label, property string) (*Index, error) {
 	uri := join(db.Url, "schema/index", label)
 	payload := indexRequest{[]string{property}}
 	result := Index{db: db}
-	resp, err := db.Session.Post(uri, payload, &result)
+	ne := NeoError{}
+	resp, err := db.Session.Post(uri, payload, &result, &ne)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +49,6 @@ func (db *Database) CreateIndex(label, property string) (*Index, error) {
 	case 404:
 		return nil, NotFound
 	}
-	ne := NeoError{}
-	resp.Unmarshal(&ne)
 	return nil, ne
 }
 
@@ -58,7 +56,8 @@ func (db *Database) CreateIndex(label, property string) (*Index, error) {
 func (db *Database) Indexes(label string) ([]*Index, error) {
 	uri := join(db.Url, "schema/index", label)
 	result := []*Index{}
-	resp, err := db.Session.Get(uri, nil, &result)
+	ne := NeoError{}
+	resp, err := db.Session.Get(uri, nil, &result, &ne)
 	if err != nil {
 		return result, err
 	}
@@ -66,8 +65,6 @@ func (db *Database) Indexes(label string) ([]*Index, error) {
 		return result, NotFound
 	}
 	if resp.Status() != 200 {
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		return result, ne
 	}
 	for _, idx := range result {

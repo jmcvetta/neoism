@@ -15,14 +15,13 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 	rel := Relationship{}
 	rel.Db = db
 	uri := join(db.Url, "relationship", strconv.Itoa(id))
-	resp, err := db.Session.Get(uri, nil, &rel)
+	ne := NeoError{}
+	resp, err := db.Session.Get(uri, nil, &rel, &ne)
 	if err != nil {
 		return &rel, err
 	}
 	switch resp.Status() {
 	default:
-		ne := NeoError{}
-		resp.Unmarshal(&ne)
 		logPretty(ne)
 		err = ne
 	case 200:
@@ -36,7 +35,8 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 // Types lists all existing relationship types
 func (db *Database) RelTypes() ([]string, error) {
 	reltypes := []string{}
-	resp, err := db.Session.Get(db.HrefRelTypes, nil, &reltypes)
+	ne := NeoError{}
+	resp, err := db.Session.Get(db.HrefRelTypes, nil, &reltypes, &ne)
 	if err != nil {
 		return reltypes, err
 	}
@@ -44,8 +44,6 @@ func (db *Database) RelTypes() ([]string, error) {
 		sort.Sort(sort.StringSlice(reltypes))
 		return reltypes, nil // Success!
 	}
-	ne := NeoError{}
-	resp.Unmarshal(&ne)
 	logPretty(ne)
 	return reltypes, ne
 }
