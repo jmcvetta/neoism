@@ -22,7 +22,6 @@ func (db *Database) Relationship(id int) (*Relationship, error) {
 	}
 	switch resp.Status() {
 	default:
-		logPretty(ne)
 		err = ne
 	case 200:
 		err = nil // Success!
@@ -44,7 +43,6 @@ func (db *Database) RelTypes() ([]string, error) {
 		sort.Sort(sort.StringSlice(reltypes))
 		return reltypes, nil // Success!
 	}
-	logPretty(ne)
 	return reltypes, ne
 }
 
