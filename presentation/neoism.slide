@@ -72,8 +72,21 @@ Installation:
   $ go get github.com/jmcvetta/neoism
 
 
+* Connect
+
+First we'll need to grab a connection to the Neo4j database:
+
+.code presentation.go /^func connect/,/^}/
+
+At this point we could enable _extremely_ verbose logging of every HTTP request
+and response by the underlying REST client:
+
+  db.Session.Log = true
+
+
 * To Do
 
 - Streaming API support
 - More complete support for unique nodes and relationships
+- Gremlin support
 
