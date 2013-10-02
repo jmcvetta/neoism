@@ -34,47 +34,30 @@ func create(db *neoism.Database) {
 	spock.Relate("outranks", mccoy.Id(), nil)
 }
 
-func cypher0(db *neoism.Database) *neoism.Node {
-	res := []struct {
-		N neoism.Node // Column "n" gets automagically unmarshalled into field N
-	}{}
-	cq0 := neoism.CypherQuery{
-		Statement: "CREATE (n {name: {crewman}, shirt: {shirt}}) RETURN n",
-		// Use parameters instead of constructing a query string
-		Parameters: neoism.Props{"crewman": "Scottie", "shirt": "red"},
-		Result:     &res,
-	}
-	err := db.Cypher(&cq0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	scottie := res[0].N // Only one row of data returned
-	scottie.Db = db     // Must manually set Db with objects returned from Cypher query
-	fmt.Println(scottie.Properties())
-	// Output: map[shirt:red name:Scottie] <nil>
-	return &scottie
-}
-
-func cypher1(db *neoism.Database, scottie *neoism.Node) {
+func transaction(db *neoism.Database) {
 	res := []struct {
 		M   string `json:"m.name"` // `json` tag matches column name in query
 		Rel string `json:"type(r)"`
 		N   string `json:"n.name"`
 	}{}
-	cq1 := neoism.CypherQuery{
-		// Use backticks for long statements - Cypher is whitespace indifferent
-		Statement: `
-				START n=node({id}), m=node(*)
-				WHERE m.shirt = {color}
+	qs := []*neoism.CypherQuery{
+		&neoism.CypherQuery{
+			Statement:  "CREATE (n {name: {crewman}, shirt: {shirt}}) RETURN n",
+			Parameters: neoism.Props{"crewman": "Scottie", "shirt": "red"},
+		},
+		&neoism.CypherQuery{
+			Statement: `START n=node(*), m=node(*)
+				WHERE n.name = {name}, m.shirt = {color}
 				CREATE (m)-[r:outranks]->(n)
-				RETURN m.name, type(r), n.name
-			`,
-		Parameters: neoism.Props{"id": scottie.Id(), "color": "blue"},
-		Result:     &res,
+				RETURN m.name, type(r), n.name`,
+			Parameters: neoism.Props{"name": "Scottie", "color": "blue"},
+			Result:     &res,
+		},
 	}
-	db.Cypher(&cq1)
-	fmt.Println(res)
-	// Output: [{Spock outranks Scottie} {McCoy outranks Scottie}]
+	// db.Session.Log = true
+	tx, _ := db.Begin(qs)
+	fmt.Println(tx)
+	tx.Commit()
 }
 
 func cypherBatch(db *neoism.Database) {
@@ -85,8 +68,7 @@ func main() {
 	db := connect()
 	defer cleanup(db)
 	create(db)
-	scottie := cypher0(db)
-	cypher1(db, scottie)
+	transaction(db)
 }
 
 func cleanup(db *neoism.Database) {
