@@ -10,7 +10,9 @@ jason.mcvetta@gmail.com
 * Who is this guy?
 
 - Python programmer for over 10 years
-- Gopher for the past year or so
+- Gopher for the past year or two
+- Lots of experience with relational databases and SQL
+- Relative newb to graph databases
 - Freelance consultant (Hire me!)
 
 
@@ -91,23 +93,71 @@ Let's create some nodes, and relationships between them:
 .code presentation.go /^func create/,/^}/
 
 
-* Cypher 
+* Cypher - Transaction
 
-Now let's use a Cypher query to create another node:
+Let's use Cypher to create a node and some relationships inside a transaction:
 
 .code presentation.go /^func transaction/,/^}/
 
 
-* Cypher (cont'd)
+* Cypher - Single Query
 
 Use Cypher to create relationships between several nodes:
 
-// .code presentation.go /^func cypher1/,/^}/
+.code presentation.go /^func cypher/,/^}/
+
+
+* Unmarshaling Results
+
+Neo4j returns Cypher query results in a format that is compact, but challenging
+to unmarshal using Go's standard library `json` package.  Column names are
+returned in an array field.  Actual result data is returned in a seperate field
+as an array of arrays, where the outer array represents the rows, and the inner
+arrays represent the columns.  The `json` package can only unmarshal based on
+field name, not on position within an array.
+
+For example:
+
+	{
+	  "columns" : [ "type(r)", "n.name", "n.age" ],
+	  "data" : [ [ "know", "him", 25 ], [ "know", "you", null ] ]
+	}
+
+
+* Unmarshaling Results (cont'd)
+
+Current solution is to transform the result JSON into a format that can be
+easily unmarshaled into a struct.  This is done by round-tripping though the
+marshaller.  This solution is robust, but inefficient.
+
+	func (cq *CypherQuery) Unmarshal(v interface{}) error {
+		// We do a round-trip thru the JSON marshaller.  A fairly simple way to
+		// do type-safe unmarshalling, but perhaps not the most efficient solution.
+		rs := make([]map[string]*json.RawMessage, len(cq.cr.Data))
+		for rowNum, row := range cq.cr.Data {
+			m := map[string]*json.RawMessage{}
+			for colNum, col := range row {
+				name := cq.cr.Columns[colNum]
+				m[name] = col
+			}
+			rs[rowNum] = m
+		}
+		b, err := json.Marshal(rs)
+		if err != nil {
+			logPretty(err)
+			return err
+		}
+		return json.Unmarshal(b, v)
+	}
 
 
 * To Do
 
-- Streaming API support
+Features for Neo4j 2.0:
+
+
 - More complete support for unique nodes and relationships
-- Gremlin support
+- More efficient unmarshaling of Cypher query results
+- Create node with label. As of 2.0.0-M03, REST API can only create labeled nodes via Cypher query.
+- HTTP streaming support.  Will improve performance somewhat; but REST API does not currently support true streaming of results.
 

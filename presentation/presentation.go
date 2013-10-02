@@ -35,33 +35,46 @@ func create(db *neoism.Database) {
 }
 
 func transaction(db *neoism.Database) {
-	res := []struct {
-		M   string `json:"m.name"` // `json` tag matches column name in query
-		Rel string `json:"type(r)"`
-		N   string `json:"n.name"`
-	}{}
 	qs := []*neoism.CypherQuery{
 		&neoism.CypherQuery{
-			Statement:  "CREATE (n {name: {crewman}, shirt: {shirt}}) RETURN n",
-			Parameters: neoism.Props{"crewman": "Scottie", "shirt": "red"},
+			Statement: `CREATE (n {name: "Scottie", shirt: "red"}) RETURN n`,
 		},
 		&neoism.CypherQuery{
 			Statement: `START n=node(*), m=node(*)
-				WHERE n.name = {name}, m.shirt = {color}
+				WHERE n.name = {name} AND m.shirt = {color}
 				CREATE (m)-[r:outranks]->(n)
 				RETURN m.name, type(r), n.name`,
 			Parameters: neoism.Props{"name": "Scottie", "color": "blue"},
-			Result:     &res,
+			Result: &[]struct {
+				M   string `json:"m.name"` // `json` tag matches column name in query
+				Rel string `json:"type(r)"`
+				N   string `json:"n.name"`
+			}{},
 		},
 	}
-	// db.Session.Log = true
 	tx, _ := db.Begin(qs)
-	fmt.Println(tx)
+	fmt.Println(qs[1].Result) // Output:  &[{Spock outranks Scottie} {McCoy outranks Scottie}]
 	tx.Commit()
 }
 
-func cypherBatch(db *neoism.Database) {
-
+func cypher(db *neoism.Database) {
+	cq := neoism.CypherQuery{
+		Statement: `START n=node(*)
+			MATCH (n)-[r:outranks]->(m)
+			WHERE n.shirt = {color}
+			RETURN n.name, type(r), m.name
+			`,
+		Parameters: neoism.Props{"color": "blue"},
+		Result: &[]struct {
+			N   string `json:"n.name"`
+			Rel string `json:"type(r)"`
+			M   string `json:"m.name"`
+		}{},
+	}
+	// db.Session.Log = true
+	db.Cypher(&cq)
+	fmt.Println(cq.Result)
+	// Output: &[{Spock outranks McCoy} {Spock outranks Scottie} {McCoy outranks Scottie}]
 }
 
 func main() {
@@ -69,6 +82,7 @@ func main() {
 	defer cleanup(db)
 	create(db)
 	transaction(db)
+	cypher(db)
 }
 
 func cleanup(db *neoism.Database) {
