@@ -43,3 +43,37 @@ Thus Neoism was born
 - github.com/jmcvetta/neoism
 - Originally called “neo4j”, but that conflicted with the name of Neo4j itself, and made forking repos awkward
 
+
+* Features
+
+- Node (create/edit/relate/delete/properties)
+- Relationship (create/edit/delete/properties)
+- Legacy Indexing
+- Cypher queries
+- Batched Cypher queries
+
+Neo4j 2.0 support (more features to come):
+
+- Transactional endpoint
+- Node labels
+- Schema index
+- Get or create unique node
+
+
+* Getting Started
+
+Requirements:
+
+- Go 1.1 or higher
+- Neo4j 1.9 or higher (test suite currently requires 2.0.0-M03)
+
+Installation:
+
+  $ go get github.com/jmcvetta/neoism
+
+
+* To Do
+
+- Streaming API support
+- More complete support for unique nodes and relationships
+
