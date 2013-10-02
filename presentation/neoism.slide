@@ -84,6 +84,27 @@ and response by the underlying REST client:
   db.Session.Log = true
 
 
+* Nodes & Relationships
+
+Let's create some nodes, and relationships between them:
+
+.code presentation.go /^func create/,/^}/
+
+
+* Cypher 
+
+Now let's use a Cypher query to create another node:
+
+.code presentation.go /^func cypher0/,/^}/
+
+
+* Cypher (cont'd)
+
+Use Cypher to create relationships between several nodes:
+
+.code presentation.go /^func cypher1/,/^}/
+
+
 * To Do
 
 - Streaming API support
