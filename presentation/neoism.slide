@@ -1,0 +1,45 @@
+Neoism
+a Neo4j driver for Go
+1 Oct 2013
+Tags: neo4j, go, golang, graph database
+
+Jason McVetta
+jason.mcvetta@gmail.com
+
+
+* Who is this guy?
+
+- Python programmer for over 10 years
+- Gopher for the past year or so
+- Freelance consultant (Hire me!)
+
+
+* History
+
+“Go is the new Python”
+
+- Faster, safer, more beautiful
+- However, whereas Python has a library for just about everything, Go does not…
+
+Graphs are everywhere
+
+- I wanted to play with graph databases
+- Neo4j was the obvious choice:
+- Low barrier to evaluation
+- Free Software (even for enterprise - AGPL)
+- Cypher!
+
+
+* History (cont'd)
+
+Problem: no Neo4j driver for Go
+
+- But Neo4j has a REST API
+- Crappy solution: manually construct REST calls as needed
+- Better solution: write a driver package
+
+Thus Neoism was born
+
+- github.com/jmcvetta/neoism
+- Originally called “neo4j”, but that conflicted with the name of Neo4j itself, and made forking repos awkward
+
