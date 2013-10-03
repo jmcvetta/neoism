@@ -59,7 +59,8 @@ func transaction(db *neoism.Database) {
 
 func cypher(db *neoism.Database) {
 	cq := neoism.CypherQuery{
-		Statement: `START n=node(*)
+		Statement: `
+			START n=node(*)
 			MATCH (n)-[r:outranks]->(m)
 			WHERE n.shirt = {color}
 			RETURN n.name, type(r), m.name
