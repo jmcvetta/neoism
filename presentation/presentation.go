@@ -23,13 +23,13 @@ func create(db *neoism.Database) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(kirk.Properties()) // Output: map[shirt:yellow name:Kirk] <nil>
+	fmt.Println(kirk.Properties()) // map[shirt:yellow name:Kirk] <nil>
 	// Ignoring subsequent errors for brevity
 	spock, _ := db.CreateNode(neoism.Props{"name": "Spock", "shirt": "blue"})
 	mccoy, _ := db.CreateNode(neoism.Props{"name": "McCoy", "shirt": "blue"})
 	r, _ := kirk.Relate("outranks", spock.Id(), nil) // No properties on this relationship
-	start, _ := r.End()
-	fmt.Println(start.Properties()) // Output: map[shirt:blue name:Spock] <nil>
+	start, _ := r.Start()
+	fmt.Println(start.Properties()) // map[name:Kirk shirt:yellow] <nil>
 	kirk.Relate("outranks", mccoy.Id(), nil)
 	spock.Relate("outranks", mccoy.Id(), nil)
 }
@@ -41,19 +41,19 @@ func transaction(db *neoism.Database) {
 		},
 		&neoism.CypherQuery{
 			Statement: `START n=node(*), m=node(*)
-				WHERE n.name = {name} AND m.shirt = {color}
-				CREATE (m)-[r:outranks]->(n)
-				RETURN m.name, type(r), n.name`,
-			Parameters: neoism.Props{"name": "Scottie", "color": "blue"},
+				WHERE m.name = {name} AND n.shirt IN {colors}
+				CREATE (n)-[r:outranks]->(m)
+				RETURN n.name, type(r), m.name`,
+			Parameters: neoism.Props{"name": "Scottie", "colors": []string{"yellow", "blue"}},
 			Result: &[]struct {
-				M   string `json:"m.name"` // `json` tag matches column name in query
+				N   string `json:"n.name"` // `json` tag matches column name in query
 				Rel string `json:"type(r)"`
-				N   string `json:"n.name"`
+				M   string `json:"m.name"`
 			}{},
 		},
 	}
 	tx, _ := db.Begin(qs)
-	fmt.Println(qs[1].Result) // Output:  &[{Spock outranks Scottie} {McCoy outranks Scottie}]
+	fmt.Println(qs[1].Result) // &[{Kirk outranks Scottie} {Spock outranks Scottie} {McCoy o...
 	tx.Commit()
 }
 
@@ -74,7 +74,7 @@ func cypher(db *neoism.Database) {
 	// db.Session.Log = true
 	db.Cypher(&cq)
 	fmt.Println(cq.Result)
-	// Output: &[{Spock outranks McCoy} {Spock outranks Scottie} {McCoy outranks Scottie}]
+	// &[{Spock outranks McCoy} {Spock outranks Scottie} {McCoy outranks Scottie}]
 }
 
 func main() {
