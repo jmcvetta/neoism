@@ -1,7 +1,7 @@
 Neoism
 a Neo4j driver for Go
-1 Oct 2013
-Tags: neo4j, go, golang, graph database
+2 Oct 2013
+Tags: neo4j, go, golang, graph database, driver
 
 Jason McVetta
 jason.mcvetta@gmail.com
@@ -9,10 +9,10 @@ jason.mcvetta@gmail.com
 
 * Who is this guy?
 
-- Python programmer for over 10 years
+- Python programmer for over 12 years
 - Gopher for the past year or two
 - Lots of experience with relational databases and SQL
-- Relative newb to graph databases
+- Relatively new to graph databases
 - Freelance consultant (Hire me!)
 
 
@@ -20,7 +20,8 @@ jason.mcvetta@gmail.com
 
 “Go is the new Python”
 
-- Faster, safer, more beautiful
+- Expressive, clean, "feels like" writing in Python or Ruby
+- Faster (by a ridiculous margin), safer, more beautiful
 - However, whereas Python has a library for just about everything, Go does not…
 
 Graphs are everywhere
@@ -36,14 +37,15 @@ Graphs are everywhere
 
 Problem: no Neo4j driver for Go
 
-- But Neo4j has a REST API
+- But Neo4j has a REST API!
 - Crappy solution: manually construct REST calls as needed
 - Better solution: write a driver package
 
 Thus Neoism was born
 
-- github.com/jmcvetta/neoism
 - Originally called “neo4j”, but that conflicted with the name of Neo4j itself, and made forking repos awkward
+
+.image neoism.png
 
 
 * Features
@@ -80,8 +82,7 @@ First we'll need to grab a connection to the Neo4j database:
 
 .code presentation.go /^func connect/,/^}/
 
-At this point we could enable _extremely_ verbose logging of every HTTP request
-and response by the underlying REST client:
+At this point we could enable _extremely_ verbose logging of every HTTP request and response by Napping, the underlying REST client:
 
   db.Session.Log = true
 
@@ -107,14 +108,20 @@ Use Cypher to create relationships between several nodes:
 .code presentation.go /^func cypher/,/^}/
 
 
+* Cypher - Batch
+
+Batch support for Cypher queries is very similar to using a transaction, except that the transaction is committed immediately upon success:
+
+.code presentation.go /^func cleanup/,/^}/
+
+
 * Unmarshaling Results
 
-Neo4j returns Cypher query results in a format that is compact, but challenging
-to unmarshal using Go's standard library `json` package.  Column names are
-returned in an array field.  Actual result data is returned in a seperate field
-as an array of arrays, where the outer array represents the rows, and the inner
-arrays represent the columns.  The `json` package can only unmarshal based on
-field name, not on position within an array.
+Neo4j returns Cypher query results in a format that is compact, but challenging to unmarshal into a struct.
+
+Column names are returned in an array field.
+
+Actual result data is returned in a seperate field as an array of arrays, where the outer array represents the rows, and the inner arrays represent the columns.
 
 For example:
 
@@ -123,12 +130,12 @@ For example:
 	  "data" : [ [ "know", "him", 25 ], [ "know", "you", null ] ]
 	}
 
+Problem: the standard library `json` package can only unmarshal based on field name, not on position within an array.
+
 
 * Unmarshaling Results (cont'd)
 
-Current solution is to transform the result JSON into a format that can be
-easily unmarshaled into a struct.  This is done by round-tripping though the
-marshaller.  This solution is robust, but inefficient.
+Current solution is to transform the result JSON so it can easily be unmarshaled into a slice of structs.  This is done by round-tripping though the marshaller.  This solution is robust, but inefficient.
 
 	func (cq *CypherQuery) Unmarshal(v interface{}) error {
 		// We do a round-trip thru the JSON marshaller.  A fairly simple way to
@@ -153,11 +160,17 @@ marshaller.  This solution is robust, but inefficient.
 
 * To Do
 
+General Features:
+
+- More efficient unmarshaling of Cypher query results
+- Graph algorithm support
+- Traversals - security issues, see manual
+- Think about how to support multiple versions of Neo4j, which may have  different APIs
+
+
 Features for Neo4j 2.0:
 
-
 - More complete support for unique nodes and relationships
-- More efficient unmarshaling of Cypher query results
-- Create node with label. As of 2.0.0-M03, REST API can only create labeled nodes via Cypher query.
-- HTTP streaming support.  Will improve performance somewhat; but REST API does not currently support true streaming of results.
+- Create node with label. REST API cannot create a labeled node in a single operation, except using a Cypher query
+- HTTP streaming support.  Will improve performance somewhat; but REST API does not currently support true streaming of results
 
