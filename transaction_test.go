@@ -168,9 +168,9 @@ func TestTxBadQuery(t *testing.T) {
 	}
 	tx, err := db.Begin(qs)
 	assert.Equal(t, TxQueryError, err)
+	tx.Rollback() // Else cleanup will hang til Tx times out
 	numErr := len(tx.Errors)
 	assert.T(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
-	tx.Rollback() // Else cleanup will hang til Tx times out
 }
 
 func TestTxQuery(t *testing.T) {
