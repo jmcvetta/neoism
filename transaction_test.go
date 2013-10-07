@@ -64,10 +64,10 @@ func TestTxBegin(t *testing.T) {
 	assert.Equal(t, *new([]string), q1.Columns())
 	stmts := []*CypherQuery{&q0, &q1, &q2}
 	tx, err := db.Begin(stmts)
+	tx.Rollback()
 	if err != nil {
 		t.Fatal(err)
 	}
-	tx.Rollback() // Else cleanup will hang til Tx times out
 	assert.Equal(t, 1, len(res0))
 	assert.Equal(t, "James T Kirk", res0[0].N.Name)
 	assert.Equal(t, 1, len(res1))
