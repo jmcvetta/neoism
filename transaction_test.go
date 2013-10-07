@@ -14,24 +14,24 @@ import (
 type resStruct0 struct {
 	N struct {
 		Name string
-	}
+	} `neoism:"n"`
 }
 
 type resStruct1 struct {
-	M map[string]string
+	M map[string]string `neoism:"m"`
 }
 
 type resStruct2 struct {
-	A   string `json:"a.name"`
-	Rel string `json:"type(r)"`
+	A   string `neoism:"a.name"`
+	Rel string `neoism:"type(r)"`
 	B   struct {
 		Name string
-	} `json:"b"`
+	} `neoism:"b"`
 }
 
 func TestTxBegin(t *testing.T) {
 	db := connectTest(t)
-	defer cleanup(t, db)
+	// defer cleanup(t, db)
 	type name struct {
 		Name string `json:"name"`
 	}
@@ -63,7 +63,9 @@ func TestTxBegin(t *testing.T) {
 
 	assert.Equal(t, *new([]string), q1.Columns())
 	stmts := []*CypherQuery{&q0, &q1, &q2}
+	db.Session.Log = true
 	tx, err := db.Begin(stmts)
+	db.Session.Log = false
 	tx.Rollback()
 	if err != nil {
 		t.Fatal(err)

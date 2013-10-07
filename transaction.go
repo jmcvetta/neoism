@@ -5,7 +5,10 @@
 package neoism
 
 import (
+	"encoding/json"
 	"errors"
+	"reflect"
+	"os"
 )
 
 // A Tx is an in-progress database transaction.
@@ -34,8 +37,14 @@ type txRequest struct {
 }
 
 type txResponse struct {
-	Commit      string
-	Results     []cypherResult
+	Commit  string
+	Results []struct {
+		Columns []string
+		// Data    [][]*json.RawMessage
+		Data []struct{
+	        Row []*json.RawMessage
+		}
+	}
 	Transaction struct {
 		Expires string
 	}
@@ -45,6 +54,75 @@ type txResponse struct {
 // unmarshal populates a slice of CypherQuery object with result data returned
 // from the server.
 func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
+	if len(tr.Results) != len(qs) {
+		return errors.New("Result count does not match query count")
+	}
+	for resultIdx, res := range tr.Results {
+		if len(res.Data) != 1 {
+			return errors.New("Confused by server response - please file an Issue with as much detail as you can provide!")
+		}
+		cq := qs[resultIdx]
+		resType := reflect.TypeOf(cq.Result).Elem().Elem()
+		// resSliceType := reflect.SliceOf(resType)
+		r := reflect.New(resType).Elem()
+		// s := reflect.New(resSliceType).Elem()
+		//
+		// Parse struct tags
+		//
+		fieldNameToNum := make(map[string]int)
+		for n := 0; n < r.NumField(); n++ {
+			tag := resType.Field(n).Tag.Get("neoism")
+			if tag == "" {
+				continue
+			}
+			fieldNameToNum[tag] = n
+
+		}
+		//
+		// Sanity check
+		//
+		columnToField := make(map[int]int)
+		for colNum, colName := range res.Columns {
+			fieldNum, ok := fieldNameToNum[colName]
+			if !ok {
+				logPretty("Oh bugger, no field tagged " + colName)
+			}
+			columnToField[colNum] = fieldNum
+		}
+		logPretty(columnToField)
+		rowMaps := make([]map[string]*json.RawMessage, len(res.Data))
+		for rowNum, row := range res.Data {
+			m := map[string]*json.RawMessage{}
+			for colNum, jsonMsg := range row.Row {
+				// name := res.Columns[colNum]
+				// m[name] = col
+				iface := reflect.New(resType).Interface()
+				json.Unmarshal(jsonMsg, iface)
+			}
+			rowMaps[rowNum] = m
+			// iface := reflect.New(resType).Interface()
+		}
+	}
+	os.Exit(0)
+	/*
+	rs := make([]map[string]*json.RawMessage, len(cq.cr.Data))
+	for rowNum, row := range cq.cr.Data {
+		m := map[string]*json.RawMessage{}
+		for colNum, col := range row {
+			name := cq.cr.Columns[colNum]
+			m[name] = col
+		}
+		rs[rowNum] = m
+	}
+	b, err := json.Marshal(rs)
+	if err != nil {
+		logPretty(err)
+		return err
+	}
+	return json.Unmarshal(b, v)
+	 */
+
+	/*
 	for i, res := range tr.Results {
 		q := qs[i]
 		q.cr = res
@@ -55,6 +133,7 @@ func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 			}
 		}
 	}
+	*/
 	return nil
 }
 
