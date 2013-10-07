@@ -5,6 +5,7 @@
 package neoism
 
 import (
+	"encoding/json"
 	"errors"
 )
 
@@ -34,8 +35,13 @@ type txRequest struct {
 }
 
 type txResponse struct {
-	Commit      string
-	Results     []cypherResult
+	Commit  string
+	Results []struct {
+		Columns []string
+		Data    []struct {
+			Row []*json.RawMessage
+		}
+	}
 	Transaction struct {
 		Expires string
 	}
@@ -45,9 +51,24 @@ type txResponse struct {
 // unmarshal populates a slice of CypherQuery object with result data returned
 // from the server.
 func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
+	if len(tr.Results) != len(qs) {
+		return errors.New("Result count does not match query count")
+	}
+	// NOTE: Beginning in 2.0.0-M05, the data format returned by transaction
+	// endpoint diverged from the format returned by cypher batch.  At least
+	// until final 2.0.0 release, we will work around this by munging the new
+	// result format into the existing cypherResult struct.
 	for i, res := range tr.Results {
+		data := make([][]*json.RawMessage, len(res.Data))
+		for n, d := range res.Data {
+			data[n] = d.Row
+		}
 		q := qs[i]
-		q.cr = res
+		cr := cypherResult{
+			Columns: res.Columns,
+			Data:    data,
+		}
+		q.cr = cr
 		if q.Result != nil {
 			err := q.Unmarshal(q.Result)
 			if err != nil {
@@ -78,12 +99,12 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 		Errors:     result.Errors,
 		Expires:    result.Transaction.Expires,
 	}
+	if len(t.Errors) != 0 {
+		return &t, TxQueryError
+	}
 	err = result.unmarshal(qs)
 	if err != nil {
 		return &t, err
-	}
-	if len(t.Errors) != 0 {
-		return &t, TxQueryError
 	}
 	return &t, err
 }
@@ -121,12 +142,12 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 	}
 	t.Expires = result.Transaction.Expires
 	t.Errors = append(t.Errors, result.Errors...)
+	if len(t.Errors) != 0 {
+		return TxQueryError
+	}
 	err = result.unmarshal(qs)
 	if err != nil {
 		return err
-	}
-	if len(t.Errors) != 0 {
-		return TxQueryError
 	}
 	return nil
 }

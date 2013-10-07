@@ -11,7 +11,7 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 [Go 1.1](http://golang.org/doc/go1.1) or later is required.
 
-Neo4j Milestone 2.0.0-M03 or greater is required to run the full test suite.
+Neo4j Milestone 2.0.0-M05 or greater is required to run the full test suite.
 
 
 # Documentation

@@ -46,7 +46,7 @@ func TestCypherParameters(t *testing.T) {
 		Statement: `
 			START n = node:name_index(name={startName})
 			MATCH path = (n)-[r]->(m)
-			WHERE m.name? = {name}
+			WHERE m.name = {name}
 			RETURN id(n), id(r), id(m)
 		`,
 		Parameters: map[string]interface{}{
@@ -159,12 +159,12 @@ func TestCypher(t *testing.T) {
 	// query := "START x = node:name_index(name=I) MATCH path = (x-[r]-friend) WHERE friend.name = you RETURN TYPE(r)"
 	type resultStruct struct {
 		Type string `json:"type(r)"`
-		Name string `json:"n.name?"`
-		Age  int    `json:"n.age?"`
+		Name string `json:"n.name"`
+		Age  int    `json:"n.age"`
 	}
 	result := []resultStruct{}
 	cq := CypherQuery{
-		Statement: "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name?, n.age?",
+		Statement: "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name, n.age",
 		Result:    &result,
 	}
 	err := db.Cypher(&cq)
@@ -175,7 +175,7 @@ func TestCypher(t *testing.T) {
 	//
 	// Our test only passes if Neo4j returns columns in the expected order - is
 	// there any guarantee about order?
-	expCol := []string{"type(r)", "n.name?", "n.age?"}
+	expCol := []string{"type(r)", "n.name", "n.age"}
 	expDat := []resultStruct{
 		resultStruct{
 			Type: "know",
