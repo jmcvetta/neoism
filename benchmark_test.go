@@ -124,15 +124,18 @@ func BenchmarkNodeChainTx10000_(b *testing.B) {
 	nodeChainTx(b, 10000)
 }
 
+/*
 func BenchmarkNodeChainTx30000_(b *testing.B) {
 	nodeChainTx(b, 30000)
 }
+*/
 
 // nodeChain benchmarks the creating then querying a node chain.
 func nodeChainTx(b *testing.B, chainLength int) {
 	b.StopTimer()
 	db := connectBench(b)
 	defer benchCleanup(b, db)
+	db.CreateIndex("Person", "name")
 	b.StartTimer()
 	for cnt := 0; cnt < b.N; cnt++ {
 		qs := []*CypherQuery{}
