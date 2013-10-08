@@ -108,16 +108,24 @@ func BenchmarkNodeChainBatch(b *testing.B) {
 	}
 }
 
-func BenchmarkNodeChainTx10___(b *testing.B) {
+func BenchmarkNodeChainTx10____(b *testing.B) {
 	nodeChainTx(b, 10)
 }
 
-func BenchmarkNodeChainTx100__(b *testing.B) {
+func BenchmarkNodeChainTx100___(b *testing.B) {
 	nodeChainTx(b, 100)
 }
 
-func BenchmarkNodeChainTx1000_(b *testing.B) {
+func BenchmarkNodeChainTx1000__(b *testing.B) {
 	nodeChainTx(b, 1000)
+}
+
+func BenchmarkNodeChainTx10000_(b *testing.B) {
+	nodeChainTx(b, 10000)
+}
+
+func BenchmarkNodeChainTx30000_(b *testing.B) {
+	nodeChainTx(b, 30000)
 }
 
 // nodeChain benchmarks the creating then querying a node chain.
@@ -126,7 +134,7 @@ func nodeChainTx(b *testing.B, chainLength int) {
 	db := connectBench(b)
 	defer benchCleanup(b, db)
 	b.StartTimer()
-	for cnt := 1; cnt < b.N; cnt++ {
+	for cnt := 0; cnt < b.N; cnt++ {
 		qs := []*CypherQuery{}
 		cq := CypherQuery{
 			Statement:  `CREATE (n:Person {name: {i}}) RETURN n`,
@@ -152,16 +160,17 @@ func nodeChainTx(b *testing.B, chainLength int) {
 			}
 			qs = append(qs, &cq)
 		}
+		res1 := []struct {
+			A int    `json:"a.name"`
+			R string `json:"type(r)"`
+			B int    `json:"b.name"`
+		}{}
 		cq1 := CypherQuery{
 			Statement: `
 					MATCH (a:Person)-[r]->(b:Person)
 					RETURN a.name, type(r), b.name
 				`,
-			Result: &[]struct {
-				A int    `json:"a.name"`
-				R string `json:"type(r)"`
-				B int    `json:"b.name"`
-			}{},
+			Result: &res1,
 		}
 		qs = append(qs, &cq1)
 		tx, err := db.Begin(qs)
@@ -173,6 +182,9 @@ func nodeChainTx(b *testing.B, chainLength int) {
 		err = tx.Commit()
 		if err != nil {
 			b.Fatal(err)
+		}
+		if len(res1) != chainLength {
+			b.Fatal("Incorrect result length")
 		}
 		b.StopTimer()
 		benchCleanup(b, db)
