@@ -224,7 +224,7 @@ func TestCypherBatch(t *testing.T) {
 		},
 		&CypherQuery{
 			Statement: `
-				MATCH a:Person, b:Person
+				MATCH (a:Person), (b:Person)
 				WHERE a.name = 'Mr Spock' AND b.name = 'Mr Sulu'
 				CREATE a-[r:Knows]->b
 				RETURN r
