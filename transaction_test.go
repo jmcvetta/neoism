@@ -49,7 +49,7 @@ func TestTxBegin(t *testing.T) {
 	}
 	q2 := CypherQuery{
 		Statement: `
-				MATCH a:Person, b:Person
+				MATCH (a:Person), (b:Person)
 				WHERE a.name = "James T Kirk" AND b.name = "Dr McCoy"
 				CREATE a-[r:Commands]->b
 				RETURN a.name, type(r), b
@@ -103,7 +103,7 @@ func TestTxCommit(t *testing.T) {
 	}{}
 	q0 := CypherQuery{
 		Statement: `
-			MATCH n:Person
+			MATCH (n:Person)
 			WHERE n.name = {name}
 			RETURN n.name
 		`,
@@ -167,8 +167,8 @@ func TestTxBadQuery(t *testing.T) {
 		},
 	}
 	tx, err := db.Begin(qs)
-	assert.Equal(t, TxQueryError, err)
 	tx.Rollback() // Else cleanup will hang til Tx times out
+	assert.Equal(t, TxQueryError, err)
 	numErr := len(tx.Errors)
 	assert.T(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
 }
@@ -195,7 +195,7 @@ func TestTxQuery(t *testing.T) {
 	qs1 := []*CypherQuery{
 		&CypherQuery{
 			Statement: `
-				MATCH a:Person, b:Person
+				MATCH (a:Person), (b:Person)
 				WHERE a.name = {a} AND b.name = {b}
 				CREATE (a)-[r:Knows]->(b)
 			`,
