@@ -11,7 +11,7 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 [Go 1.1](http://golang.org/doc/go1.1) or later is required.
 
-Neo4j Milestone 2.0.0-M05 or greater is required to run the full test suite.
+Neo4j Milestone 2.0.0-RC1 or greater is required to run the full test suite.
 
 
 # Documentation
@@ -75,6 +75,14 @@ Contributions, in the form of Pull Requests or Issues, are gladly accepted.
 Before submitting a Pull Request, please ensure your code passes all tests, and
 that your changes do not decrease test coverage.  I.e. if you add new features,
 also add corresponding new tests.
+
+
+# Sponsorship
+
+Currently Neoism is maintained as a personal project, with no corporate
+backing.  [The author](mailto:jason.mcvetta@gmail.com) is seeking a company or
+companies interested in providing financial backing to enable its continued
+development. 
 
 
 # Support
