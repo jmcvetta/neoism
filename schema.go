@@ -12,7 +12,7 @@ type indexRequest struct {
 type Index struct {
 	db           *Database
 	Label        string
-	PropertyKeys []string `json:"property-keys"`
+	PropertyKeys []string `json:"property_keys"`
 }
 
 // Drop removes the index.

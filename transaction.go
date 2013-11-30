@@ -25,7 +25,7 @@ var TxQueryError = errors.New("Error with a query inside a transaction.")
 // A TxError is an error with one of the statements submitted in a transaction,
 // but not with the transaction itself.
 type TxError struct {
-	Code    int
+	Code    string
 	Status  string
 	Message string
 }
@@ -98,7 +98,7 @@ func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 	t := Tx{
 		db:         db,
 		hrefCommit: result.Commit,
-		Location:   resp.HttpResponse().Header.Get("location"),
+		Location:   resp.HttpResponse().Header.Get("Location"),
 		Errors:     result.Errors,
 		Expires:    result.Transaction.Expires,
 	}

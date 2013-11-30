@@ -35,6 +35,7 @@ import (
 func connectTest(t *testing.T) *Database {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	db, err := Connect("http://localhost:7474/db/data")
+	// db.Session.Log = true
 	if err != nil {
 		t.Fatal(err)
 	}
