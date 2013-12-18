@@ -77,14 +77,6 @@ that your changes do not decrease test coverage.  I.e. if you add new features,
 also add corresponding new tests.
 
 
-# Sponsorship
-
-Currently Neoism is maintained as a personal project, with no corporate
-backing.  [The author](mailto:jason.mcvetta@gmail.com) is seeking a company or
-companies interested in providing financial backing to enable its continued
-development. 
-
-
 # Support
 
 Paid support, development, related professional services, and proprietary
