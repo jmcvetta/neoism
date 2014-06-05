@@ -30,6 +30,7 @@ Example Usage:
 		//
 		n0, _ := db.CreateNode(neoism.Props{"name": kirk})
 		defer n0.Delete()  // Deferred clean up
+		n0.AddLabel("Person") // Add a label
 		//
 		// Create a node with a Cypher query
 		//
@@ -84,7 +85,7 @@ Example Usage:
 			},
 			&neoism.CypherQuery{
 				Statement: `
-					MATCH n:Person
+					MATCH (n:Person)
 					WHERE n.name = {name}
 					DELETE n
 				`,
