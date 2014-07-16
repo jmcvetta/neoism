@@ -14,6 +14,7 @@ var (
 	InvalidDatabase = errors.New("Invalid database.  Check URI.")
 	NotFound        = errors.New("Cannot find in database.")
 	CannotDelete    = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
+	NotAllowed      = errors.New("Operation not allowed.")
 )
 
 // A NeoError is populated by api calls when there is an error.

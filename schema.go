@@ -46,8 +46,11 @@ func (db *Database) CreateIndex(label, property string) (*Index, error) {
 	switch resp.Status() {
 	case 200:
 		return &result, nil // Success
+	// Will Neo4j ever return 404 here, or has this been entirely replaced by 405?
 	case 404:
 		return nil, NotFound
+	case 405:
+		return nil, NotAllowed
 	}
 	return nil, ne
 }

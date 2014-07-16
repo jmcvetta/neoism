@@ -23,7 +23,7 @@ func TestCreateIndex(t *testing.T) {
 	assert.Equal(t, label, idx.Label)
 	assert.Equal(t, prop0, idx.PropertyKeys[0])
 	_, err = db.CreateIndex("", "")
-	assert.Equal(t, NotFound, err)
+	assert.Equal(t, NotAllowed, err)
 }
 
 func TestIndexes(t *testing.T) {
