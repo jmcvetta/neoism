@@ -68,6 +68,7 @@ func rndStr(t *testing.T) string {
 
 func TestConnect(t *testing.T) {
 	db := connectTest(t)
+	logPretty(db)
 	assert.Equal(t, "http://localhost:7474/db/data", db.Url)
 }
 

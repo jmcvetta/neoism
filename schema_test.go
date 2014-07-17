@@ -23,7 +23,7 @@ func TestCreateIndex(t *testing.T) {
 	assert.Equal(t, label, idx.Label)
 	assert.Equal(t, prop0, idx.PropertyKeys[0])
 	_, err = db.CreateIndex("", "")
-	assert.Equal(t, NotFound, err)
+	assert.Equal(t, NotAllowed, err)
 }
 
 func TestIndexes(t *testing.T) {
@@ -34,18 +34,21 @@ func TestIndexes(t *testing.T) {
 	label1 := rndStr(t)
 	prop0 := rndStr(t)
 	prop1 := rndStr(t)
-	idx0, _ := db.CreateIndex(label0, prop0)
-	idx1, _ := db.CreateIndex(label0, prop1)
 	indexes0, err := db.Indexes(label0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	exp := []*Index{idx0, idx1}
-	assert.Equal(t, exp, indexes0)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, 0, len(indexes0))
+	_, err = db.CreateIndex(label0, prop0)
+	assert.Equal(t, err, nil)
+	_, err = db.CreateIndex(label1, prop0)
+	assert.Equal(t, err, nil)
+	_, err = db.CreateIndex(label1, prop1)
+	assert.Equal(t, err, nil)
 	indexes1, err := db.Indexes(label1)
-	assert.Equal(t, 0, len(indexes1))
-	_, err = db.Indexes("")
-	assert.Equal(t, NotFound, err)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, 2, len(indexes1))
+	indexes2, err := db.Indexes("")
+	assert.Equal(t, err, nil)
+	assert.Equal(t, 3, len(indexes2))
 }
 
 func TestDropIndex(t *testing.T) {

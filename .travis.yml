@@ -1,6 +1,8 @@
 language: go
 go: 
   - 1.1
+  - 1.2
+  - 1.3
   - tip
 notificaitons:
   email:
@@ -15,12 +17,7 @@ before_script:
 # Lines below copied from # https://github.com/versae/neo4j-rest-client/blob/master/.travis.yml
 #
 before_install:
-  - export NEO4J_PORT="7474"
-  - sudo service neo4j stop || true
-  - sleep 3
-  - ./install_local_neo4j.bash $NEO4J_VERSION
-  - ./lib/neo4j/bin/neo4j start || ( cat ./lib/neo4j/data/log/*.log && exit 1 )
-  - curl http://localhost:$NEO4J_PORT/db/data/
-  - curl -X DELETE 'http://localhost:7474/cleandb/supersecretdebugkey!'
+  - sh start-neo4j.sh
+
 env:
-  - NEO4J_VERSION="2.0.0-RC1"
+  - NEO4J_VERSION="2.1.2"
