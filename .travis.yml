@@ -17,7 +17,7 @@ before_script:
 # Lines below copied from # https://github.com/versae/neo4j-rest-client/blob/master/.travis.yml
 #
 before_install:
-  - sh tests/start-neo4j.sh
+  - sh start-neo4j.sh
 
 env:
   - NEO4J_VERSION="2.1.2"
