@@ -55,7 +55,8 @@ func (db *Database) CreateIndex(label, property string) (*Index, error) {
 	return nil, ne
 }
 
-// Indexes lists indexes for a label.
+// Indexes lists indexes for a label.  If a blank string is given as the label,
+// returns all indexes.
 func (db *Database) Indexes(label string) ([]*Index, error) {
 	uri := join(db.Url, "schema/index", label)
 	result := []*Index{}
