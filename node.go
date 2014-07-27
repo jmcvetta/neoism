@@ -142,6 +142,9 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 	if resp.Status() != 200 {
 		return rels, ne
 	}
+	for _, rel := range rels {
+		rel.Db = n.Db
+	}
 	return rels, nil // Success!
 }
 
