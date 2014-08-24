@@ -51,7 +51,7 @@ func Connect(uri string) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	if resp.Status() != 200 || db.Version == "" {
+	if resp.Status() != 200 {
 		log.Println("Status " + strconv.Itoa(resp.Status()) + " trying to connect to " + uri)
 		return nil, InvalidDatabase
 	}
