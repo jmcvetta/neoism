@@ -26,10 +26,11 @@ using defer() for cleanup.
 package neoism
 
 import (
-	"github.com/bmizerany/assert"
-	"github.com/jmcvetta/randutil"
 	"log"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/jmcvetta/randutil"
 )
 
 func connectTest(t *testing.T) *Database {

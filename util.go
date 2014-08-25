@@ -5,10 +5,11 @@
 package neoism
 
 import (
-	"github.com/kr/pretty"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/kr/pretty"
 )
 
 // Joins URL fragments
@@ -24,7 +25,6 @@ func join(fragments ...string) string {
 	}
 	return strings.Join(parts, "/")
 }
-
 
 func logPretty(x interface{}) {
 	_, file, line, _ := runtime.Caller(1)

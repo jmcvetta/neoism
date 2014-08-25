@@ -6,8 +6,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/jmcvetta/neoism"
 	"log"
+
+	"github.com/jmcvetta/neoism"
 )
 
 func connect() *neoism.Database {

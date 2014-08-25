@@ -6,9 +6,10 @@ package neoism
 
 import (
 	"encoding/json"
-	"github.com/bmizerany/assert"
 	"strconv"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 type resStruct0 struct {

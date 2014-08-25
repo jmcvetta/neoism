@@ -6,9 +6,10 @@ package neoism
 
 import (
 	"fmt"
-	"github.com/bmizerany/assert"
 	"strconv"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 // 18.9.1. Create node index

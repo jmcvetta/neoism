@@ -9,9 +9,10 @@
 package neoism
 
 import (
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/jmcvetta/randutil"
-	"testing"
 )
 
 // 18.4.1. Create Node

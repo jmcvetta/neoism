@@ -5,11 +5,12 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/napping"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/jmcvetta/napping"
 )
 
 // A Database is a REST client connected to a Neo4j database.

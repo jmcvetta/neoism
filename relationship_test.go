@@ -5,9 +5,10 @@
 package neoism
 
 import (
-	"github.com/bmizerany/assert"
 	"sort"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 // 18.5.1. Get Relationship by ID

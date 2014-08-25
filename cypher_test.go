@@ -5,9 +5,10 @@
 package neoism
 
 import (
-	"github.com/bmizerany/assert"
 	"strconv"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 // 18.3.1. Send queries with parameters
