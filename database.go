@@ -58,5 +58,21 @@ func Connect(uri string) (*Database, error) {
 	return db, nil
 }
 
+// Type lists of all existing property keys
+func PropertyKeys(db *Database) ([]string, error){
+	propertyKeys := []string{}
+	ne := NeoError{}
+
+	uri:= db.Url + "/" + "propertykeys"
+	resp, err := db.Session.Get(uri, nil, &propertyKeys, &ne)
+	if err != nil {
+		return propertyKeys, err
+	}
+	if resp.Status() != 200 {
+		return propertyKeys, ne
+	}
+	return propertyKeys, err
+}
+
 // A Props is a set of key/value properties.
 type Props map[string]interface{}

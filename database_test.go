@@ -98,3 +98,53 @@ func TestConnectInvalidUrl(t *testing.T) {
 	_, err = Connect("http://localhost:7474")
 	assert.Equal(t, InvalidDatabase, err)
 }
+
+func TestPropertyKeys(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+
+	// Prepare query for testing data creation
+	var queryString string
+	createdPropertyKeys := make([]string, 0)
+	for i := 0; i < 10; i++ {
+		propertyKeyNodeA := rndStr(t)
+		propertyKeyRel := rndStr(t)
+		propertyKeyNodeB := rndStr(t)
+		createdPropertyKeys = append(createdPropertyKeys, propertyKeyNodeA)
+		createdPropertyKeys = append(createdPropertyKeys, propertyKeyRel)
+		createdPropertyKeys = append(createdPropertyKeys, propertyKeyNodeB)
+
+		queryString += `
+			CREATE ({`+propertyKeyNodeA+`:""})-[:LINK {`+propertyKeyRel+`:""}]->({`+propertyKeyNodeB+`:"Bob"})
+		`
+	}
+	cq := CypherQuery{
+		Statement: queryString,
+	}
+
+	// Execute the test data creation query
+	err := db.Cypher(&cq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Get all live property keys on nodes and relationships
+	livePropertyKeys, err := PropertyKeys(db)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Check if the created property keys are among the extracted
+	for _, createdPropertyKey := range createdPropertyKeys {
+		keyExists := false
+		for _, livePropertyKey := range livePropertyKeys {
+			if createdPropertyKey == livePropertyKey {
+				keyExists = true
+				break
+			}
+		}
+		if !keyExists {
+			t.Error("Could not find the expected property key: " + createdPropertyKey)
+		}
+	}
+}
