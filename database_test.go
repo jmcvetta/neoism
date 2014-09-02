@@ -154,7 +154,7 @@ func TestConnectUrl(t *testing.T) {
 	if url := os.Getenv("NEO4J_URL"); url != "" {
 		_, err := Connect(url)
 		if err != nil {
-			t.Fatal("Cannot connect to a secure url")
+			t.Fatal("Cannot connect to %q", url)
 		}
 	} else {
 		t.Skip("Skipping test, environment variable $NEO4J_URL is not defined.")
