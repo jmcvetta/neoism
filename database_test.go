@@ -29,6 +29,7 @@ import (
 	"github.com/bmizerany/assert"
 	"github.com/jmcvetta/randutil"
 	"log"
+	"os"
 	"testing"
 )
 
@@ -115,7 +116,7 @@ func TestPropertyKeys(t *testing.T) {
 		createdPropertyKeys = append(createdPropertyKeys, propertyKeyNodeB)
 
 		queryString += `
-			CREATE ({`+propertyKeyNodeA+`:""})-[:LINK {`+propertyKeyRel+`:""}]->({`+propertyKeyNodeB+`:"Bob"})
+			CREATE ({` + propertyKeyNodeA + `:""})-[:LINK {` + propertyKeyRel + `:""}]->({` + propertyKeyNodeB + `:"Bob"})
 		`
 	}
 	cq := CypherQuery{
@@ -146,5 +147,16 @@ func TestPropertyKeys(t *testing.T) {
 		if !keyExists {
 			t.Error("Could not find the expected property key: " + createdPropertyKey)
 		}
+	}
+}
+
+func TestConnectUrl(t *testing.T) {
+	if url := os.Getenv("NEO4J_URL"); url != "" {
+		_, err := Connect(url)
+		if err != nil {
+			t.Fatal("Cannot connect to a secure url")
+		}
+	} else {
+		t.Skip("Skipping test, environment variable $NEO4J_URL is not defined.")
 	}
 }

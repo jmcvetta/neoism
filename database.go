@@ -59,11 +59,11 @@ func Connect(uri string) (*Database, error) {
 }
 
 // Type lists of all existing property keys
-func PropertyKeys(db *Database) ([]string, error){
+func PropertyKeys(db *Database) ([]string, error) {
 	propertyKeys := []string{}
 	ne := NeoError{}
 
-	uri:= db.Url + "/" + "propertykeys"
+	uri := db.Url + "/" + "propertykeys"
 	resp, err := db.Session.Get(uri, nil, &propertyKeys, &ne)
 	if err != nil {
 		return propertyKeys, err
