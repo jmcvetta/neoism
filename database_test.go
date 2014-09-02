@@ -30,6 +30,7 @@ import (
 	"github.com/jmcvetta/randutil"
 	"log"
 	"testing"
+	"os"
 )
 
 func connectTest(t *testing.T) *Database {
@@ -97,4 +98,15 @@ func TestConnectInvalidUrl(t *testing.T) {
 	//
 	_, err = Connect("http://localhost:7474")
 	assert.Equal(t, InvalidDatabase, err)
+}
+
+func TestConnectSecureUrl(t *testing.T) {
+	if url := os.Getenv("NEO4J_URL"); url != "" {
+		_, err := Connect(url)
+		if err != nil {
+			t.Fatal("Cannot connect to a secure url")
+		}
+	} else {
+		t.Skip("Skipping the test as no $NEO4J_URL is exported")
+	}
 }
