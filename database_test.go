@@ -150,13 +150,13 @@ func TestPropertyKeys(t *testing.T) {
 	}
 }
 
-func TestConnectSecureUrl(t *testing.T) {
+func TestConnectUrl(t *testing.T) {
 	if url := os.Getenv("NEO4J_URL"); url != "" {
 		_, err := Connect(url)
 		if err != nil {
 			t.Fatal("Cannot connect to a secure url")
 		}
 	} else {
-		t.Skip("Skipping the test as no $NEO4J_URL is exported")
+		t.Skip("Skipping test, environment variable $NEO4J_URL is not defined.")
 	}
 }
