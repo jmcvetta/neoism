@@ -58,7 +58,10 @@ func Connect(uri string) (*Database, error) {
 	return db, nil
 }
 
-// Type lists of all existing property keys
+// PropertyKeys lists all property keys ever used in the database. This
+// includes and property keys you have used, but deleted.  There is
+// currently no way to tell which ones are in use and which ones are not,
+// short of walking the entire set of properties in the database.
 func PropertyKeys(db *Database) ([]string, error) {
 	propertyKeys := []string{}
 	ne := NeoError{}
