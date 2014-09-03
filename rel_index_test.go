@@ -5,8 +5,9 @@
 package neoism
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 // The underlying functions are used for node and relationship indexes.  For

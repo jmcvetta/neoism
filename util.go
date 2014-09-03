@@ -5,10 +5,11 @@
 package neoism
 
 import (
-	"github.com/kr/pretty"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/kr/pretty"
 )
 
 // Joins URL fragments

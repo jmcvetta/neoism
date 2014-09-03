@@ -6,8 +6,9 @@ package neoism
 
 import (
 	"fmt"
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestCreateIndex(t *testing.T) {
