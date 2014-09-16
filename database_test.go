@@ -93,11 +93,16 @@ func TestConnectInvalidUrl(t *testing.T) {
 	//
 	_, err = Connect("http://localhost:7474/db/datadatadata")
 	assert.Equal(t, InvalidDatabase, err)
+}
+
+func TestConnectIncompleteUrl(t *testing.T) {
 	//
 	// 200 Success and HTML returned
 	//
-	_, err = Connect("http://localhost:7474")
-	assert.Equal(t, InvalidDatabase, err)
+	_, err := Connect("http://localhost:7474")
+	if err != nil {
+		t.Fatal("Hardsetting path on incomplete url failed")
+	}
 }
 
 func TestPropertyKeys(t *testing.T) {
