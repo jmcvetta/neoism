@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"errors"
 )
 
 // A Database is a REST client connected to a Neo4j database.
@@ -38,11 +39,18 @@ func Connect(uri string) (*Database, error) {
 			Header: &h,
 		},
 	}
-	_, err := url.Parse(uri) // Sanity check
+	parsedUrl, err := url.Parse(uri) // Sanity check
 	if err != nil {
 		return nil, err
 	}
-	db.Url = uri
+	return _connect(db, parsedUrl, 0);
+}
+
+func _connect(db *Database, parsedUrl *url.URL, retries int) (*Database, error) {
+	if retries > 3 {
+		return nil, errors.New("Failed too many times")
+	}
+	db.Url = parsedUrl.String()
 	//		Url:    db.Url,
 	//		Method: "GET",
 	//		Result: &db,
@@ -51,9 +59,13 @@ func Connect(uri string) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	if resp.Status() != 200 || db.Version == "" {
-		log.Println("Status " + strconv.Itoa(resp.Status()) + " trying to connect to " + uri)
+	if resp.Status() != 200 {
+		log.Println("Status " + strconv.Itoa(resp.Status()) + " trying to connect to " + db.Url)
 		return nil, InvalidDatabase
+	}
+	if db.Version == "" {
+		parsedUrl.Path = "/db/data/"
+		return _connect(db, parsedUrl, retries + 1)
 	}
 	return db, nil
 }
