@@ -30,7 +30,8 @@ type Database struct {
 	Extensions      interface{} `json:"extensions"`
 }
 
-// Connect establishes a connection to the Neo4j server.
+// Connect setups parameters for the Neo4j server
+// and calls ConnectWithRetry()
 func Connect(uri string) (*Database, error) {
 	h := http.Header{}
 	h.Add("User-Agent", "neoism")
@@ -43,10 +44,13 @@ func Connect(uri string) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	return _connect(db, parsedUrl, 0);
+	return connectWithRetry(db, parsedUrl, 0);
 }
 
-func _connect(db *Database, parsedUrl *url.URL, retries int) (*Database, error) {
+// connectWithRetry tries to establish a connection to the Neo4j server.
+// If the ping successes but doesn't return version,
+// it retries using Path "/db/data/" with a max number of retries of 3.
+func connectWithRetry(db *Database, parsedUrl *url.URL, retries int) (*Database, error) {
 	if retries > 3 {
 		return nil, errors.New("Failed too many times")
 	}
@@ -65,7 +69,7 @@ func _connect(db *Database, parsedUrl *url.URL, retries int) (*Database, error) 
 	}
 	if db.Version == "" {
 		parsedUrl.Path = "/db/data/"
-		return _connect(db, parsedUrl, retries + 1)
+		return connectWithRetry(db, parsedUrl, retries + 1)
 	}
 	return db, nil
 }
