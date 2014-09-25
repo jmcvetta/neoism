@@ -40,7 +40,7 @@ func Connect(uri string) (*Database, error) {
 			Header: &h,
 		},
 	}
-	parsedUrl, err := url.Parse(uri) // Sanity check
+	parsedUrl, err := url.Parse(uri)
 	if err != nil {
 		return nil, err
 	}
