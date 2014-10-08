@@ -93,11 +93,16 @@ func TestConnectInvalidUrl(t *testing.T) {
 	//
 	_, err = Connect("http://localhost:7474/db/datadatadata")
 	assert.Equal(t, InvalidDatabase, err)
+}
+
+func TestConnectIncompleteUrl(t *testing.T) {
 	//
 	// 200 Success and HTML returned
 	//
-	_, err = Connect("http://localhost:7474")
-	assert.Equal(t, InvalidDatabase, err)
+	_, err := Connect("http://localhost:7474")
+	if err != nil {
+		t.Fatal("Hardsetting path on incomplete url failed")
+	}
 }
 
 func TestPropertyKeys(t *testing.T) {
@@ -154,7 +159,7 @@ func TestConnectUrl(t *testing.T) {
 	if url := os.Getenv("NEO4J_URL"); url != "" {
 		_, err := Connect(url)
 		if err != nil {
-			t.Fatal("Cannot connect to %q", url)
+			t.Fatal("Cannot connect to ", url, err)
 		}
 	} else {
 		t.Skip("Skipping test, environment variable $NEO4J_URL is not defined.")
