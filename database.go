@@ -44,7 +44,10 @@ func Connect(uri string) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	return connectWithRetry(db, parsedUrl, 0);
+	if parsedUrl.User != nil {
+		db.Session.Userinfo = parsedUrl.User
+	}
+	return connectWithRetry(db, parsedUrl, 0)
 }
 
 // connectWithRetry tries to establish a connection to the Neo4j server.
