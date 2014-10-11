@@ -5,12 +5,12 @@
 package neoism
 
 import (
+	"errors"
 	"github.com/jmcvetta/napping"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
-	"errors"
 )
 
 // A Database is a REST client connected to a Neo4j database.
@@ -72,7 +72,7 @@ func connectWithRetry(db *Database, parsedUrl *url.URL, retries int) (*Database,
 	}
 	if db.Version == "" {
 		parsedUrl.Path = "/db/data/"
-		return connectWithRetry(db, parsedUrl, retries + 1)
+		return connectWithRetry(db, parsedUrl, retries+1)
 	}
 	return db, nil
 }

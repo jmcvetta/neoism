@@ -5,6 +5,7 @@
 package neoism
 
 import (
+	"fmt"
 	"github.com/bmizerany/assert"
 	"strconv"
 	"testing"
@@ -187,6 +188,56 @@ func TestCypher(t *testing.T) {
 	assert.Equal(t, expDat, result)
 }
 
+// Test multi-line Cypher query with embedded comments.
+func TestCypherComment(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	// Create
+	idx0, _ := db.CreateLegacyNodeIndex("name_index", "", "")
+	defer idx0.Delete()
+	n0, _ := db.CreateNode(Props{"name": "I"})
+	idx0.Add(n0, "name", "I")
+	n1, _ := db.CreateNode(Props{"name": "you", "age": 69})
+	n0.Relate("know", n1.Id(), nil)
+	// Query
+	// query := "START x = node:name_index(name=I) MATCH path = (x-[r]-friend) WHERE friend.name = you RETURN TYPE(r)"
+	type resultStruct struct {
+		Type string `json:"type(r)"`
+		Name string `json:"n.name"`
+		Age  int    `json:"n.age"`
+	}
+	result := []resultStruct{}
+	stmt := `
+		START x = NODE(%d)
+		// This is a comment
+		MATCH x -[r]-> n
+		// This is another comment
+		RETURN TYPE(r), n.name, n.age
+		`
+	stmt = fmt.Sprintf(stmt, n0.Id())
+	cq := CypherQuery{
+		Statement: stmt,
+		Result:    &result,
+	}
+	err := db.Cypher(&cq)
+	if err != nil {
+		t.Error(err)
+	}
+	// Check result
+	//
+	// Our test only passes if Neo4j returns columns in the expected order - is
+	// there any guarantee about order?
+	expCol := []string{"TYPE(r)", "n.name", "n.age"}
+	expDat := []resultStruct{
+		resultStruct{
+			Type: "know",
+			Name: "you",
+			Age:  69,
+		},
+	}
+	assert.Equal(t, expCol, cq.Columns())
+	assert.Equal(t, expDat, result)
+}
 func TestCypherBadQuery(t *testing.T) {
 	db := connectTest(t)
 	cq := CypherQuery{

@@ -83,9 +83,6 @@ func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 // inside the transaction.
 func (db *Database) Begin(qs []*CypherQuery) (*Tx, error) {
 	payload := txRequest{Statements: qs}
-	for _, cq := range payload.Statements {
-		cq.Statement = strip(cq.Statement)
-	}
 	result := txResponse{}
 	ne := NeoError{}
 	resp, err := db.Session.Post(db.HrefTransaction, payload, &result, &ne)
