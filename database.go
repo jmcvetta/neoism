@@ -44,6 +44,9 @@ func Connect(uri string) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
+	if parsedUrl.User != nil {
+		db.Session.Userinfo = parsedUrl.User
+	}
 	return connectWithRetry(db, parsedUrl, 0)
 }
 
