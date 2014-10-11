@@ -7,7 +7,6 @@ package neoism
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 )
 
 // A CypherQuery is a statement in the Cypher query language, with optional
@@ -66,7 +65,7 @@ type cypherResult struct {
 func (db *Database) Cypher(q *CypherQuery) error {
 	result := cypherResult{}
 	payload := cypherRequest{
-		Query:      strip(q.Statement),
+		Query:      q.Statement,
 		Parameters: q.Parameters,
 	}
 	ne := NeoError{}
@@ -115,7 +114,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 			To:     "/cypher",
 			Id:     i,
 			Body: cypherRequest{
-				Query:      strip(q.Statement),
+				Query:      q.Statement,
 				Parameters: q.Parameters,
 			},
 		}
@@ -143,13 +142,4 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 		}
 	}
 	return nil
-}
-
-// strip removes tabs and newlines from a string.  Used to prepare Cypher
-// statements for transmission to server.  Not required by server, but makes
-// statements more readable for verbose logging.
-func strip(s string) string {
-	s = strings.Replace(s, "\t", "", -1)
-	s = strings.Replace(s, "\n", " ", -1)
-	return s
 }
