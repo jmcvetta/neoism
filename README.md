@@ -62,7 +62,7 @@ cq := neoism.CypherQuery{
 // Issue the query.
 err := db.Cypher(&cq)
 
-// Get the first result
+// Get the first result.
 r := res[0]
 ```
 
