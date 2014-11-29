@@ -39,7 +39,7 @@ n, err := db.CreateNode(neoism.Props{"name": "Captain Kirk"})
 ## Issue a Cypher Query
 
 ```go
-// res is a data structure to hold results of the query.
+// res will be populated with the results of the query.  It must be a slice of structs.
 res := []struct {
 		// `json:` tags matches column names in query
 		A   string `json:"a.name"` 
@@ -47,7 +47,7 @@ res := []struct {
 		B   string `json:"b.name"`
 	}{}
 
-// cq holds the Cypher query, any parameters it may have, and a result object.
+// cq holds the Cypher query itself, any parameters it may have, and a result object.
 cq := neoism.CypherQuery{
 	// Use backticks for long statements - Cypher is whitespace indifferent
 	Statement: `
