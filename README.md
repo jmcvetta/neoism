@@ -14,11 +14,65 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 Tested against Neo4j 2.1.2.  
 
 
+# Installation
+
+```
+go get -v github.com/jmcvetta/neoism
+```
+
+
+# Usage
+
+## Connect to Neo4j Database
+
+```go
+db, err := neoism.Connect("http://localhost:7474/db/data")
+```
+
+## Create a Node
+
+```go
+n, err := db.CreateNode(neoism.Props{"name": "Captain Kirk"})
+```
+
+
+## Issue a Cypher Query
+
+```go
+// res will be populated with the query results.  It must be a slice of structs.
+res := []struct {
+		// `json:` tags matches column names in query
+		A   string `json:"a.name"` 
+		Rel string `json:"type(r)"`
+		B   string `json:"b.name"`
+	}{}
+
+// cq holds the Cypher query itself (required), any parameters it may have 
+// (optional), and a result object (optional).
+cq := neoism.CypherQuery{
+	// Use backticks for long statements - Cypher is whitespace indifferent
+	Statement: `
+		MATCH (a:Person)-[r]->(b)
+		WHERE a.name = {name}
+		RETURN a.name, type(r), b.name
+	`,
+	Parameters: neoism.Props{"name": "Dr McCoy"},
+	Result:     &res,
+}
+
+// Issue the query.
+err := db.Cypher(&cq)
+
+// Get the first result.
+r := res[0]
+```
+
+
 # Documentation
 
-See [Go Walker](http://gowalker.org/github.com/jmcvetta/neoism) or
-[GoDoc](http://godoc.org/github.com/jmcvetta/neoism) for automatic
-documentation.
+See [GoDoc](http://godoc.org/github.com/jmcvetta/neoism) or
+[Go Walker](http://gowalker.org/github.com/jmcvetta/neoism) for 
+automatically generated documentation.
 
 
 # Status
@@ -38,10 +92,9 @@ YMMV; use in production at your own risk.
 
 ## Production Note
 
-If you decide to use `neoism` in a production system, please let me know.  All
-API changes will be made via Pull Request, so it's highly recommended you Watch
-the repo Issues.  The API is fairly stable, but there are additions and small
-changes from time to time.
+All API changes will be made via Pull Request, so it's highly recommended you
+Watch the repo Issues.  The API is fairly stable, but there are additions and
+small changes from time to time.
 
 
 ## Completed:
