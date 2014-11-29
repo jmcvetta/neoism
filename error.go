@@ -11,10 +11,10 @@ import (
 // One of these errors is returned if we receive an error or unexpected response
 // from the server.
 var (
-	InvalidDatabase = errors.New("Invalid database.  Check URI.")
-	NotFound        = errors.New("Cannot find in database.")
 	CannotDelete    = errors.New("The node cannot be deleted. Check that the node is orphaned before deletion.")
+	InvalidDatabase = errors.New("Invalid database.  Check URI.")
 	NotAllowed      = errors.New("Operation not allowed.")
+	NotFound        = errors.New("Cannot find in database.")
 )
 
 // A NeoError is populated by api calls when there is an error.
