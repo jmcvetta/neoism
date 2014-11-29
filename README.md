@@ -39,7 +39,8 @@ n, err := db.CreateNode(neoism.Props{"name": "Captain Kirk"})
 ## Issue a Cypher Query
 
 ```go
-// res will hold the results of the query.  It must be a slice of structs.
+// res will be populated with the results of the query.  It must be a slice 
+// of structs.
 res := []struct {
 		// `json:` tags matches column names in query
 		A   string `json:"a.name"` 
