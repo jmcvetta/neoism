@@ -15,6 +15,9 @@ var (
 	InvalidDatabase = errors.New("Invalid database.  Check URI.")
 	NotAllowed      = errors.New("Operation not allowed.")
 	NotFound        = errors.New("Cannot find in database.")
+	// A TxQueryError is returned when there is an error with one of the Cypher
+	// queries inside a transaction, but not with the transaction itself.
+	TxQueryError = errors.New("Error with a query inside a transaction.")
 )
 
 // A NeoError is populated by api calls when there is an error.
@@ -28,4 +31,17 @@ type NeoError struct {
 // Error returns the error message supplied by the server.
 func (ne NeoError) Error() string {
 	return ne.Message
+}
+
+// A TxError is an error with one of the statements submitted in a transaction,
+// but not with the transaction itself.
+type TxError struct {
+	Code    string
+	Status  string
+	Message string
+}
+
+// Error returns the error message supplied by the server.
+func (t *TxError) Error() string {
+	return t.Message
 }

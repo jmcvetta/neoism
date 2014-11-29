@@ -18,22 +18,6 @@ type Tx struct {
 	Expires    string // Cannot unmarshall into time.Time :(
 }
 
-// A TxQueryError is returned when there is an error with one of the Cypher
-// queries inside a transaction, but not with the transaction itself.
-var TxQueryError = errors.New("Error with a query inside a transaction.")
-
-// A TxError is an error with one of the statements submitted in a transaction,
-// but not with the transaction itself.
-type TxError struct {
-	Code    string
-	Status  string
-	Message string
-}
-
-func (t *TxError) Error() string {
-	return t.Message
-}
-
 type txRequest struct {
 	Statements []*CypherQuery `json:"statements"`
 }
