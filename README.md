@@ -70,9 +70,9 @@ r := res[0]
 
 # Documentation
 
-See [Go Walker](http://gowalker.org/github.com/jmcvetta/neoism) or
-[GoDoc](http://godoc.org/github.com/jmcvetta/neoism) for automatically 
-generated documentation.
+See [GoDoc](http://godoc.org/github.com/jmcvetta/neoism) or
+[Go Walker](http://gowalker.org/github.com/jmcvetta/neoism) for 
+automatically generated documentation.
 
 
 # Status
