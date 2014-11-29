@@ -30,6 +30,10 @@ type TxError struct {
 	Message string
 }
 
+func (t *TxError) Error() string {
+	return t.Message
+}
+
 type txRequest struct {
 	Statements []*CypherQuery `json:"statements"`
 }
