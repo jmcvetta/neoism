@@ -48,7 +48,7 @@ res := []struct {
 	}{}
 
 // cq holds the Cypher query itself (required), any parameters it may have 
-// (optional), and a result object (optional).
+// (optional), and a pointer to a result object (optional).
 cq := neoism.CypherQuery{
 	// Use backticks for long statements - Cypher is whitespace indifferent
 	Statement: `
