@@ -21,6 +21,13 @@ go get -v github.com/jmcvetta/neoism
 ```
 
 
+# Documentation
+
+See [GoDoc](http://godoc.org/github.com/jmcvetta/neoism) or
+[Go Walker](http://gowalker.org/github.com/jmcvetta/neoism) for 
+automatically generated documentation.
+
+
 # Usage
 
 ## Connect to Neo4j Database
@@ -66,13 +73,6 @@ err := db.Cypher(&cq)
 // Get the first result.
 r := res[0]
 ```
-
-
-# Documentation
-
-See [GoDoc](http://godoc.org/github.com/jmcvetta/neoism) or
-[Go Walker](http://gowalker.org/github.com/jmcvetta/neoism) for 
-automatically generated documentation.
 
 
 # Status
