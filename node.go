@@ -8,6 +8,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sort"
 )
 
 // CreateNode creates a Node in the database.
@@ -254,6 +255,19 @@ func (n *Node) SetLabels(labels []string) error {
 		return ne
 	}
 	return nil // Success
+}
+
+
+func (n *Node) HasLabel(label string) bool {
+	labels, err := n.Labels()
+	if err != nil || len(labels) == 0 {
+		return false
+	}
+
+	sort.Strings(labels)
+	pos := sort.SearchStrings(labels, label)
+
+	return len(labels) != pos && labels[pos] == label
 }
 
 // NodesByLabel gets all nodes with a given label.
