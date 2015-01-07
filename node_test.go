@@ -88,6 +88,9 @@ func TestGetOrCreateNode(t *testing.T) {
 	if !created {
 		t.Fatal("Failed to create unique node")
 	}
+	if !n0.HasLabel(label) {
+		t.Fatal("Label was not applied to just created node.")
+	}
 	check0, err := n0.Properties()
 	if err != nil {
 		t.Fatal(err)
