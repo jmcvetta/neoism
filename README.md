@@ -74,6 +74,37 @@ err := db.Cypher(&cq)
 r := res[0]
 ```
 
+## Issue Cypher queries with a transaction
+
+```go
+tx, err := db.Begin(qs)
+if err != nil {
+  // Handle error
+}
+
+cq0 := neoism.CypherQuery{
+  Statement: `MATCH (a:Account) WHERE a.uuid = {account_id} SET balance = balance + {amount}`,
+  Parameters: neoism.Props{"uuid": "abc123", amount: 20},
+}
+err = db.Cypher(&cq0)
+if err != nil {
+  // Handle error
+}
+
+cq1 := neoism.CypherQuery{
+  Statement: `MATCH (a:Account) WHERE a.uuid = {account_id} SET balance = balance + {amount}`,
+  Parameters: neoism.Props{"uuid": "def456", amount: -20},
+}
+err = db.Cypher(&cq1)
+if err != nil {
+  // Handle error
+}
+
+err := tx.Commit()
+if err != nil {
+  // Handle error
+}
+```
 
 # Status
 
@@ -114,6 +145,8 @@ small changes from time to time.
 * Streaming API support - see Issue [#22](https://github.com/jmcvetta/neoism/issues/22)
 * ~~Unique Indexes~~ - probably will not expand support for legacy indexing.
 * ~~Automatic Indexes~~ - "
+* High Availability
+* Authentication (in neo4j 2.2)
 * Traversals - May never be supported due to security concerns.  From the
   manual:  "The Traversal REST Endpoint executes arbitrary Groovy code under
   the hood as part of the evaluators definitions. In hosted and open
