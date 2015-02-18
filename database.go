@@ -6,11 +6,11 @@ package neoism
 
 import (
 	"errors"
-	"github.com/jmcvetta/napping"
 	"log"
-	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/jmcvetta/napping"
 )
 
 // A Database is a REST client connected to a Neo4j database.
@@ -28,26 +28,6 @@ type Database struct {
 	HrefTransaction string      `json:"transaction"`
 	Version         string      `json:"neo4j_version"`
 	Extensions      interface{} `json:"extensions"`
-}
-
-// Connect setups parameters for the Neo4j server
-// and calls ConnectWithRetry()
-func Connect(uri string) (*Database, error) {
-	h := http.Header{}
-	h.Add("User-Agent", "neoism")
-	db := &Database{
-		Session: &napping.Session{
-			Header: &h,
-		},
-	}
-	parsedUrl, err := url.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-	if parsedUrl.User != nil {
-		db.Session.Userinfo = parsedUrl.User
-	}
-	return connectWithRetry(db, parsedUrl, 0)
 }
 
 // connectWithRetry tries to establish a connection to the Neo4j server.
