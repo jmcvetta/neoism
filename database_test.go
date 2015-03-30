@@ -31,6 +31,7 @@ package neoism
 import (
 	"log"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -39,7 +40,9 @@ import (
 
 func connectTest(t *testing.T) *Database {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	db, err := dbConnect("http://localhost:7474/db/data")
+	url := os.Getenv("NEO4J_URL")
+	assert.NotEqual(t, "", url, "NEO4J_URL env variable must be provided")
+	db, err := dbConnect(url)
 	// db.Session.Log = true
 	if err != nil {
 		t.Fatal(err)
@@ -73,8 +76,9 @@ func rndStr(t *testing.T) string {
 
 func TestConnect(t *testing.T) {
 	db := connectTest(t)
+	url := os.Getenv("NEO4J_URL")
 	logPretty(db)
-	assert.Equal(t, "http://localhost:7474/db/data", db.Url)
+	assert.Equal(t, url, db.Url)
 }
 
 func TestConnectInvalidUrl(t *testing.T) {
@@ -95,15 +99,20 @@ func TestConnectInvalidUrl(t *testing.T) {
 	//
 	// Not Found
 	//
-	_, err = dbConnect("http://localhost:7474/db/datadatadata")
+	url := os.Getenv("NEO4J_URL")
+	_, err = dbConnect(url + "foo/")
 	assert.Equal(t, InvalidDatabase, err)
 }
 
 func TestConnectIncompleteUrl(t *testing.T) {
+	url := os.Getenv("NEO4J_URL")
+	// url now has the format hostname:port/db/data, delete everything after the port
+	regex := regexp.MustCompile(`^(https?:\/\/[^:]+:\d+)\/.*$`)
+	replaced := regex.ReplaceAllString(url, "$1")
 	//
 	// 200 Success and HTML returned
 	//
-	_, err := dbConnect("http://localhost:7474")
+	_, err := dbConnect(replaced)
 	if err != nil {
 		t.Fatal("Hardsetting path on incomplete url failed")
 	}
@@ -115,7 +124,7 @@ func TestPropertyKeys(t *testing.T) {
 
 	// Prepare query for testing data creation
 	var queryString string
-	createdPropertyKeys := make([]string, 0)
+	var createdPropertyKeys []string
 	for i := 0; i < 10; i++ {
 		propertyKeyNodeA := rndStr(t)
 		propertyKeyRel := rndStr(t)

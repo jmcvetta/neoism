@@ -20,4 +20,9 @@ before_install:
   - sh start-neo4j.sh
 
 env:
-  - NEO4J_VERSION="2.1.2"
+  global:
+    - NEO4J_VERSION="2.2.0"
+    - NEO4J_URL=http://localhost:7474/db/data/
+
+script:
+  - go test -v
