@@ -9,6 +9,7 @@ package neoism
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/jmcvetta/napping"
 )
@@ -23,12 +24,17 @@ func Connect(uri string) (*Database, error) {
 			Header: &h,
 		},
 	}
-	parsedUrl, err := url.Parse(uri)
+
+	// trailing slash is important, check if it's not there and add it
+	if !strings.HasSuffix(uri, "/") {
+		uri += "/"
+	}
+	parsedURL, err := url.Parse(uri)
 	if err != nil {
 		return nil, err
 	}
-	if parsedUrl.User != nil {
-		db.Session.Userinfo = parsedUrl.User
+	if parsedURL.User != nil {
+		db.Session.Userinfo = parsedURL.User
 	}
-	return connectWithRetry(db, parsedUrl, 0)
+	return connectWithRetry(db, parsedURL, 0)
 }
