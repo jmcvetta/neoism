@@ -42,7 +42,15 @@ func connectTest(t *testing.T) *Database {
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	url := os.Getenv("NEO4J_URL")
 	assert.NotEqual(t, "", url, "NEO4J_URL env variable must be provided")
-	db, err := dbConnect(url)
+	username := os.Getenv("NEO4J_USERNAME")
+	password := os.Getenv("NEO4J_PASSWORD")
+	var db *Database
+	var err error
+	if username != "" || password != "" {
+		db, err = dbConnectWithAuth(url, username, password)
+	} else {
+		db, err = dbConnect(url)
+	}
 	// db.Session.Log = true
 	if err != nil {
 		t.Fatal(err)
@@ -106,13 +114,20 @@ func TestConnectInvalidUrl(t *testing.T) {
 
 func TestConnectIncompleteUrl(t *testing.T) {
 	url := os.Getenv("NEO4J_URL")
+	username := os.Getenv("NEO4J_USERNAME")
+	password := os.Getenv("NEO4J_PASSWORD")
 	// url now has the format hostname:port/db/data, delete everything after the port
 	regex := regexp.MustCompile(`^(https?:\/\/[^:]+:\d+)\/.*$`)
 	replaced := regex.ReplaceAllString(url, "$1")
 	//
 	// 200 Success and HTML returned
 	//
-	_, err := dbConnect(replaced)
+	var err error
+	if username != "" || password != "" {
+		_, err = dbConnectWithAuth(replaced, username, password)
+	} else {
+		_, err = dbConnect(replaced)
+	}
 	if err != nil {
 		t.Fatal("Hardsetting path on incomplete url failed")
 	}
@@ -170,7 +185,14 @@ func TestPropertyKeys(t *testing.T) {
 
 func TestConnectUrl(t *testing.T) {
 	if url := os.Getenv("NEO4J_URL"); url != "" {
-		_, err := dbConnect(url)
+		var err error
+		password := os.Getenv("NEO4J_PASSWORD")
+		username := os.Getenv("NEO4J_USERNAME")
+		if  username != "" || password != "" {
+			_, err = dbConnectWithAuth(url, username, password)
+		} else{
+		_, err = dbConnect(url)
+		}
 		if err != nil {
 			t.Fatal("Cannot connect to ", url, err)
 		}

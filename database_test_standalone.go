@@ -9,3 +9,7 @@ package neoism
 func dbConnect(url string) (*Database, error) {
 	return Connect(url)
 }
+
+func dbConnectWithAuth(url string, username string, password string) (*Database, error) {
+	return ConnectWithAuth(url, username, password)
+}
