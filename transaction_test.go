@@ -6,7 +6,7 @@ package neoism
 
 import (
 	"encoding/json"
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 )
@@ -170,7 +170,7 @@ func TestTxBadQuery(t *testing.T) {
 	tx.Rollback() // Else cleanup will hang til Tx times out
 	assert.Equal(t, TxQueryError, err)
 	numErr := len(tx.Errors)
-	assert.T(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
+	assert.True(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
 }
 
 func TestTxQuery(t *testing.T) {

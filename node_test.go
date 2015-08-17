@@ -9,8 +9,8 @@
 package neoism
 
 import (
-	"github.com/bmizerany/assert"
 	"github.com/jmcvetta/randutil"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -56,7 +56,7 @@ func TestCreateNodeWithProperties(t *testing.T) {
 	}
 	// Confirm properties
 	props1, _ := n0.Properties()
-	assert.Equalf(t, props0, props1, "Node properties not as expected")
+	assert.Equal(t, props0, props1, "Node properties not as expected")
 }
 
 // 18.4.2. Create Node with properties
@@ -132,7 +132,7 @@ func TestGetNode(t *testing.T) {
 		t.Error(err)
 	}
 	// Confirm nodes are the same
-	assert.Equalf(t, n0.Id(), n1.Id(), "Nodes do not have same ID")
+	assert.Equal(t, n0.Id(), n1.Id(), "Nodes do not have same ID")
 }
 
 // 18.4.4. Get non-existent node
@@ -179,7 +179,7 @@ func TestDeleteNodeWithRelationships(t *testing.T) {
 	n0.Relate("knows", n1.Id(), Props{})
 	// Attempt to delete node without deleting relationship
 	err := n0.Delete()
-	assert.Equalf(t, err, CannotDelete, "Should not be possible to delete node with relationship.")
+	assert.Equal(t, err, CannotDelete, "Should not be possible to delete node with relationship.")
 }
 
 // 18.7.1. Set property on node
@@ -197,8 +197,8 @@ func TestSetPropertyOnNode(t *testing.T) {
 	// Confirm
 	props, _ := n0.Properties()
 	checkVal, present := props[key]
-	assert.Tf(t, present, "Expected property key not found")
-	assert.Tf(t, checkVal == value, "Expected property value not found")
+	assert.True(t, present, "Expected property key not found")
+	assert.True(t, checkVal == value, "Expected property value not found")
 }
 
 // 18.7.1. Set property on node
@@ -229,7 +229,7 @@ func TestUpdatePropertyOnNode(t *testing.T) {
 	}
 	// Confirm
 	checkProps, _ := n0.Properties()
-	assert.Equalf(t, props1, checkProps, "Did not recover expected properties after updating with SetProperties().")
+	assert.Equal(t, props1, checkProps, "Did not recover expected properties after updating with SetProperties().")
 }
 
 // 18.7.3. Get properties for node
@@ -244,7 +244,7 @@ func TestGetPropertiesForNode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, props, checkProps, "Did not return expected properties.")
+	assert.Equal(t, props, checkProps, "Did not return expected properties.")
 }
 
 //
@@ -279,7 +279,7 @@ func TestDeleteAllPropertiesFromNode(t *testing.T) {
 	}
 	// Confirm deletion
 	checkProps, _ := n0.Properties()
-	assert.Equalf(t, Props{}, checkProps, "Properties should be empty after call to DeleteProperties()")
+	assert.Equal(t, Props{}, checkProps, "Properties should be empty after call to DeleteProperties()")
 	n0.Delete()
 	err = n0.DeleteProperties()
 	assert.Equal(t, NotFound, err)
@@ -300,7 +300,7 @@ func TestDeleteNamedPropertyFromNode(t *testing.T) {
 	}
 	// Confirm
 	checkProps, _ := n0.Properties()
-	assert.Equalf(t, props0, checkProps, "Failed to remove named property with DeleteProperty().")
+	assert.Equal(t, props0, checkProps, "Failed to remove named property with DeleteProperty().")
 	//
 	// Delete non-existent property
 	//
@@ -323,7 +323,7 @@ func TestNodeProperty(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, value, "bar", "Incorrect value when getting single property.")
+	assert.Equal(t, value, "bar", "Incorrect value when getting single property.")
 	//
 	// Check Not Found
 	//
