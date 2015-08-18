@@ -117,12 +117,6 @@ This driver is fairly complete, and may now be suitable for general use.  The
 code has an extensive set of integration tests, but little real-world testing.
 YMMV; use in production at your own risk.
 
-## Production Note
-
-All API changes will be made via Pull Request, so it's highly recommended you
-Watch the repo Issues.  The API is fairly stable, but there are additions and
-small changes from time to time.
-
 
 ## Completed:
 
