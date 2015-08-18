@@ -145,6 +145,18 @@ YMMV; use in production at your own risk.
 * Gremlin
 
 
+# Testing
+
+Neoism's test suite respects, but does not require, a `NEO4J_URL` environment
+variable.  By default it assumes Neo4j is running on `localhost:7474`, with
+username `neo4j` and password `foobar`.  
+
+```bash
+export NEO4J_URL=http://your_user:your_password@neo4j.yourdomain.com/db/data/
+go test -v .
+```
+
+
 # Contributing
 
 Contributions, in the form of Pull Requests or Issues, are gladly accepted.
