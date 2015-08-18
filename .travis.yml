@@ -16,13 +16,8 @@ notificaitons:
     on_success: change
     on_failure: always
 
-addons:
-  apt:
-    packages:
-      - httpie
-
 before_script:
-  - http -a neo4j:neo4j POST http://localhost:7474/user/neo4j/password password=foobar
+  - curl -v -u neo4j:neo4j -H "Content-Type: application/json" -X POST -d '{"password":"foobar"}' http://localhost:7474/user/neo4j/password
 
 env:
   global:
