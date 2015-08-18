@@ -6,7 +6,7 @@ package neoism
 
 import (
 	"fmt"
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 )
@@ -92,7 +92,7 @@ func TestListLegacyNodeIndexes(t *testing.T) {
 			valid = true
 		}
 	}
-	assert.T(t, valid, "Newly created Index not found in listing of all Indexes.")
+	assert.True(t, valid, "Newly created Index not found in listing of all Indexes.")
 }
 
 // 18.9.5. Add node to index
@@ -207,9 +207,9 @@ func TestFindNodeByExactMatch(t *testing.T) {
 	// This query should have returned a map containing just two nodes, n1 and n0.
 	assert.Equal(t, len(nodes), 2)
 	_, present := nodes[n0.Id()]
-	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n0.Id()))
+	assert.True(t, present, "Find() failed to return node with id "+strconv.Itoa(n0.Id()))
 	_, present = nodes[n1.Id()]
-	assert.Tf(t, present, "Find() failed to return node with id "+strconv.Itoa(n1.Id()))
+	assert.True(t, present, "Find() failed to return node with id "+strconv.Itoa(n1.Id()))
 }
 
 // 18.9.10. Find node by query
@@ -242,12 +242,12 @@ func TestFindNodeByQuery(t *testing.T) {
 		t.Error(err)
 	}
 	// Confirm
-	assert.Equalf(t, len(nodes0), 1, "Query should have returned only one Node.")
+	assert.Equal(t, len(nodes0), 1, "Query should have returned only one Node.")
 	_, present := nodes0[n0.Id()]
-	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n0.Id()))
-	assert.Equalf(t, len(nodes1), 2, "Query should have returned exactly 2 Nodes.")
+	assert.True(t, present, "Query() failed to return node with id "+strconv.Itoa(n0.Id()))
+	assert.Equal(t, len(nodes1), 2, "Query should have returned exactly 2 Nodes.")
 	_, present = nodes1[n0.Id()]
-	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n0.Id()))
+	assert.True(t, present, "Query() failed to return node with id "+strconv.Itoa(n0.Id()))
 	_, present = nodes1[n1.Id()]
-	assert.Tf(t, present, "Query() failed to return node with id "+strconv.Itoa(n1.Id()))
+	assert.True(t, present, "Query() failed to return node with id "+strconv.Itoa(n1.Id()))
 }

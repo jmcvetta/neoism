@@ -5,7 +5,7 @@
 package neoism
 
 import (
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 	"sort"
 	"testing"
 )
@@ -40,10 +40,10 @@ func TestCreateRelationship(t *testing.T) {
 	// Confirm relationship exists on both nodes
 	rels, _ := n0.Outgoing("knows")
 	_, present := rels.Map()[r0.Id()]
-	assert.Tf(t, present, "Outgoing relationship not present on origin node.")
+	assert.True(t, present, "Outgoing relationship not present on origin node.")
 	rels, _ = n1.Incoming("knows")
 	_, present = rels.Map()[r0.Id()]
-	assert.Tf(t, present, "Incoming relationship not present on destination node.")
+	assert.True(t, present, "Incoming relationship not present on destination node.")
 }
 
 // 18.5.3. Create a relationship with properties
@@ -60,7 +60,7 @@ func TestCreateRelationshipWithProperties(t *testing.T) {
 	}
 	// Confirm relationship was created with specified properties.
 	props1, _ := r0.Properties()
-	assert.Equalf(t, props0, props1, "Properties queried from relationship do not match properties it was created with.")
+	assert.Equal(t, props0, props1, "Properties queried from relationship do not match properties it was created with.")
 }
 
 // 18.5.4. Delete relationship
@@ -77,7 +77,7 @@ func TestDeleteRelationship(t *testing.T) {
 	// Delete and confirm
 	r0.Delete()
 	_, err = db.Relationship(r0.Id())
-	assert.Equalf(t, err, NotFound, "Should not be able to Get() a deleted relationship.")
+	assert.Equal(t, err, NotFound, "Should not be able to Get() a deleted relationship.")
 }
 
 // 18.5.5. Get all properties on a relationship
@@ -95,7 +95,7 @@ func TestGetAllPropertiesOnRelationship(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, props0, props1, "Properties queried from relationship do not match properties it was created with.")
+	assert.Equal(t, props0, props1, "Properties queried from relationship do not match properties it was created with.")
 }
 
 // 18.5.6. Set all properties on a relationship
@@ -112,7 +112,7 @@ func TestSetAllPropertiesOnRelationship(t *testing.T) {
 	r0.SetProperties(props1)
 	// Confirm
 	checkProps, _ := r0.Properties()
-	assert.Equalf(t, checkProps, props1, "Failed to set all properties on relationship")
+	assert.Equal(t, checkProps, props1, "Failed to set all properties on relationship")
 }
 
 // 18.5.7. Get single property on a relationship
@@ -129,7 +129,7 @@ func TestGetSinglePropertyOnRelationship(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, value, "bar", "Incorrect value when getting single property.")
+	assert.Equal(t, value, "bar", "Incorrect value when getting single property.")
 }
 
 // 18.5.8. Set single property on a relationship
@@ -145,7 +145,7 @@ func TestSetSinglePropertyOnRelationship(t *testing.T) {
 	// Confirm
 	expected := Props{"foo": "bar"}
 	props, _ := r0.Properties()
-	assert.Equalf(t, props, expected, "Failed to set single property on relationship.")
+	assert.Equal(t, props, expected, "Failed to set single property on relationship.")
 }
 
 // 18.5.9. Get all relationships
@@ -163,10 +163,10 @@ func TestGetAllRelationships(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, len(rels), 3, "Wrong number of relationships")
+	assert.Equal(t, len(rels), 3, "Wrong number of relationships")
 	for _, r := range []*Relationship{r0, r1, r2} {
 		_, present := rels.Map()[r.Id()]
-		assert.Tf(t, present, "Missing expected relationship")
+		assert.True(t, present, "Missing expected relationship")
 	}
 }
 
@@ -185,9 +185,9 @@ func TestGetIncomingRelationships(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, len(rels), 1, "Wrong number of relationships")
+	assert.Equal(t, len(rels), 1, "Wrong number of relationships")
 	_, present := rels.Map()[r1.Id()]
-	assert.Tf(t, present, "Missing expected relationship")
+	assert.True(t, present, "Missing expected relationship")
 }
 
 // 18.5.11. Get outgoing relationships
@@ -205,10 +205,10 @@ func TestGetOutgoingRelationships(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, len(rels), 2, "Wrong number of relationships")
+	assert.Equal(t, len(rels), 2, "Wrong number of relationships")
 	for _, r := range []*Relationship{r0, r2} {
 		_, present := rels.Map()[r.Id()]
-		assert.Tf(t, present, "Missing expected relationship")
+		assert.True(t, present, "Missing expected relationship")
 	}
 }
 
@@ -228,18 +228,18 @@ func TestGetTypedRelationships(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, len(rels), 1, "Wrong number of relationships")
+	assert.Equal(t, len(rels), 1, "Wrong number of relationships")
 	_, present := rels.Map()[r0.Id()]
-	assert.Tf(t, present, "Missing expected relationship")
+	assert.True(t, present, "Missing expected relationship")
 	// Check two types of relationship together
 	rels, err = n0.Relationships(relType0, relType1)
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, len(rels), 2, "Wrong number of relationships")
+	assert.Equal(t, len(rels), 2, "Wrong number of relationships")
 	for _, r := range []*Relationship{r0, r1} {
 		_, present := rels.Map()[r.Id()]
-		assert.Tf(t, present, "Missing expected relationship")
+		assert.True(t, present, "Missing expected relationship")
 	}
 }
 
@@ -252,7 +252,7 @@ func TestGetRelationshipsOnNodeWithoutRelationships(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equalf(t, len(rels), 0, "Node with no relationships should return empty slice of relationships")
+	assert.Equal(t, len(rels), 0, "Node with no relationships should return empty slice of relationships")
 }
 
 // 18.6.1. Get relationship types
@@ -279,7 +279,7 @@ func TestGetRelationshipTypes(t *testing.T) {
 		t.Error(err)
 	}
 	for _, rt := range relTypes {
-		assert.Tf(t, sort.SearchStrings(foundRelTypes, rt) < len(foundRelTypes),
+		assert.True(t, sort.SearchStrings(foundRelTypes, rt) < len(foundRelTypes),
 			"Could not find expected relationship type: "+rt)
 	}
 }
