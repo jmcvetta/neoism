@@ -11,7 +11,7 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 [Go 1.1](http://golang.org/doc/go1.1) or later is required.
 
-Tested against Neo4j 2.1.2.  
+Tested against Neo4j 2.2.4.
 
 
 # Installation
