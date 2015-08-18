@@ -17,7 +17,7 @@ notificaitons:
     on_failure: always
 
 before_script:
-  - curl -H "Content-Type: application/json" -X POST -d "{'password':'foobar'}" -u neo4j:neo4j http://localhost:7474/user/neo4j/password
+  - ./set_neo4j_password.sh
 
 env:
   global:
