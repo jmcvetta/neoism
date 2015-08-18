@@ -16,8 +16,10 @@ notificaitons:
     on_success: change
     on_failure: always
 
+install:
+  - pip install -r requirements.txt
+
 before_script:
-  - pip install httpie
   - http -a neo4j:neo4j POST http://localhost:7474/user/neo4j/password password=foobar
 
 env:
