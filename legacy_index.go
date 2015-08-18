@@ -37,7 +37,7 @@ func (db *Database) createIndex(href, name, idxType, provider string) (*index, e
 		return nil, err
 	}
 	if resp.Status() != 201 {
-		resp.Unmarshal(&ne)
+		resp.UnmarshalBody(&ne)
 		return nil, ne
 	}
 	idx.populate(&res)
