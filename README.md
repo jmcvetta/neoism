@@ -110,6 +110,7 @@ if err != nil {
 
 [![Build Status](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)
 [![Build Status](https://drone.io/github.com/jmcvetta/neoism/status.png)](https://drone.io/github.com/jmcvetta/neoism/latest)
+[![Circle CI](https://circleci.com/gh/jmcvetta/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)
 [![Coverage Status](https://coveralls.io/repos/jmcvetta/neoism/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neoism)
 
 This driver is fairly complete, and may now be suitable for general use.  The
