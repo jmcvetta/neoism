@@ -38,17 +38,24 @@ import (
 	"github.com/jmcvetta/randutil"
 )
 
+// neo4jUrl is global in order for TestConnect() to work when NEO4J_URL is set.
+var neo4jUrl string
+
 func connectTest(t *testing.T) *Database {
 	log.SetFlags(log.Ltime | log.Lshortfile)
-	url := os.Getenv("NEO4J_URL")
-	assert.NotEqual(t, "", url, "NEO4J_URL env variable must be provided")
-	db, err := dbConnect(url)
+	neo4jUrl = os.Getenv("NEO4J_URL")
+	if neo4jUrl == "" {
+		// As of Neo4j v2.2.x, authentication is enabled by default.
+		neo4jUrl = "http://neo4j:foobar@localhost:7474/db/data/"
+	}
+	db, err := Connect(neo4jUrl)
 	// db.Session.Log = true
 	if err != nil {
 		t.Fatal(err)
 	}
 	return db
 }
+
 
 func cleanup(t *testing.T, db *Database) {
 	qs := []*CypherQuery{
@@ -76,9 +83,7 @@ func rndStr(t *testing.T) string {
 
 func TestConnect(t *testing.T) {
 	db := connectTest(t)
-	url := os.Getenv("NEO4J_URL")
-	logPretty(db)
-	assert.Equal(t, url, db.Url)
+	assert.Equal(t, neo4jUrl, db.Url)
 }
 
 func TestConnectInvalidUrl(t *testing.T) {
@@ -99,16 +104,14 @@ func TestConnectInvalidUrl(t *testing.T) {
 	//
 	// Not Found
 	//
-	url := os.Getenv("NEO4J_URL")
-	_, err = dbConnect(url + "foo/")
+	_, err = dbConnect(neo4jUrl + "foo/")
 	assert.Equal(t, InvalidDatabase, err)
 }
 
 func TestConnectIncompleteUrl(t *testing.T) {
-	url := os.Getenv("NEO4J_URL")
 	// url now has the format hostname:port/db/data, delete everything after the port
 	regex := regexp.MustCompile(`^(https?:\/\/[^:]+:\d+)\/.*$`)
-	replaced := regex.ReplaceAllString(url, "$1")
+	replaced := regex.ReplaceAllString(neo4jUrl, "$1")
 	//
 	// 200 Success and HTML returned
 	//
@@ -168,13 +171,3 @@ func TestPropertyKeys(t *testing.T) {
 	}
 }
 
-func TestConnectUrl(t *testing.T) {
-	if url := os.Getenv("NEO4J_URL"); url != "" {
-		_, err := dbConnect(url)
-		if err != nil {
-			t.Fatal("Cannot connect to ", url, err)
-		}
-	} else {
-		t.Skip("Skipping test, environment variable $NEO4J_URL is not defined.")
-	}
-}

@@ -11,7 +11,7 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 [Go 1.1](http://golang.org/doc/go1.1) or later is required.
 
-Tested against Neo4j 2.1.2.  
+Tested against Neo4j 2.2.4 and Go 1.4.1.
 
 
 # Installation
@@ -110,22 +110,12 @@ if err != nil {
 
 [![Build Status](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)
 [![Build Status](https://drone.io/github.com/jmcvetta/neoism/status.png)](https://drone.io/github.com/jmcvetta/neoism/latest)
+[![Circle CI](https://circleci.com/gh/jmcvetta/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)
 [![Coverage Status](https://coveralls.io/repos/jmcvetta/neoism/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neoism)
-[![xrefs](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/xrefs.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
-[![funcs](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/funcs.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
-[![top func](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/top-func.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
-[![library users](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/library-users.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
-[![status](https://sourcegraph.com/api/repos/github.com/jmcvetta/neoism/badges/status.png)](https://sourcegraph.com/github.com/jmcvetta/neoism)
 
 This driver is fairly complete, and may now be suitable for general use.  The
 code has an extensive set of integration tests, but little real-world testing.
 YMMV; use in production at your own risk.
-
-## Production Note
-
-All API changes will be made via Pull Request, so it's highly recommended you
-Watch the repo Issues.  The API is fairly stable, but there are additions and
-small changes from time to time.
 
 
 ## Completed:
@@ -138,6 +128,7 @@ small changes from time to time.
 * Transactional endpoint (Neo4j 2.0)
 * Node labels (Neo4j 2.0)
 * Schema index (Neo4j 2.0)
+* Authentication (Neo4j 2.2)
 
 
 ## To Do:
@@ -146,13 +137,24 @@ small changes from time to time.
 * ~~Unique Indexes~~ - probably will not expand support for legacy indexing.
 * ~~Automatic Indexes~~ - "
 * High Availability
-* Authentication (in neo4j 2.2)
 * Traversals - May never be supported due to security concerns.  From the
   manual:  "The Traversal REST Endpoint executes arbitrary Groovy code under
   the hood as part of the evaluators definitions. In hosted and open
   environments, this can constitute a security risk."
 * Built-In Graph Algorithms
 * Gremlin
+
+
+# Testing
+
+Neoism's test suite respects, but does not require, a `NEO4J_URL` environment
+variable.  By default it assumes Neo4j is running on `localhost:7474`, with
+username `neo4j` and password `foobar`.  
+
+```bash
+export NEO4J_URL=http://your_user:your_password@neo4j.yourdomain.com/db/data/
+go test -v .
+```
 
 
 # Contributing

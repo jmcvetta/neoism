@@ -18,11 +18,12 @@ before_script:
 #
 before_install:
   - sh start-neo4j.sh
+  - sh set_neo4j_password.sh
 
 env:
   global:
-    - NEO4J_VERSION="2.2.0"
-    - NEO4J_URL=http://localhost:7474/db/data/
+    - NEO4J_VERSION="2.2.4"
+    - NEO4J_URL=http://neo4j:foobar@localhost:7474/db/data/
 
 script:
   - go test -v
