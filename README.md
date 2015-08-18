@@ -128,6 +128,7 @@ YMMV; use in production at your own risk.
 * Transactional endpoint (Neo4j 2.0)
 * Node labels (Neo4j 2.0)
 * Schema index (Neo4j 2.0)
+* Authentication (Neo4j 2.2)
 
 
 ## To Do:
@@ -136,7 +137,6 @@ YMMV; use in production at your own risk.
 * ~~Unique Indexes~~ - probably will not expand support for legacy indexing.
 * ~~Automatic Indexes~~ - "
 * High Availability
-* Authentication (in neo4j 2.2)
 * Traversals - May never be supported due to security concerns.  From the
   manual:  "The Traversal REST Endpoint executes arbitrary Groovy code under
   the hood as part of the evaluators definitions. In hosted and open
