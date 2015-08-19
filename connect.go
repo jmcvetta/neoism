@@ -7,11 +7,17 @@
 package neoism
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"crypto/x509"
+	"errors"
 	"github.com/jmcvetta/napping"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 // Connect setups parameters for the Neo4j server
@@ -19,8 +25,32 @@ import (
 func Connect(uri string) (*Database, error) {
 	h := http.Header{}
 	h.Add("User-Agent", "neoism")
+
+	tcc := &tls.Config{}
+
+	caCertFile := os.Getenv("CACERTSFILE")
+	if caCertFile != "" {
+		log.Println("CA Cert file was specified, appending it into the Cert pool...")
+		caCert, err := ioutil.ReadFile(caCertFile)
+		if err != nil {
+			return nil, err
+		}
+		caCertPool := x509.NewCertPool()
+		ok := caCertPool.AppendCertsFromPEM(caCert)
+		if !ok {
+			return nil, errors.New("Unable to append the certificate to the CA certs pool.")
+		}
+
+		tcc.RootCAs = caCertPool
+	} else {
+		tcc.InsecureSkipVerify = true
+	}
+
+	client := &http.Client{Transport: &http.Transport{TLSClientConfig: tcc}}
+
 	db := &Database{
 		Session: &napping.Session{
+			Client: client,
 			Header: &h,
 		},
 	}
