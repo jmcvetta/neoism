@@ -7,6 +7,18 @@ Package `neoism` is a [Go](http://golang.org) client library providing access to
 the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 
+# Status
+
+[![Build Status](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)
+[![Build Status](https://drone.io/github.com/jmcvetta/neoism/status.png)](https://drone.io/github.com/jmcvetta/neoism/latest)
+[![Circle CI](https://circleci.com/gh/jmcvetta/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)
+[![Coverage Status](https://coveralls.io/repos/jmcvetta/neoism/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neoism)
+
+This driver is fairly complete, and may now be suitable for general use.  The
+code has an extensive set of integration tests, but little real-world testing.
+YMMV; use in production at your own risk.
+
+
 # Requirements
 
 [Go 1.1](http://golang.org/doc/go1.1) or later is required.
@@ -106,16 +118,8 @@ if err != nil {
 }
 ```
 
-# Status
 
-[![Build Status](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)
-[![Build Status](https://drone.io/github.com/jmcvetta/neoism/status.png)](https://drone.io/github.com/jmcvetta/neoism/latest)
-[![Circle CI](https://circleci.com/gh/jmcvetta/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)
-[![Coverage Status](https://coveralls.io/repos/jmcvetta/neoism/badge.png?branch=master)](https://coveralls.io/r/jmcvetta/neoism)
-
-This driver is fairly complete, and may now be suitable for general use.  The
-code has an extensive set of integration tests, but little real-world testing.
-YMMV; use in production at your own risk.
+# Roadmap
 
 
 ## Completed:
@@ -154,6 +158,14 @@ username `neo4j` and password `foobar`.
 ```bash
 export NEO4J_URL=http://your_user:your_password@neo4j.yourdomain.com/db/data/
 go test -v .
+```
+
+If you are using a fresh untouched Neo4j instance, you can use the included
+`set_neo4j_password.sh` script to set the password to that expected by Neoism's
+tests:
+
+```bash
+sh set_neo4j_password.sh
 ```
 
 

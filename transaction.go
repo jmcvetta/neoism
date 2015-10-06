@@ -143,7 +143,7 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 // Rollback rolls back an open transaction.
 func (t *Tx) Rollback() error {
 	ne := NeoError{}
-	resp, err := t.db.Session.Delete(t.Location, nil, &ne)
+	resp, err := t.db.Session.Delete(t.Location, nil, nil, &ne)
 	if err != nil {
 		return err
 	}

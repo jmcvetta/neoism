@@ -226,7 +226,7 @@ func (n *Node) Labels() ([]string, error) {
 func (n *Node) RemoveLabel(label string) error {
 	uri := join(n.HrefLabels, label)
 	ne := NeoError{}
-	resp, err := n.Db.Session.Delete(uri, nil, &ne)
+	resp, err := n.Db.Session.Delete(uri, nil, nil, &ne)
 	if err != nil {
 		return err
 	}

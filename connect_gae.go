@@ -13,7 +13,7 @@ import (
 	"appengine"
 	"appengine/urlfetch"
 
-	"github.com/jmcvetta/napping"
+	"gopkg.in/jmcvetta/napping.v3"
 )
 
 // Modified version of Connect that support Google App Engine.

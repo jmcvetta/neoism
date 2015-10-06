@@ -133,7 +133,7 @@ func (idx *index) Delete() error {
 		return err
 	}
 	ne := NeoError{}
-	resp, err := idx.db.Session.Delete(uri, nil, &ne)
+	resp, err := idx.db.Session.Delete(uri, nil, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func (idx *index) remove(e entity, id, key, value string) error {
 	}
 	uri = join(uri, id)
 	ne := NeoError{}
-	resp, err := idx.db.Session.Delete(uri, nil, &ne)
+	resp, err := idx.db.Session.Delete(uri, nil, nil, &ne)
 	if err != nil {
 		return err
 	}
