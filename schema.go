@@ -19,7 +19,7 @@ type Index struct {
 func (idx *Index) Drop() error {
 	uri := join(idx.db.Url, "schema/index", idx.Label, idx.PropertyKeys[0])
 	ne := NeoError{}
-	resp, err := idx.db.Session.Delete(uri, nil, &ne)
+	resp, err := idx.db.Session.Delete(uri, nil, nil, &ne)
 	if err != nil {
 		return err
 	}
