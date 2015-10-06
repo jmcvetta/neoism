@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/jmcvetta/napping"
+	"gopkg.in/jmcvetta/napping.v2"
 )
 
 // A Database is a REST client connected to a Neo4j database.
