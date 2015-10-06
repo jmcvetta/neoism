@@ -160,6 +160,14 @@ export NEO4J_URL=http://your_user:your_password@neo4j.yourdomain.com/db/data/
 go test -v .
 ```
 
+If you are using a fresh untouched Neo4j instance, you can use the included
+`set_neo4j_password.sh` script to set the password to that expected by Neoism's
+tests:
+
+```bash
+sh set_neo4j_password.sh
+```
+
 
 # Contributing
 
