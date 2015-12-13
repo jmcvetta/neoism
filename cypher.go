@@ -19,7 +19,7 @@ type CypherQuery struct {
 	Result       interface{}            `json:"-"`
 	cr           cypherResult
 	IncludeStats bool `json:"includeStats"`
-	Stats        Stats
+	stats        *Stats
 }
 
 // Columns returns the names, in order, of the columns returned for this query.
@@ -51,6 +51,13 @@ func (cq *CypherQuery) Unmarshal(v interface{}) error {
 	return json.Unmarshal(b, v)
 }
 
+func (cq *CypherQuery) Stats() (*Stats, error) {
+	if cq.stats == nil {
+		return nil, errors.New("stats were not requested at query time")
+	}
+	return cq.stats, nil
+}
+
 type cypherRequest struct {
 	Query      string                 `json:"query"`
 	Parameters map[string]interface{} `json:"params"`
@@ -74,7 +81,7 @@ type Stats struct {
 type cypherResult struct {
 	Columns []string
 	Data    [][]*json.RawMessage
-	Stats   Stats
+	Stats   *Stats
 }
 
 // Cypher executes a db query written in the Cypher language.  Data returned
@@ -107,7 +114,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	if q.Result != nil {
 		q.Unmarshal(q.Result)
 	}
-	q.Stats = q.cr.Stats
+	q.stats = q.cr.Stats
 	return nil
 }
 
@@ -165,7 +172,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 				return err
 			}
 		}
-		s.Stats = s.cr.Stats
+		s.stats = s.cr.Stats
 	}
 	return nil
 }

@@ -29,7 +29,7 @@ type txResponse struct {
 		Data    []struct {
 			Row []*json.RawMessage
 		}
-		Stats Stats
+		Stats *Stats
 	}
 	Transaction struct {
 		Expires string
@@ -65,7 +65,7 @@ func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 				return err
 			}
 		}
-		q.Stats = cr.Stats
+		q.stats = cr.Stats
 	}
 	return nil
 }
