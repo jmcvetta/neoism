@@ -14,10 +14,12 @@ import (
 // unmarshalled into it when the query is executed. Result must be a pointer
 // to a slice of structs - e.g. &[]someStruct{}.
 type CypherQuery struct {
-	Statement  string                 `json:"statement"`
-	Parameters map[string]interface{} `json:"parameters"`
-	Result     interface{}            `json:"-"`
-	cr         cypherResult
+	Statement    string                 `json:"statement"`
+	Parameters   map[string]interface{} `json:"parameters"`
+	Result       interface{}            `json:"-"`
+	cr           cypherResult
+	IncludeStats bool `json:"includeStats"`
+	Stats        Stats
 }
 
 // Columns returns the names, in order, of the columns returned for this query.
@@ -54,9 +56,25 @@ type cypherRequest struct {
 	Parameters map[string]interface{} `json:"params"`
 }
 
+type Stats struct {
+	ConstraintsAdded     int  `json:"constraints_added"`
+	ConstraintsRemoved   int  `json:"constraints_removed"`
+	ContainsUpdates      bool `json:"contains_updates"`
+	IndexesAdded         int  `json:"indexes_added"`
+	IndexesRemoved       int  `json:"indexes_removed"`
+	LabelsAdded          int  `json:"labels_added"`
+	LabelsRemoved        int  `json:"labels_removed"`
+	NodesCreated         int  `json:"nodes_created"`
+	NodesDeleted         int  `json:"nodes_deleted"`
+	PropertiesSet        int  `json:"properties_set"`
+	RelationshipDeleted  int  `json:"relationship_deleted"`
+	RelationshipsCreated int  `json:"relationships_created"`
+}
+
 type cypherResult struct {
 	Columns []string
 	Data    [][]*json.RawMessage
+	Stats   Stats
 }
 
 // Cypher executes a db query written in the Cypher language.  Data returned
@@ -70,6 +88,9 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	}
 	ne := NeoError{}
 	url := db.HrefCypher
+	if q.IncludeStats {
+		url = db.HrefCypher + "?includeStats=true"
+	}
 	// Method: "POST"
 	// Data:   &cReq
 	// Result: &cRes
@@ -86,6 +107,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	if q.Result != nil {
 		q.Unmarshal(q.Result)
 	}
+	q.Stats = q.cr.Stats
 	return nil
 }
 
@@ -118,6 +140,9 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 				Parameters: q.Parameters,
 			},
 		}
+		if q.IncludeStats {
+			payload[i].To = "/cypher?includeStats=true"
+		}
 	}
 	res := []batchCypherResponse{}
 	ne := NeoError{}
@@ -140,6 +165,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 				return err
 			}
 		}
+		s.Stats = s.cr.Stats
 	}
 	return nil
 }
