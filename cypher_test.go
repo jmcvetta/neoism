@@ -252,6 +252,27 @@ func TestCypherBadQuery(t *testing.T) {
 	assert.NotEqual(t, "", s)
 }
 
+func TestCypherStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	cq := CypherQuery{
+		Statement: `
+			CREATE (n:Person)
+		`,
+		IncludeStats: true,
+	}
+	err := db.Cypher(&cq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	stats, err := cq.Stats()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, Stats{ContainsUpdates: true, LabelsAdded: 1, NodesCreated: 1}, *stats)
+}
+
 func TestCypherBatch(t *testing.T) {
 	db := connectTest(t)
 	type resultStruct0 struct {
