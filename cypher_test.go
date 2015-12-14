@@ -348,3 +348,24 @@ func TestCypherBadBatch(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestCypherBatchStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement:    `CREATE (n:Person)`,
+			IncludeStats: true,
+		},
+	}
+	err := db.CypherBatch(qs)
+	if err != nil {
+		t.Error(err)
+	}
+
+	stats, err := qs[0].Stats()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, Stats{ContainsUpdates: true, LabelsAdded: 1, NodesCreated: 1}, *stats)
+}
