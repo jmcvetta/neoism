@@ -273,6 +273,26 @@ func TestCypherStats(t *testing.T) {
 	assert.Equal(t, Stats{ContainsUpdates: true, LabelsAdded: 1, NodesCreated: 1}, *stats)
 }
 
+func TestCypherNoStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	cq := CypherQuery{
+		Statement: `
+			CREATE (n:Person)
+		`,
+		IncludeStats: false,
+	}
+	err := db.Cypher(&cq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = cq.Stats()
+	if err == nil {
+		t.Fatal("Stats not requested - expected an error")
+	}
+}
+
 func TestCypherBatch(t *testing.T) {
 	db := connectTest(t)
 	type resultStruct0 struct {
