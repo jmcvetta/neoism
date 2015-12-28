@@ -5,8 +5,12 @@
 package neoism
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"net/http"
+	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -71,17 +75,9 @@ func TestDropIndex(t *testing.T) {
 }
 
 func cleanupIndexes(t *testing.T, db *Database) {
-	labels, err := db.Labels()
+	indexes, err := allIndexes(db)
 	if err != nil {
 		t.Fatal(err)
-	}
-	indexes := []*Index{}
-	for _, l := range labels {
-		idxs, err := db.Indexes(l)
-		if err != nil {
-			t.Fatal(err)
-		}
-		indexes = append(indexes, idxs...)
 	}
 	qs := make([]*CypherQuery, len(indexes))
 	for i, idx := range indexes {
@@ -203,17 +199,9 @@ func TestDropUniqueConstraint(t *testing.T) {
 }
 
 func cleanupUniqueConstraints(t *testing.T, db *Database) {
-	labels, err := db.Labels()
+	constraints, err := allConstraints(db)
 	if err != nil {
 		t.Fatal(err)
-	}
-	constraints := []*UniqueConstraint{}
-	for _, l := range labels {
-		cstrs, err := db.UniqueConstraints(l, "")
-		if err != nil {
-			t.Fatal(err)
-		}
-		constraints = append(constraints, cstrs...)
 	}
 	qs := make([]*CypherQuery, len(constraints))
 	for i, cstr := range constraints {
@@ -229,4 +217,61 @@ func cleanupUniqueConstraints(t *testing.T, db *Database) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+var (
+	indRegex        = regexp.MustCompile(`^ +ON +:(.*)\((.*)\) +ONLINE +$`)
+	constraintRegex = regexp.MustCompile(`^ +ON +\(.*\:(.*)\) +ASSERT +.*\.(.*) +IS UNIQUE *`)
+	re              = regexp.MustCompile("(.*/db/)data/")
+)
+
+func allIndexes(db *Database) ([]*Index, error) {
+	schemaLines, err := fetchSchema(db)
+	if err != nil {
+		return nil, err
+	}
+	var indexes []*Index
+	for _, line := range schemaLines {
+		for _, match := range indRegex.FindAllStringSubmatch(line, -1) {
+			indexes = append(indexes, &Index{db: db, Label: match[1], PropertyKeys: []string{match[2]}})
+		}
+	}
+	return indexes, nil
+}
+
+func allConstraints(db *Database) ([]*UniqueConstraint, error) {
+	schemaLines, err := fetchSchema(db)
+	if err != nil {
+		return nil, err
+	}
+	var constraints []*UniqueConstraint
+	for _, line := range schemaLines {
+		for _, match := range constraintRegex.FindAllStringSubmatch(line, -1) {
+			constraints = append(constraints, &UniqueConstraint{db: db, Label: match[1], Type: "UNIQUENESS", PropertyKeys: []string{match[2]}})
+		}
+	}
+	return constraints, nil
+}
+
+func fetchSchema(db *Database) ([]string, error) {
+	url := re.ReplaceAllString(db.Url, "${1}manage/server/console/")
+
+	resp, err := http.Post(url, "application/json", strings.NewReader(`{"command":"schema","engine":"shell"}`))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var data []interface{}
+
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(&data); err != nil {
+		return nil, err
+	}
+
+	if len(data) != 2 {
+		return nil, fmt.Errorf("unexpected index response length %d", len(data))
+	}
+
+	return strings.Split(data[0].(string), "\n"), nil
 }
