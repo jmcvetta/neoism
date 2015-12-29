@@ -253,6 +253,47 @@ func TestCypherBadQuery(t *testing.T) {
 	assert.NotEqual(t, "", s)
 }
 
+func TestCypherStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	cq := CypherQuery{
+		Statement: `
+			CREATE (n:Person)
+		`,
+		IncludeStats: true,
+	}
+	err := db.Cypher(&cq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	stats, err := cq.Stats()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, Stats{ContainsUpdates: true, LabelsAdded: 1, NodesCreated: 1}, *stats)
+}
+
+func TestCypherNoStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	cq := CypherQuery{
+		Statement: `
+			CREATE (n:Person)
+		`,
+		IncludeStats: false,
+	}
+	err := db.Cypher(&cq)
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = cq.Stats()
+	if err == nil {
+		t.Fatal("Stats not requested - expected an error")
+	}
+}
+
 func TestCypherBatch(t *testing.T) {
 	db := connectTest(t)
 	type resultStruct0 struct {
@@ -327,4 +368,25 @@ func TestCypherBadBatch(t *testing.T) {
 	if _, ok := err.(NeoError); !ok {
 		t.Error(err)
 	}
+}
+
+func TestCypherBatchStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement:    `CREATE (n:Person)`,
+			IncludeStats: true,
+		},
+	}
+	err := db.CypherBatch(qs)
+	if err != nil {
+		t.Error(err)
+	}
+
+	stats, err := qs[0].Stats()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, Stats{ContainsUpdates: true, LabelsAdded: 1, NodesCreated: 1}, *stats)
 }
