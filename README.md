@@ -182,15 +182,19 @@ sh set_neo4j_password.sh
 ```
 
 
+# Support
+
+Paid support and consulting services are available for Neoism.  Please [contact
+the author](mailto:jason.mcvetta@gmail.com) for more details.
+
+
 # Contributing
 
-Contributions, in the form of Pull Requests or Issues, are gladly accepted.
-Before submitting a Pull Request, please ensure your code passes all tests, and
-that your changes do not decrease test coverage.  I.e. if you add new features,
-also add corresponding new tests.
+Contributions in the form of Pull Requests are gladly accepted.  Before
+submitting a PR, please ensure your code passes all tests, and that your
+changes do not decrease test coverage.  I.e. if you add new features also add
+corresponding new tests.
 
-For fastest response when submitting an Issue, please create a failing test
-case to demonstrate the problem.
 
 
 # License
