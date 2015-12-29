@@ -273,3 +273,30 @@ func TestTxQueryBad(t *testing.T) {
 	assert.Equal(t, TxQueryError, err)
 	tx.Rollback() // Else cleanup will hang til Tx times out
 }
+
+func TestTxBeginStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `
+				CREATE (n:Person)
+			`,
+			IncludeStats: true,
+		},
+	}
+	tx, err := db.Begin(qs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stats, err := qs[0].Stats()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, Stats{ContainsUpdates: true, LabelsAdded: 1, NodesCreated: 1}, *stats)
+
+	err = tx.Rollback()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
