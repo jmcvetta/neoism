@@ -49,6 +49,7 @@ func TestCypherParameters(t *testing.T) {
 			MATCH path = (n)-[r]->(m)
 			WHERE m.name = {name}
 			RETURN id(n), id(r), id(m)
+			ORDER by id(n), id(r), id(m)
 		`,
 		Parameters: map[string]interface{}{
 			"startName": "I",

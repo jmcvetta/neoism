@@ -184,9 +184,3 @@ case to demonstrate the problem.
 
 This is Free Software, released under the terms of the [GPL
 v3](http://www.gnu.org/copyleft/gpl.html).
-
-
-Please feel free to make a donation to the author, to support the development
-of this and other Free Software packages.
-
-[![Donate with PayPal](https://img.shields.io/badge/donate-paypal-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QT3XGGX2SR88U)
