@@ -28,8 +28,21 @@ Tested against Neo4j 2.2.4 and Go 1.4.1.
 
 # Installation
 
+## Development
+
 ```
 go get -v github.com/jmcvetta/neoism
+```
+
+
+## Stable
+
+Neoism is versioned using [`gopkg.in`](http://gopkg.in).  
+
+Current release is `v1`
+
+```
+go get gopkg.in/jmcvetta/neoism.v1
 ```
 
 
