@@ -24,5 +24,6 @@ _testmain.go
 # Vim swap files
 *.swp
 
-# IntelliJ project folder
-.idea
+# IntelliJ
+.idea/
+*.iml
