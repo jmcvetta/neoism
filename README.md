@@ -184,8 +184,8 @@ sh set_neo4j_password.sh
 
 # Support
 
-Paid support and consulting services are available for Neoism.  Please [contact
-the author](mailto:jason.mcvetta@gmail.com) for more details.
+Paid support, development, and consulting services are available from [Silicon
+Beach Heavy Industries](http://siliconheavy.com).
 
 
 # Contributing
