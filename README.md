@@ -184,8 +184,8 @@ sh set_neo4j_password.sh
 
 # Support
 
-Paid support, development, and consulting services are available from [Silicon
-Beach Heavy Industries](http://siliconheavy.com).
+Support and consulting services are available from [Silicon Beach Heavy
+Industries](http://siliconheavy.com).
 
 
 # Contributing
