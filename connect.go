@@ -17,11 +17,18 @@ import (
 // Connect setups parameters for the Neo4j server
 // and calls ConnectWithRetry()
 func Connect(uri string) (*Database, error) {
+	return ConnectWithClient(uri, nil)
+}
+
+// ConnectWithClient setups parameters for the Neo4j server
+// and calls ConnectWithRetry() with a given http.Client
+func ConnectWithClient(uri string, client *http.Client) (*Database, error) {
 	h := http.Header{}
 	h.Add("User-Agent", "neoism")
 	db := &Database{
 		Session: &napping.Session{
 			Header: &h,
+			Client: client,
 		},
 	}
 
