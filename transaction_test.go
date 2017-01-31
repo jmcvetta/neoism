@@ -6,7 +6,7 @@ package neoism
 
 import (
 	"encoding/json"
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 )
@@ -170,7 +170,7 @@ func TestTxBadQuery(t *testing.T) {
 	tx.Rollback() // Else cleanup will hang til Tx times out
 	assert.Equal(t, TxQueryError, err)
 	numErr := len(tx.Errors)
-	assert.T(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
+	assert.True(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
 }
 
 func TestTxQuery(t *testing.T) {
@@ -272,4 +272,31 @@ func TestTxQueryBad(t *testing.T) {
 	err = tx.Query(qs1)
 	assert.Equal(t, TxQueryError, err)
 	tx.Rollback() // Else cleanup will hang til Tx times out
+}
+
+func TestTxBeginStats(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `
+				CREATE (n:Person)
+			`,
+			IncludeStats: true,
+		},
+	}
+	tx, err := db.Begin(qs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stats, err := qs[0].Stats()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, Stats{ContainsUpdates: true, LabelsAdded: 1, NodesCreated: 1}, *stats)
+
+	err = tx.Rollback()
+	if err != nil {
+		t.Fatal(err)
+	}
 }

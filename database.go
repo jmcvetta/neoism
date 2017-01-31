@@ -5,11 +5,12 @@
 package neoism
 
 import (
-	"github.com/jmcvetta/napping"
+	"errors"
 	"log"
-	"net/http"
 	"net/url"
 	"strconv"
+
+	"gopkg.in/jmcvetta/napping.v3"
 )
 
 // A Database is a REST client connected to a Neo4j database.
@@ -29,20 +30,14 @@ type Database struct {
 	Extensions      interface{} `json:"extensions"`
 }
 
-// Connect establishes a connection to the Neo4j server.
-func Connect(uri string) (*Database, error) {
-	h := http.Header{}
-	h.Add("User-Agent", "neoism")
-	db := &Database{
-		Session: &napping.Session{
-			Header: &h,
-		},
+// connectWithRetry tries to establish a connection to the Neo4j server.
+// If the ping successes but doesn't return version,
+// it retries using Path "/db/data/" with a max number of retries of 3.
+func connectWithRetry(db *Database, parsedUrl *url.URL, retries int) (*Database, error) {
+	if retries > 3 {
+		return nil, errors.New("Failed too many times")
 	}
-	_, err := url.Parse(uri) // Sanity check
-	if err != nil {
-		return nil, err
-	}
-	db.Url = uri
+	db.Url = parsedUrl.String()
 	//		Url:    db.Url,
 	//		Method: "GET",
 	//		Result: &db,
@@ -51,11 +46,34 @@ func Connect(uri string) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	if resp.Status() != 200 || db.Version == "" {
-		log.Println("Status " + strconv.Itoa(resp.Status()) + " trying to connect to " + uri)
+	if resp.Status() != 200 {
+		log.Println("Status " + strconv.Itoa(resp.Status()) + " trying to connect to " + db.Url)
 		return nil, InvalidDatabase
 	}
+	if db.Version == "" {
+		parsedUrl.Path = "/db/data/"
+		return connectWithRetry(db, parsedUrl, retries+1)
+	}
 	return db, nil
+}
+
+// PropertyKeys lists all property keys ever used in the database. This
+// includes and property keys you have used, but deleted.  There is
+// currently no way to tell which ones are in use and which ones are not,
+// short of walking the entire set of properties in the database.
+func PropertyKeys(db *Database) ([]string, error) {
+	propertyKeys := []string{}
+	ne := NeoError{}
+
+	uri := db.Url + "propertykeys"
+	resp, err := db.Session.Get(uri, nil, &propertyKeys, &ne)
+	if err != nil {
+		return propertyKeys, err
+	}
+	if resp.Status() != 200 {
+		return propertyKeys, ne
+	}
+	return propertyKeys, err
 }
 
 // A Props is a set of key/value properties.

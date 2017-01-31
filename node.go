@@ -142,6 +142,9 @@ func (n *Node) getRels(uri string, types ...string) (Rels, error) {
 	if resp.Status() != 200 {
 		return rels, ne
 	}
+	for _, rel := range rels {
+		rel.Db = n.Db
+	}
 	return rels, nil // Success!
 }
 
@@ -223,7 +226,7 @@ func (n *Node) Labels() ([]string, error) {
 func (n *Node) RemoveLabel(label string) error {
 	uri := join(n.HrefLabels, label)
 	ne := NeoError{}
-	resp, err := n.Db.Session.Delete(uri, nil, &ne)
+	resp, err := n.Db.Session.Delete(uri, nil, nil, &ne)
 	if err != nil {
 		return err
 	}

@@ -58,7 +58,7 @@ func (e *entity) DeleteProperty(key string) error {
 	parts := []string{e.HrefProperties, key}
 	url := strings.Join(parts, "/")
 	ne := NeoError{}
-	resp, err := e.Db.Session.Delete(url, nil, &ne)
+	resp, err := e.Db.Session.Delete(url, nil, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (e *entity) DeleteProperty(key string) error {
 // Delete removes the object from the DB.
 func (e *entity) Delete() error {
 	ne := NeoError{}
-	resp, err := e.Db.Session.Delete(e.HrefSelf, nil, &ne)
+	resp, err := e.Db.Session.Delete(e.HrefSelf, nil, nil, &ne)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (e *entity) SetProperties(p Props) error {
 // DeleteProperties deletes all properties.
 func (e *entity) DeleteProperties() error {
 	ne := NeoError{}
-	resp, err := e.Db.Session.Delete(e.HrefProperties, nil, &ne)
+	resp, err := e.Db.Session.Delete(e.HrefProperties, nil, nil, &ne)
 	if err != nil {
 		return err
 	}

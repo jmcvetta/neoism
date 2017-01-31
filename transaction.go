@@ -18,18 +18,6 @@ type Tx struct {
 	Expires    string // Cannot unmarshall into time.Time :(
 }
 
-// A TxQueryError is returned when there is an error with one of the Cypher
-// queries inside a transaction, but not with the transaction itself.
-var TxQueryError = errors.New("Error with a query inside a transaction.")
-
-// A TxError is an error with one of the statements submitted in a transaction,
-// but not with the transaction itself.
-type TxError struct {
-	Code    string
-	Status  string
-	Message string
-}
-
 type txRequest struct {
 	Statements []*CypherQuery `json:"statements"`
 }
@@ -41,6 +29,7 @@ type txResponse struct {
 		Data    []struct {
 			Row []*json.RawMessage
 		}
+		Stats *Stats
 	}
 	Transaction struct {
 		Expires string
@@ -67,6 +56,7 @@ func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 		cr := cypherResult{
 			Columns: res.Columns,
 			Data:    data,
+			Stats:   res.Stats,
 		}
 		q.cr = cr
 		if q.Result != nil {
@@ -75,6 +65,7 @@ func (tr *txResponse) unmarshal(qs []*CypherQuery) error {
 				return err
 			}
 		}
+		q.stats = cr.Stats
 	}
 	return nil
 }
@@ -155,7 +146,7 @@ func (t *Tx) Query(qs []*CypherQuery) error {
 // Rollback rolls back an open transaction.
 func (t *Tx) Rollback() error {
 	ne := NeoError{}
-	resp, err := t.db.Session.Delete(t.Location, nil, &ne)
+	resp, err := t.db.Session.Delete(t.Location, nil, nil, &ne)
 	if err != nil {
 		return err
 	}

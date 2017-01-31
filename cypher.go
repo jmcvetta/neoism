@@ -7,7 +7,6 @@ package neoism
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 )
 
 // A CypherQuery is a statement in the Cypher query language, with optional
@@ -15,10 +14,12 @@ import (
 // unmarshalled into it when the query is executed. Result must be a pointer
 // to a slice of structs - e.g. &[]someStruct{}.
 type CypherQuery struct {
-	Statement  string                 `json:"statement"`
-	Parameters map[string]interface{} `json:"parameters"`
-	Result     interface{}            `json:"-"`
-	cr         cypherResult
+	Statement    string                 `json:"statement"`
+	Parameters   map[string]interface{} `json:"parameters"`
+	Result       interface{}            `json:"-"`
+	cr           cypherResult
+	IncludeStats bool `json:"includeStats"`
+	stats        *Stats
 }
 
 // Columns returns the names, in order, of the columns returned for this query.
@@ -50,14 +51,37 @@ func (cq *CypherQuery) Unmarshal(v interface{}) error {
 	return json.Unmarshal(b, v)
 }
 
+func (cq *CypherQuery) Stats() (*Stats, error) {
+	if cq.stats == nil {
+		return nil, errors.New("stats were not requested at query time")
+	}
+	return cq.stats, nil
+}
+
 type cypherRequest struct {
 	Query      string                 `json:"query"`
 	Parameters map[string]interface{} `json:"params"`
 }
 
+type Stats struct {
+	ConstraintsAdded     int  `json:"constraints_added"`
+	ConstraintsRemoved   int  `json:"constraints_removed"`
+	ContainsUpdates      bool `json:"contains_updates"`
+	IndexesAdded         int  `json:"indexes_added"`
+	IndexesRemoved       int  `json:"indexes_removed"`
+	LabelsAdded          int  `json:"labels_added"`
+	LabelsRemoved        int  `json:"labels_removed"`
+	NodesCreated         int  `json:"nodes_created"`
+	NodesDeleted         int  `json:"nodes_deleted"`
+	PropertiesSet        int  `json:"properties_set"`
+	RelationshipDeleted  int  `json:"relationship_deleted"`
+	RelationshipsCreated int  `json:"relationships_created"`
+}
+
 type cypherResult struct {
 	Columns []string
 	Data    [][]*json.RawMessage
+	Stats   *Stats
 }
 
 // Cypher executes a db query written in the Cypher language.  Data returned
@@ -66,11 +90,14 @@ type cypherResult struct {
 func (db *Database) Cypher(q *CypherQuery) error {
 	result := cypherResult{}
 	payload := cypherRequest{
-		Query:      strip(q.Statement),
+		Query:      q.Statement,
 		Parameters: q.Parameters,
 	}
 	ne := NeoError{}
 	url := db.HrefCypher
+	if q.IncludeStats {
+		url = db.HrefCypher + "?includeStats=true"
+	}
 	// Method: "POST"
 	// Data:   &cReq
 	// Result: &cRes
@@ -87,6 +114,7 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	if q.Result != nil {
 		q.Unmarshal(q.Result)
 	}
+	q.stats = q.cr.Stats
 	return nil
 }
 
@@ -115,9 +143,12 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 			To:     "/cypher",
 			Id:     i,
 			Body: cypherRequest{
-				Query:      strip(q.Statement),
+				Query:      q.Statement,
 				Parameters: q.Parameters,
 			},
+		}
+		if q.IncludeStats {
+			payload[i].To = "/cypher?includeStats=true"
 		}
 	}
 	res := []batchCypherResponse{}
@@ -141,15 +172,7 @@ func (db *Database) CypherBatch(qs []*CypherQuery) error {
 				return err
 			}
 		}
+		s.stats = s.cr.Stats
 	}
 	return nil
-}
-
-// strip removes tabs and newlines from a string.  Used to prepare Cypher
-// statements for transmission to server.  Not required by server, but makes
-// statements more readable for verbose logging.
-func strip(s string) string {
-	s = strings.Replace(s, "\t", "", -1)
-	s = strings.Replace(s, "\n", " ", -1)
-	return s
 }

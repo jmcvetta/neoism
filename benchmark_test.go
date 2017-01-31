@@ -4,19 +4,7 @@
 
 package neoism
 
-import (
-	"log"
-	"testing"
-)
-
-func connectBench(b *testing.B) *Database {
-	log.SetFlags(log.Ltime | log.Lshortfile)
-	db, err := Connect("http://localhost:7474/db/data")
-	if err != nil {
-		b.Fatal(err)
-	}
-	return db
-}
+import "testing"
 
 func benchCleanup(b *testing.B, db *Database) {
 	qs := []*CypherQuery{
