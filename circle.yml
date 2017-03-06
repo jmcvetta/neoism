@@ -11,3 +11,5 @@ machine:
 test:
   pre:
     - http -a neo4j:neo4j POST http://localhost:7474/user/neo4j/password password=foobar
+  post:
+    - bash <(curl -s https://codecov.io/bash)
