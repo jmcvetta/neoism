@@ -9,10 +9,12 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 # Status
 
-[![Build Status](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)
-[![Circle CI](https://circleci.com/gh/jmcvetta/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)
-[![Coveralls](https://img.shields.io/coveralls/jmcvetta/neoism/master.svg)](https://coveralls.io/r/jmcvetta/neoism)
-[![Codecov](https://img.shields.io/codecov/c/github/jmcvetta/neoism/master.svg)](https://codecov.io/gh/jmcvetta/neoism)
+| System    | Status                                                                                                                  |
+|-----------|:-----------------------------------------------------------------------------------------------------------------------:|
+| Travis CI | [![Travis CI](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)          |
+| CircleCI  | [![CircleCI](https://circleci.com/gh/jmcvetta/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)           | 
+| Coveralls | [![Coveralls](https://img.shields.io/coveralls/jmcvetta/neoism/master.svg)](https://coveralls.io/r/jmcvetta/neoism)     |
+| Codecov   | [![Codecov](https://img.shields.io/codecov/c/github/jmcvetta/neoism/master.svg)](https://codecov.io/gh/jmcvetta/neoism) |
 
 This driver is fairly complete, and may now be suitable for general use.  The
 code has an extensive set of integration tests, but little real-world testing.
