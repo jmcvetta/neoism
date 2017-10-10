@@ -121,6 +121,23 @@ func TestConnectIncompleteUrl(t *testing.T) {
 	}
 }
 
+func TestConnectCustomClient(t *testing.T) {
+	neo4jUrl = os.Getenv("NEO4J_URL")
+	if neo4jUrl == "" {
+		// As of Neo4j v2.2.x, authentication is enabled by default.
+		neo4jUrl = "http://neo4j:foobar@localhost:7474/db/data/"
+	}
+
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	db, err := Connect(neo4jUrl, WithClient(client))
+	assert.Nil(t, err)
+
+	assert.Equal(t, client, db.Session.Client)
+}
+
 func TestPropertyKeys(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
@@ -170,4 +187,3 @@ func TestPropertyKeys(t *testing.T) {
 		}
 	}
 }
-
