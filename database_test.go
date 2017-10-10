@@ -30,12 +30,14 @@ package neoism
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/jmcvetta/randutil"
+	"github.com/stretchr/testify/assert"
 )
 
 // neo4jUrl is global in order for TestConnect() to work when NEO4J_URL is set.
@@ -55,7 +57,6 @@ func connectTest(t *testing.T) *Database {
 	}
 	return db
 }
-
 
 func cleanup(t *testing.T, db *Database) {
 	qs := []*CypherQuery{
