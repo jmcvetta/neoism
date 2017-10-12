@@ -34,7 +34,6 @@ import (
 	"os"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/jmcvetta/randutil"
 	"github.com/stretchr/testify/assert"
@@ -129,9 +128,7 @@ func TestConnectCustomClient(t *testing.T) {
 		neo4jUrl = "http://neo4j:foobar@localhost:7474/db/data/"
 	}
 
-	client := &http.Client{
-		Timeout: time.Second * 10,
-	}
+	client := &http.Client{}
 
 	db, err := Connect(neo4jUrl, WithClient(client))
 	assert.Nil(t, err)
