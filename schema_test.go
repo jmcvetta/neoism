@@ -7,17 +7,17 @@ package neoism
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateIndex(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
-	defer cleanupIndexes(t, db)
 	label := rndStr(t)
 	prop0 := rndStr(t)
 	idx, err := db.CreateIndex(label, prop0)
@@ -28,6 +28,8 @@ func TestCreateIndex(t *testing.T) {
 	assert.Equal(t, prop0, idx.PropertyKeys[0])
 	_, err = db.CreateIndex("", "")
 	assert.Equal(t, NotAllowed, err)
+	err = idx.Drop()
+	assert.Nil(t, err)
 }
 
 func TestIndexes(t *testing.T) {
@@ -79,16 +81,17 @@ func cleanupIndexes(t *testing.T, db *Database) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	qs := make([]*CypherQuery, len(indexes))
-	for i, idx := range indexes {
+	qs := []*CypherQuery{}
+	for _, idx := range indexes {
 		// Cypher doesn't support properties in DROP statements
 		l := idx.Label
-		p := idx.PropertyKeys[0]
-		stmt := fmt.Sprintf("DROP INDEX ON :%s(%s)", l, p)
-		cq := CypherQuery{
-			Statement: stmt,
+		for _, p := range idx.PropertyKeys {
+			stmt := fmt.Sprintf("DROP INDEX ON :%s(%s)", l, p)
+			cq := CypherQuery{
+				Statement: stmt,
+			}
+			qs = append(qs, &cq)
 		}
-		qs[i] = &cq
 	}
 	// db.Rc.Log = true
 	err = db.CypherBatch(qs)
