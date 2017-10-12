@@ -14,14 +14,10 @@ import (
 	"gopkg.in/jmcvetta/napping.v3"
 )
 
-// option is a type alias for a function that takes a pointer to a Database.
-// Used for functional configuration of our client.
-type option func(*Database)
-
 // WithClient is a configuration function that allows users of this library to
 // supply their own http.Client. This is required if they want to use a self
 // signed TLS certificate for example.
-func WithClient(client *http.Client) option {
+func WithClient(client *http.Client) func(*Database) {
 	return func(db *Database) {
 		db.Session.Client = client
 	}
@@ -29,7 +25,7 @@ func WithClient(client *http.Client) option {
 
 // Connect sets up our client for connecting to the Neo4j server and calls
 // ConnectWithRetry()
-func Connect(uri string, options ...option) (*Database, error) {
+func Connect(uri string, options ...func(*Database)) (*Database, error) {
 	h := http.Header{}
 	h.Add("User-Agent", "neoism")
 	db := &Database{
