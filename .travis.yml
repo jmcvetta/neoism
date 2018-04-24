@@ -16,8 +16,8 @@ notificaitons:
     on_success: change
     on_failure: always
 before_script:
-  - go get -v github.com/bmizerany/assert
   - go get -v github.com/jmcvetta/randutil
+  - go get -v github.com/stretchr/testify/assert
 #
 # Lines below copied from # https://github.com/versae/neo4j-rest-client/blob/master/.travis.yml
 #
