@@ -33,7 +33,7 @@ Tested against Neo4j 2.2.4 and Go 1.4.1.
 ## Development
 
 ```
-go get -v github.com/jmcvetta/neoism
+go get -t -v github.com/jmcvetta/neoism
 ```
 
 
