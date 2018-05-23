@@ -1,0 +1,45 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/Financial-Times/neoism
+    docker:
+      - image: circleci/golang:1.10
+        environment:
+          CIRCLE_TEST_REPORTS: /tmp/test-reports
+          CIRCLE_ARTIFACTS: /tmp/artifacts
+      - image: neo4j:3.2.7-enterprise
+        environment:
+          NEO4J_AUTH: none
+          NEO4J_HEAP_MEMORY: 256
+          NEO4J_CACHE_MEMORY: 256M
+    steps:
+      - checkout
+      - run:
+          name: Create folders
+          command: |
+            mkdir -p $CIRCLE_TEST_REPORTS/golang
+            mkdir -p $CIRCLE_ARTIFACTS
+      - run:
+          name: Download dependancies
+          command: |
+            go get -u github.com/jstemmer/go-junit-report
+            go get -u github.com/mattn/goveralls
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      - run:
+          name: Download vendored dependancies
+          command: |
+            dep ensure -v -vendor-only
+      - run:
+          name: Build app
+          command: |
+            go build -v
+      - run:
+          name: Run tests and create coverage report
+          command: |
+            go test ./... -v -race -cover -coverprofile=$CIRCLE_TEST_REPORTS/coverage.out | go-junit-report > $CIRCLE_TEST_REPORTS/golang/junit.xml
+      - run:
+          name: Upload coverage report
+          command: |
+            /go/bin/goveralls -coverprofile=$CIRCLE_TEST_REPORTS/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+      - store_test_results:
+          path: /tmp/test-reports
