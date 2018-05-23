@@ -6,9 +6,10 @@ package neoism
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type resStruct0 struct {
@@ -51,7 +52,7 @@ func TestTxBegin(t *testing.T) {
 		Statement: `
 				MATCH (a:Person), (b:Person)
 				WHERE a.name = "James T Kirk" AND b.name = "Dr McCoy"
-				CREATE a-[r:Commands]->b
+				CREATE (a)-[r:Commands]->(b)
 				RETURN a.name, type(r), b
 			`,
 		Parameters: map[string]interface{}{

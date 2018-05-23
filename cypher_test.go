@@ -6,9 +6,10 @@ package neoism
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // 18.3.1. Send queries with parameters
@@ -166,7 +167,7 @@ func TestCypher(t *testing.T) {
 	}
 	result := []resultStruct{}
 	cq := CypherQuery{
-		Statement: "start x = node(" + strconv.Itoa(n0.Id()) + ") match x -[r]-> n return type(r), n.name, n.age",
+		Statement: "start x = node(" + strconv.Itoa(n0.Id()) + ") match (x) -[r]-> (n) return type(r), n.name, n.age",
 		Result:    &result,
 	}
 	err := db.Cypher(&cq)
@@ -211,7 +212,7 @@ func TestCypherComment(t *testing.T) {
 	stmt := `
 		START x = NODE(%d)
 		// This is a comment
-		MATCH x -[r]-> n
+		MATCH (x) -[r]-> (n)
 		// This is another comment
 		RETURN TYPE(r), n.name, n.age
 		`
@@ -319,7 +320,7 @@ func TestCypherBatch(t *testing.T) {
 			Statement: `
 				MATCH (a:Person), (b:Person)
 				WHERE a.name = 'Mr Spock' AND b.name = 'Mr Sulu'
-				CREATE a-[r:Knows]->b
+				CREATE (a)-[r:Knows]->(b)
 				RETURN r
 			`,
 			Result: &r2,
