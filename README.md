@@ -11,10 +11,8 @@ the [Neo4j](http://www.neo4j.org) graph database via its REST API.
 
 | System    | Status                                                                                                                  |
 |-----------|:-----------------------------------------------------------------------------------------------------------------------:|
-| Travis CI | [![Travis CI](https://travis-ci.org/jmcvetta/neoism.png?branch=master)](https://travis-ci.org/jmcvetta/neoism)          |
-| CircleCI  | [![CircleCI](https://circleci.com/gh/jmcvetta/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)           | 
-| Coveralls | [![Coveralls](https://img.shields.io/coveralls/jmcvetta/neoism/master.svg)](https://coveralls.io/r/jmcvetta/neoism)     |
-| Codecov   | [![Codecov](https://img.shields.io/codecov/c/github/jmcvetta/neoism/master.svg)](https://codecov.io/gh/jmcvetta/neoism) |
+| CircleCI  | [![CircleCI](https://circleci.com/gh/Financial-Times/neoism.svg?style=svg)](https://circleci.com/gh/jmcvetta/neoism)           | 
+| Coveralls | [![Coveralls](https://img.shields.io/coveralls/Financial-Times/neoism/master.svg)](https://coveralls.io/r/jmcvetta/neoism)     |
 
 This driver is fairly complete, and may now be suitable for general use.  The
 code has an extensive set of integration tests, but little real-world testing.
@@ -23,9 +21,9 @@ YMMV; use in production at your own risk.
 
 # Requirements
 
-[Go 1.1](http://golang.org/doc/go1.1) or later is required.
+[Go 1.10](http://golang.org/doc/go1.10) or later is required.
 
-Tested against Neo4j 2.2.4 and Go 1.4.1.
+Tested against Neo4j 3.2.7 and Go 1.10.2.
 
 
 # Installation
@@ -34,17 +32,6 @@ Tested against Neo4j 2.2.4 and Go 1.4.1.
 
 ```
 go get -v github.com/jmcvetta/neoism
-```
-
-
-## Stable
-
-Neoism is versioned using [`gopkg.in`](http://gopkg.in).  
-
-Current release is `v1`
-
-```
-go get gopkg.in/jmcvetta/neoism.v1
 ```
 
 
