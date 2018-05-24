@@ -105,13 +105,18 @@ func (t *Tx) Commit() error {
 	if len(t.Errors) > 0 {
 		return TxQueryError
 	}
+	result := txResponse{}
 	ne := NeoError{}
-	resp, err := t.db.Session.Post(t.hrefCommit, nil, nil, &ne)
+	resp, err := t.db.Session.Post(t.hrefCommit, nil, &result, &ne)
 	if err != nil {
 		return err
 	}
 	if resp.Status() != 200 {
 		return ne
+	}
+	t.Errors = append(t.Errors, result.Errors...)
+	if len(t.Errors) != 0 {
+		return TxQueryError
 	}
 	return nil // Success
 }

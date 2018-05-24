@@ -174,6 +174,46 @@ func TestTxBadQuery(t *testing.T) {
 	assert.True(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
 }
 
+func TestTxBadQueryOnCommit(t *testing.T) {
+	db := connectTest(t)
+	defer cleanup(t, db)
+	qs := []*CypherQuery{
+		&CypherQuery{
+			Statement: `CREATE (a:Person{name:"alice"})-[:REL]->(b:Person{name:"bob"})-[:REL]->(c:Person{name:"chris"})`,
+		},
+		&CypherQuery{
+			Statement: `MATCH (a:Person{name:"alice"}) OPTIONAL MATCH (a)-[r:REL]-(b) DELETE b`,
+			// Statement: `DELETE (a:Person{name:"bob"})`,
+		},
+	}
+	tx, err := db.Begin(qs)
+	// confirm it does not exist before commit
+	res0 := []struct {
+		N string `json:"n.name"`
+	}{}
+	q0 := CypherQuery{
+		Statement:  `MATCH (n:Person{name:{name}}) RETURN n.name`,
+		Parameters: Props{"name": "bob"},
+		Result:     &res0,
+	}
+	err = db.Cypher(&q0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 0, len(res0))
+	// commit and confirm error
+	err = tx.Commit()
+	assert.Equal(t, TxQueryError, err)
+	numErr := len(tx.Errors)
+	assert.True(t, numErr == 1, "Expected one tx error, got "+strconv.Itoa(numErr))
+	// also check that still does not exist
+	err = db.Cypher(&q0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 0, len(res0))
+}
+
 func TestTxQuery(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
