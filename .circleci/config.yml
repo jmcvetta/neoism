@@ -1,0 +1,42 @@
+version: 2
+jobs:
+  build:
+    working_directory: /go/src/github.com/jmcvetta/neoism
+    docker:
+      - image: circleci/golang:1.10
+      - image: neo4j:3.4.0
+    steps:
+      - checkout
+      - run:
+          name: Install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      - run:
+          name: Wait for neo4j
+          command: dockerize -wait tcp://localhost:7474 -timeout 1m
+      - run:
+          name: Set neo4j password
+          command: |
+            bash set_neo4j_password.sh
+      - run:
+          name: Download dependancies
+          command: |
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      - run:
+          name: Download vendored dependancies
+          command: |
+            dep ensure -v -vendor-only
+      - run:
+          name: Run tests and create coverage report
+          command: |
+            go test ./... -v -race -cover -coverprofile=coverage.txt -covermode=atomic
+      - run:
+          name: Send to codecov
+          command: |
+            bash <(curl -s https://codecov.io/bash) 
+workflows:
+  version: 2
+  test-project:
+    jobs:
+      - build
