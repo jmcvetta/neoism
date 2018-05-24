@@ -8,26 +8,29 @@ go:
   - 1.6
   - 1.7
   - 1.8
+  - 1.9
+  - 1.10
   - tip
-notificaitons:
+
+notifications:
   email:
     recipients:
       jason.mcvetta@gmail.com
     on_success: change
     on_failure: always
-before_script:
-  - go get -v github.com/bmizerany/assert
-  - go get -v github.com/jmcvetta/randutil
+
 #
 # Lines below copied from # https://github.com/versae/neo4j-rest-client/blob/master/.travis.yml
 #
 before_install:
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - dep ensure -v -vendor-only
   - sh start-neo4j.sh
   - sh set_neo4j_password.sh
 
 env:
   global:
-    - NEO4J_VERSION="2.2.5"
+    - NEO4J_VERSION="3.4.0"
     - NEO4J_URL=http://neo4j:foobar@localhost:7474/db/data/
 
 script:
