@@ -112,7 +112,10 @@ func (db *Database) Cypher(q *CypherQuery) error {
 	}
 	q.cr = result
 	if q.Result != nil {
-		q.Unmarshal(q.Result)
+		err = q.Unmarshal(q.Result)
+		if err != nil {
+			return err
+		}
 	}
 	q.stats = q.cr.Stats
 	return nil
