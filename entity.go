@@ -33,7 +33,7 @@ func (e *entity) SetProperty(key string, value string) error {
 	return nil // Success!
 }
 
-// GetProperty fetches the value of property key.
+// Property fetches the value of property key.
 func (e *entity) Property(key string) (string, error) {
 	var val string
 	parts := []string{e.HrefProperties, key}
