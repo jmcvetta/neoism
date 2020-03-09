@@ -189,7 +189,7 @@ func (n *Node) Relate(relType string, destId int, p Props) (*Relationship, error
 	return &rel, nil
 }
 
-// AddLabels adds one or more labels to a node.
+// AddLabel adds one or more labels to a node.
 func (n *Node) AddLabel(labels ...string) error {
 	ne := NeoError{}
 	resp, err := n.Db.Session.Post(n.HrefLabels, labels, nil, &ne)
