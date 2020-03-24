@@ -97,9 +97,3 @@ Example Usage:
 	}
 */
 package neoism
-
-// Imports required for tests - so they work with "go get".
-import (
-	_ "github.com/stretchr/testify/assert"
-	_ "github.com/jmcvetta/randutil"
-)
