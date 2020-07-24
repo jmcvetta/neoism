@@ -30,12 +30,13 @@ package neoism
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/jmcvetta/randutil"
+	"github.com/stretchr/testify/assert"
 )
 
 // neo4jUrl is global in order for TestConnect() to work when NEO4J_URL is set.
@@ -55,7 +56,6 @@ func connectTest(t *testing.T) *Database {
 	}
 	return db
 }
-
 
 func cleanup(t *testing.T, db *Database) {
 	qs := []*CypherQuery{
@@ -121,6 +121,21 @@ func TestConnectIncompleteUrl(t *testing.T) {
 	}
 }
 
+func TestConnectCustomClient(t *testing.T) {
+	neo4jUrl = os.Getenv("NEO4J_URL")
+	if neo4jUrl == "" {
+		// As of Neo4j v2.2.x, authentication is enabled by default.
+		neo4jUrl = "http://neo4j:foobar@localhost:7474/db/data/"
+	}
+
+	client := &http.Client{}
+
+	db, err := Connect(neo4jUrl, WithClient(client))
+	assert.Nil(t, err)
+
+	assert.Equal(t, client, db.Session.Client)
+}
+
 func TestPropertyKeys(t *testing.T) {
 	db := connectTest(t)
 	defer cleanup(t, db)
@@ -170,4 +185,3 @@ func TestPropertyKeys(t *testing.T) {
 		}
 	}
 }
-

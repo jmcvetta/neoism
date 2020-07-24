@@ -14,15 +14,29 @@ import (
 	"gopkg.in/jmcvetta/napping.v3"
 )
 
-// Connect setups parameters for the Neo4j server
-// and calls ConnectWithRetry()
-func Connect(uri string) (*Database, error) {
+// WithClient is a configuration function that allows users of this library to
+// supply their own http.Client. This is required if they want to use a self
+// signed TLS certificate for example.
+func WithClient(client *http.Client) func(*Database) {
+	return func(db *Database) {
+		db.Session.Client = client
+	}
+}
+
+// Connect sets up our client for connecting to the Neo4j server and calls
+// ConnectWithRetry()
+func Connect(uri string, options ...func(*Database)) (*Database, error) {
 	h := http.Header{}
 	h.Add("User-Agent", "neoism")
 	db := &Database{
 		Session: &napping.Session{
 			Header: &h,
 		},
+	}
+
+	// apply our configuration functions
+	for _, opt := range options {
+		opt(db)
 	}
 
 	// trailing slash is important, check if it's not there and add it
